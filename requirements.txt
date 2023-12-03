@@ -21,6 +21,7 @@ numpy==1.26.2
 omegaconf==2.3.0
 packaging==23.2
 psutil==5.9.6
+pyg-lib==0.3.1+pt21
 pyparsing==3.1.1
 pytorch-lightning==2.1.2
 PyYAML==6.0.1
@@ -30,6 +31,10 @@ scipy==1.11.4
 sympy==1.12
 threadpoolctl==3.2.0
 torch==2.1.1
+torch-cluster==1.6.3
+torch-scatter==2.1.2
+torch-sparse==0.6.18
+torch-spline-conv==1.2.2
 torch_geometric==2.4.0
 torchmetrics==1.2.1
 tqdm==4.66.1
