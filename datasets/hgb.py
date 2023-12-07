@@ -80,17 +80,3 @@ class ACMDataModule(HGBBaseDataModule):
 
     def __str__(self):
         return "ACM"
-
-
-class FreebaseDataModule(HGBBaseDataModule):
-    def __init__(self, data_dir: str = "data"):
-        super().__init__(
-            data_dir=data_dir,
-            dataset="Freebase",
-            target="book",
-            num_classes=5,
-            task="multiclass"
-        )
-
-    def __str__(self):
-        return "Freebase"
