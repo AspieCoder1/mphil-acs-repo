@@ -45,8 +45,8 @@ class RGCNEntityPredictor(L.LightningModule):
         y_hat = self.model(batch)[batch.train_x]
 
         loss = F.cross_entropy(y_hat, y)
-        train_acc = self.train_acc(y_hat.softmax(dim=-1), y)
-        self.log('train_acc', train_acc, prog_bar=True, on_step=False,
+        self.train_acc(y_hat.softmax(dim=-1), y)
+        self.log('train_acc', self.train_acc, prog_bar=True, on_step=False,
                  on_epoch=True)
         return loss
 
@@ -55,7 +55,7 @@ class RGCNEntityPredictor(L.LightningModule):
 
 
 def main():
-    dataset = Entities("datasets", "MUTAG")
+    dataset = Entities("data", "MUTAG")
     data = dataset[0]
 
     print(data.edge_weight)
