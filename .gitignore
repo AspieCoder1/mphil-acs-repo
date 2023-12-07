@@ -163,3 +163,4 @@ data/
 gnn-baselines/
 wandb/
 lightning_logs/
+outputs/
