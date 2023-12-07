@@ -55,7 +55,7 @@ class HGTBaseDataModule(L.LightningDataModule):
     def test_dataloader(self) -> EVAL_DATALOADERS:
         return HGTLoader(
             self.data,
-            num_samples={key: [512] * 4 for key in self.data.node_types},
+            num_samples={key: [-1] * 10 for key in self.data.node_types},
             batch_size=128,
             input_nodes=(self.target, self.data[self.target].test_mask),
             num_workers=7,

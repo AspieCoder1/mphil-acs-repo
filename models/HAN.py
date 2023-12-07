@@ -21,9 +21,9 @@ class HAN(nn.Module):
         self.conv = nn.ModuleList([
             HANConv(-1, hidden_channels, heads=8, dropout=0.6,
                     metadata=metadata),
-            HANConv(hidden_channels, hidden_channels, heads=8, dropout=0.6,
+            HANConv(-1, hidden_channels, heads=8, dropout=0.6,
                     metadata=metadata),
-            HANConv(hidden_channels, hidden_channels, heads=8, dropout=0.6,
+            HANConv(-1, hidden_channels, heads=8, dropout=0.6,
                     metadata=metadata)
         ]
         )
@@ -68,11 +68,11 @@ class HANEntityPredictor(L.LightningModule):
     def common_step(self, batch: Batch, mask: torch.Tensor) -> tuple[
         torch.Tensor, torch.Tensor, torch.Tensor]:
         y: torch.Tensor = batch[self.target_type].y[mask]
-        y = y.to(torch.int)
         y_hat = self.model(batch)[mask]
         loss = self.loss_fn(y_hat, y)
         if self.task == "multilabel":
             y_hat = torch.sigmoid(y_hat)
+            y = y.to(torch.int)
         else:
             y_hat = y_hat.softmax(dim=-1)
         return y, y_hat, loss
@@ -123,8 +123,9 @@ class HANEntityPredictor(L.LightningModule):
         return None
 
     def configure_optimizers(self) -> OptimizerLRScheduler:
-        optimiser = torch.optim.AdamW(self.parameters(), lr=0.005, weight_decay=0.001)
-        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimiser, 0.9)
+        optimiser = torch.optim.AdamW(self.parameters())
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimiser, T_max=1_000,
+                                                               eta_min=1e-6)
 
         return {
             "optimizer": optimiser,

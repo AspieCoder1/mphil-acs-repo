@@ -2,50 +2,52 @@ from typing import Literal
 
 import lightning as L
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
-from lightning.pytorch.utilities.types import (
-    STEP_OUTPUT,
-    OptimizerLRScheduler
-)
-from torch import nn
-from torch_geometric.data import Data, Batch
-from torch_geometric.nn import HGTConv
-from torchmetrics.classification import Accuracy, F1Score, AUROC
+from lightning.pytorch.utilities.types import OptimizerLRScheduler
+from lightning.pytorch.utilities.types import STEP_OUTPUT
+from torch_geometric.data import Batch
+from torch_geometric.data import HeteroData
+from torch_geometric.nn import HeteroConv, SAGEConv
+from torchmetrics.classification import Accuracy, AUROC, F1Score
 
 
-class HGT(nn.Module):
+class HeteroGNN(nn.Module):
     def __init__(self, metadata: tuple[list[str], list[tuple[str, str, str]]],
                  hidden_channels: int = 256, out_channels: int = 10,
-                 target_type: str = "author"):
+                 num_layers: int = 3,
+                 target: str = "author"):
         super().__init__()
-        self.conv = nn.ModuleList([
-            HGTConv(-1, hidden_channels, heads=8, dropout=0.6,
-                    metadata=metadata),
-            HGTConv(hidden_channels, hidden_channels, heads=8, dropout=0.6,
-                    metadata=metadata),
-            HGTConv(hidden_channels, hidden_channels, heads=8, dropout=0.6,
-                    metadata=metadata)
-        ]
-        )
-        self.linear = nn.Linear(hidden_channels, out_channels)
-        self.target_type = target_type
+        self.target = target
 
-    def forward(self, data: Data):
+        self.convs = nn.ModuleList()
+        for i in range(num_layers):
+            conv = HeteroConv({
+                edge_type: SAGEConv(-1, hidden_channels, add_self_loops=False) for
+                edge_type in metadata[1]
+            })
+            self.convs.append(conv)
+
+        self.lin = nn.Linear(hidden_channels, out_channels)
+
+    def forward(self, data: HeteroData):
         x_dict = data.x_dict
-        for layer in self.conv:
-            x_dict = layer(x_dict, data.edge_index_dict)
 
-        out = self.linear(x_dict[self.target_type])
-        return out
+        for conv in self.convs:
+            x_dict = conv(x_dict, data.edge_index_dict)
+
+        return self.lin(x_dict[self.target])
 
 
-class HGTEntityPredictor(L.LightningModule):
+class HeteroGNNNodeClassifier(L.LightningModule):
     def __init__(self, metadata: tuple[list[str], list[tuple[str, str, str]]],
-                 hidden_channels: int = 128, out_channels: int = 10,
-                 target: str = "author", task: Literal[
-                "binary", "multiclass", "multilabel"] = "multilabel"):
+                 hidden_channels: int = 256, out_channels: int = 10,
+                 num_layers: int = 3,
+                 target: str = "author",
+                 task: Literal["binary", "multiclass", "multilabel"] = "multiclass"):
         super().__init__()
-        self.model = HGT(metadata, hidden_channels, out_channels, target)
+        self.model = HeteroGNN(metadata, hidden_channels, out_channels,
+                               num_layers, target)
         self.num_classes = out_channels
 
         metrics_params = {

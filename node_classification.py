@@ -13,6 +13,7 @@ from datasets.hgt import HGTDBLPDataModule, HGTACMDataModule, HGTIMDBDataModule,
     HGTFreebaseDataModule, HGTBaseDataModule
 from models.HAN import HANEntityPredictor
 from models.HGT import HGTEntityPredictor
+from models.HeteroGNN import HeteroGNNNodeClassifier
 
 
 class Datasets(StrEnum):
@@ -25,12 +26,14 @@ class Datasets(StrEnum):
 class Models(StrEnum):
     HAN = "HAN"
     HGT = "HGT"
+    HGCN = "HGCN"
 
 
 @dataclass
 class Config:
     dataset: Datasets
     model: Models
+    patience: int = 100
 
 
 cs = ConfigStore.instance()
@@ -77,6 +80,15 @@ def get_model(model: Models, datamodule: HGBBaseDataModule):
                 target=datamodule.target,
                 task=datamodule.task
             )
+        case Models.HGCN:
+            return HeteroGNNNodeClassifier(
+                datamodule.metadata,
+                hidden_channels=256,
+                out_channels=datamodule.num_classes,
+                target=datamodule.target,
+                task=datamodule.task,
+                num_layers=3
+            )
 
 
 @hydra.main(version_base=None, config_name="config")
@@ -102,9 +114,10 @@ def main(cfg: Config):
         }
     )
 
-    trainer = L.Trainer(accelerator="gpu", log_every_n_steps=1,
+    trainer = L.Trainer(accelerator="cpu", log_every_n_steps=1,
                         logger=logger,
-                        callbacks=[EarlyStopping("valid/loss", patience=100),
+                        max_epochs=200,
+                        callbacks=[EarlyStopping("valid/loss", patience=cfg.patience),
                                    ModelCheckpoint(monitor="valid/accuracy",
                                                    mode="max")])
     trainer.fit(model, datamodule)
