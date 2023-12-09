@@ -8,9 +8,9 @@ from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 
 from datasets.hgb import DBLPDataModule, ACMDataModule, IMDBDataModule, \
-    FreebaseDataModule, HGBBaseDataModule
+    HGBBaseDataModule
 from datasets.hgt import HGTDBLPDataModule, HGTACMDataModule, HGTIMDBDataModule, \
-    HGTFreebaseDataModule, HGTBaseDataModule
+    HGTBaseDataModule
 from models.HAN import HANEntityPredictor
 from models.HGT import HGTEntityPredictor
 from models.HeteroGNN import HeteroGNNNodeClassifier
@@ -20,7 +20,6 @@ class Datasets(StrEnum):
     DBLP = "DBLP"
     ACM = "ACM"
     IMDB = "IMDB"
-    Freebase = "Freebase"
 
 
 class Models(StrEnum):
@@ -48,8 +47,6 @@ def get_dataset(dataset: Datasets) -> HGBBaseDataModule:
             return ACMDataModule()
         case Datasets.IMDB:
             return IMDBDataModule()
-        case Datasets.Freebase:
-            return FreebaseDataModule()
 
 
 def get_dataset_hgt(dataset: Datasets) -> HGTBaseDataModule:
@@ -60,8 +57,6 @@ def get_dataset_hgt(dataset: Datasets) -> HGTBaseDataModule:
             return HGTACMDataModule()
         case Datasets.IMDB:
             return HGTIMDBDataModule()
-        case Datasets.Freebase:
-            return HGTFreebaseDataModule()
 
 
 def get_model(model: Models, datamodule: HGBBaseDataModule):
