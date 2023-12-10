@@ -14,6 +14,7 @@ from datasets.hgt import HGTDBLPDataModule, HGTACMDataModule, HGTIMDBDataModule,
 from models.HAN import HANEntityPredictor
 from models.HGT import HGTEntityPredictor
 from models.HeteroGNN import HeteroGNNNodeClassifier
+from models.RGCN import RGCNNodeClassifier
 
 
 class Datasets(StrEnum):
@@ -26,6 +27,7 @@ class Models(StrEnum):
     HAN = "HAN"
     HGT = "HGT"
     HGCN = "HGCN"
+    RGCN = "RGCN"
 
 
 @dataclass
@@ -83,6 +85,16 @@ def get_model(model: Models, datamodule: HGBBaseDataModule):
                 target=datamodule.target,
                 task=datamodule.task,
                 num_layers=3
+            )
+        case Models.RGCN:
+            return RGCNNodeClassifier(
+                metadata=datamodule.metadata,
+                hidden_channels=256,
+                out_channels=datamodule.num_classes,
+                num_nodes=datamodule.num_nodes,
+                num_relations=len(datamodule.metadata[1]),
+                task=datamodule.task,
+                target=datamodule.target
             )
 
 

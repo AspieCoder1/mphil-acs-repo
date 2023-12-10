@@ -8,7 +8,7 @@ from lightning.pytorch.utilities.types import (
     OptimizerLRScheduler
 )
 from torch import nn
-from torch_geometric.data import Data, Batch
+from torch_geometric.data import HeteroData, Batch
 from torch_geometric.nn import HGTConv
 from torchmetrics.classification import Accuracy, F1Score, AUROC
 
@@ -30,10 +30,10 @@ class HGT(nn.Module):
         self.linear = nn.Linear(hidden_channels, out_channels)
         self.target_type = target_type
 
-    def forward(self, data: Data):
+    def forward(self, data: HeteroData):
         x_dict = data.x_dict
         for layer in self.conv:
-            x_dict = layer(x_dict, data.edge_index_dict)
+            x_dict = F.relu(layer(x_dict, data.edge_index_dict))
 
         out = self.linear(x_dict[self.target_type])
         return out

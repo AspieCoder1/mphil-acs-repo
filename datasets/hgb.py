@@ -22,6 +22,7 @@ class HGBBaseDataModule(L.LightningDataModule):
         self.pyg_datamodule: Optional[LightningNodeData] = None
         self.metadata = None
         self.dataset = dataset
+        self.num_nodes = None
 
     def prepare_data(self) -> None:
         transform = T.Compose(
@@ -39,6 +40,7 @@ class HGBBaseDataModule(L.LightningDataModule):
             batch_size=128
         )
         self.metadata = data.metadata()
+        self.num_nodes = data.num_nodes
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return self.pyg_datamodule.train_dataloader()
