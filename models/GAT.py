@@ -8,44 +8,42 @@ from lightning.pytorch.utilities.types import (
     OptimizerLRScheduler
 )
 from torch import nn
-from torch_geometric.data import HeteroData, Batch
-from torch_geometric.nn import HGTConv
+from torch_geometric.data import Batch, HeteroData
+from torch_geometric.nn import to_hetero, GATConv
 from torchmetrics.classification import Accuracy, F1Score, AUROC
 
 
-class HGT(nn.Module):
-    def __init__(self, metadata: tuple[list[str], list[tuple[str, str, str]]],
-                 hidden_channels: int = 256, out_channels: int = 10,
+class GCN(nn.Module):
+    def __init__(self, hidden_channels: int = 256, out_channels: int = 10,
                  target_type: str = "author"):
         super().__init__()
         self.conv = nn.ModuleList([
-            HGTConv(-1, hidden_channels, heads=8, dropout=0.6,
-                    metadata=metadata),
-            HGTConv(hidden_channels, hidden_channels, heads=8, dropout=0.6,
-                    metadata=metadata),
-            HGTConv(hidden_channels, hidden_channels, heads=8, dropout=0.6,
-                    metadata=metadata)
+            GATConv(-1, hidden_channels, add_self_loops=False, heads=8, dropout=0.6),
+            GATConv(hidden_channels, hidden_channels, add_self_loops=False, heads=8,
+                    dropout=0.6),
+            GATConv(hidden_channels, hidden_channels, add_self_loops=False, heads=8,
+                    dropout=0.6)
         ]
         )
         self.linear = nn.Linear(hidden_channels, out_channels)
         self.target_type = target_type
 
-    def forward(self, data: HeteroData):
-        x_dict = data.x_dict
+    def forward(self, x, edge_index):
         for layer in self.conv:
-            x_dict = layer(x_dict, data.edge_index_dict).relu()
+            x = layer(x, edge_index).relu()
 
-        out = self.linear(x_dict[self.target_type])
+        out = self.linear(x)
         return out
 
 
-class HGTEntityPredictor(L.LightningModule):
+class GATNodeClassifier(L.LightningModule):
     def __init__(self, metadata: tuple[list[str], list[tuple[str, str, str]]],
                  hidden_channels: int = 128, out_channels: int = 10,
                  target: str = "author", task: Literal[
                 "binary", "multiclass", "multilabel"] = "multilabel"):
         super().__init__()
-        self.model = HGT(metadata, hidden_channels, out_channels, target)
+        model = GCN(hidden_channels, out_channels, target)
+        self.model = to_hetero(model, metadata)
         self.num_classes = out_channels
 
         metrics_params = {
@@ -65,10 +63,11 @@ class HGTEntityPredictor(L.LightningModule):
         else:
             self.loss_fn = F.cross_entropy
 
-    def common_step(self, batch: Batch, mask: torch.Tensor) -> tuple[
+    def common_step(self, batch: HeteroData, mask: torch.Tensor) -> tuple[
         torch.Tensor, torch.Tensor, torch.Tensor]:
         y: torch.Tensor = batch[self.target_type].y[mask]
-        y_hat = self.model(batch)[mask]
+        out = self.model(batch.x_dict, batch.edge_index_dict)[self.target_type]
+        y_hat = out[mask]
         loss = self.loss_fn(y_hat, y)
         if self.task == "multilabel":
             y_hat = torch.sigmoid(y_hat)
@@ -77,7 +76,7 @@ class HGTEntityPredictor(L.LightningModule):
             y_hat = y_hat.softmax(dim=-1)
         return y, y_hat, loss
 
-    def training_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:
+    def training_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
         mask = batch[self.target_type].train_mask
         y, y_hat, loss = self.common_step(batch, mask)
 

@@ -11,6 +11,8 @@ from datasets.hgb import DBLPDataModule, ACMDataModule, IMDBDataModule, \
     HGBBaseDataModule
 from datasets.hgt import HGTDBLPDataModule, HGTACMDataModule, HGTIMDBDataModule, \
     HGTBaseDataModule
+from models.GAT import GATNodeClassifier
+from models.GCN import GCNNodeClassifier
 from models.HAN import HANEntityPredictor
 from models.HGT import HGTEntityPredictor
 from models.HeteroGNN import HeteroGNNNodeClassifier
@@ -28,6 +30,8 @@ class Models(StrEnum):
     HGT = "HGT"
     HGCN = "HGCN"
     RGCN = "RGCN"
+    GCN = "GCN"
+    GAT = "GAT"
 
 
 @dataclass
@@ -96,6 +100,20 @@ def get_model(model: Models, datamodule: HGBBaseDataModule):
                 task=datamodule.task,
                 target=datamodule.target
             )
+        case Models.GCN:
+            return GCNNodeClassifier(
+                datamodule.metadata,
+                out_channels=datamodule.num_classes,
+                target=datamodule.target,
+                task=datamodule.task
+            )
+        case Models.GAT:
+            return GATNodeClassifier(
+                datamodule.metadata,
+                out_channels=datamodule.num_classes,
+                target=datamodule.target,
+                task=datamodule.task
+            )
 
 
 @hydra.main(version_base=None, config_name="config")
@@ -112,6 +130,7 @@ def main(cfg: Config):
     logger = WandbLogger(project="gnn-baselines", log_model="all")
     logger.experiment.config["model"] = cfg.model
     logger.experiment.config["dataset"] = cfg.dataset
+    logger.experiment.tags = ['GNN', 'baseline', 'node classification']
     logger.log_hyperparams(
         {
             "n_heads": 8,

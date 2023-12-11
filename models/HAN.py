@@ -33,7 +33,7 @@ class HAN(nn.Module):
     def forward(self, data: Data):
         x_dict = data.x_dict
         for layer in self.conv:
-            x_dict = F.relu(layer(x_dict, data.edge_index_dict))
+            x_dict = layer(x_dict, data.edge_index_dict).relu()
 
         out = self.linear(x_dict[self.target_type])
         return out
