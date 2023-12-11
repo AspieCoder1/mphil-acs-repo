@@ -34,7 +34,7 @@ class HeteroGNN(nn.Module):
         x_dict = data.x_dict
 
         for conv in self.convs:
-            x_dict = conv(x_dict, data.edge_index_dict).relu()
+            x_dict = conv(x_dict, data.edge_index_dict).elu()
 
         return self.lin(x_dict[self.target])
 

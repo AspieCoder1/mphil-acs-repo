@@ -26,9 +26,9 @@ class RGCN(nn.Module):
 
         edge_type, edge_index = data.edge_type, data.edge_index
         x = self.conv1(None, edge_index, edge_type)
-        x = F.relu(x)
+        x = F.elu(x)
         x = self.conv2(x, edge_index, edge_type)
-        x = F.relu(x)
+        x = F.elu(x)
 
         data.update({
             "x": x

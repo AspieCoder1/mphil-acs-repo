@@ -28,7 +28,7 @@ class GCN(nn.Module):
 
     def forward(self, x, edge_index):
         for layer in self.conv:
-            x = layer(x, edge_index).relu()
+            x = layer(x, edge_index).elu()
 
         out = self.linear(x)
         return out

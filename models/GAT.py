@@ -18,11 +18,11 @@ class GCN(nn.Module):
                  target_type: str = "author"):
         super().__init__()
         self.conv = nn.ModuleList([
-            GATConv(-1, hidden_channels, add_self_loops=False, heads=8, dropout=0.6),
-            GATConv(hidden_channels, hidden_channels, add_self_loops=False, heads=8,
-                    dropout=0.6),
-            GATConv(hidden_channels, hidden_channels, add_self_loops=False, heads=8,
-                    dropout=0.6)
+            GATConv(-1, hidden_channels, heads=8, dropout=0.6, add_self_loops=False),
+            GATConv(-1, hidden_channels, heads=8, dropout=0.6,
+                    add_self_loops=False),
+            GATConv(-1, hidden_channels, heads=8, dropout=0.6,
+                    add_self_loops=False)
         ]
         )
         self.linear = nn.Linear(hidden_channels, out_channels)
@@ -30,7 +30,7 @@ class GCN(nn.Module):
 
     def forward(self, x, edge_index):
         for layer in self.conv:
-            x = layer(x, edge_index).relu()
+            x = F.elu(layer(x, edge_index))
 
         out = self.linear(x)
         return out
