@@ -7,16 +7,26 @@ from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 
-from datasets.hgb import DBLPDataModule, ACMDataModule, IMDBDataModule, \
+from datasets.hgb import (
+    DBLPDataModule,
+    ACMDataModule,
+    IMDBDataModule,
     HGBBaseDataModule
-from datasets.hgt import HGTDBLPDataModule, HGTACMDataModule, HGTIMDBDataModule, \
+)
+from datasets.hgt import (
+    HGTDBLPDataModule,
+    HGTACMDataModule,
+    HGTIMDBDataModule,
     HGTBaseDataModule
-from models.GAT import GATNodeClassifier
-from models.GCN import GCNNodeClassifier
-from models.HAN import HANEntityPredictor
-from models.HGT import HGTEntityPredictor
-from models.HeteroGNN import HeteroGNNNodeClassifier
-from models.RGCN import RGCNNodeClassifier
+)
+from models import (
+    GATNodeClassifier,
+    GCNNodeClassifier,
+    HANNodeClassifier,
+    HGTEntityPredictor,
+    HeteroGNNNodeClassifier,
+    RGCNNodeClassifier
+)
 
 
 class Datasets(StrEnum):
@@ -68,7 +78,7 @@ def get_dataset_hgt(dataset: Datasets) -> HGTBaseDataModule:
 def get_model(model: Models, datamodule: HGBBaseDataModule):
     match model:
         case Models.HAN:
-            return HANEntityPredictor(
+            return HANNodeClassifier(
                 datamodule.metadata,
                 out_channels=datamodule.num_classes,
                 target=datamodule.target,
