@@ -3,7 +3,7 @@ from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 
 from datasets.link_pred import LastFMDataModule
-from models.HAN import HANLinkPredictor
+from models.HAN import HANLinkPredictor, HAN, HANEdgeDecoder
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
                         num_nodes=1,
                         accelerator="cuda",
                         devices=4,
-                        strategy="fsdp",
+                        strategy="deepspeed_stage_3",
                         max_epochs=200,
                         logger=logger,
                         callbacks=[EarlyStopping("valid/loss", patience=100),
