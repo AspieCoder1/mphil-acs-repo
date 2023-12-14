@@ -67,11 +67,12 @@ class HANEdgeDecoder(torch.nn.Module):
 
 class HANNodeClassifier(L.LightningModule):
     def __init__(self, metadata: tuple[list[str], list[tuple[str, str, str]]],
+                 in_channels: Optional[dict[str, int]] = None,
                  hidden_channels: int = 128, out_channels: int = 10,
                  target: str = "author", task: Literal[
                 "binary", "multiclass", "multilabel"] = "multilabel"):
         super().__init__()
-        self.model = HAN(metadata, hidden_channels)
+        self.model = HAN(metadata, hidden_channels, in_channels)
         self.linear = nn.Linear(hidden_channels, out_channels)
 
         metrics_params = {
@@ -186,18 +187,18 @@ class HANLinkPredictor(L.LightningModule):
         x_dict = self.encoder(batch)
         num_pos_ex = batch[self.target][pos_idx].size(1)
         neg_ex = torch.randperm(batch[self.target][neg_idx].size(1))[:num_pos_ex]
-        neg_samples = batch[self.target][neg_idx][neg_ex]
-        edge_label_index = torch.concat(
+        neg_samples = batch[self.target][neg_idx][neg_ex,:]
+        edge_label_index = torch.vstack(
             [
                 batch[self.target][pos_idx],
                 neg_samples
-            ], dim=-1
+            ]
         )
         y_hat = self.decoder(x_dict, edge_label_index)
-        y = torch.concat([
+        y = torch.vstack([
             torch.ones(num_pos_ex),
             torch.zeros(num_pos_ex),
-        ], dim=-1).to(y_hat)
+        ]).to(y_hat)
 
         loss = F.binary_cross_entropy_with_logits(y_hat, y)
 

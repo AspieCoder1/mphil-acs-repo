@@ -23,6 +23,7 @@ class HGBBaseDataModule(L.LightningDataModule):
         self.metadata = None
         self.dataset = dataset
         self.num_nodes = None
+        self.in_channels: Optional[dict[str, int]] = None
 
     def prepare_data(self) -> None:
         transform = T.Compose(
@@ -31,6 +32,11 @@ class HGBBaseDataModule(L.LightningDataModule):
                              transform=transform)
 
         data: HeteroData = dataset[0]
+
+        self.in_channels = {
+            node_type: data[node_type].num_features for node_type in data.node_types
+        }
+
         self.pyg_datamodule = LightningNodeData(
             data,
             input_train_nodes=(self.target, data[self.target].train_mask),

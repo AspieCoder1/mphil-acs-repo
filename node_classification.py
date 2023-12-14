@@ -81,6 +81,7 @@ def get_model(model: Models, datamodule: HGBBaseDataModule):
         case Models.HAN:
             return HANNodeClassifier(
                 datamodule.metadata,
+                in_channels=datamodule.in_channels,
                 out_channels=datamodule.num_classes,
                 target=datamodule.target,
                 task=datamodule.task

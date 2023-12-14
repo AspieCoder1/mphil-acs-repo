@@ -33,8 +33,6 @@ class LastFMDataModule(L.LightningDataModule):
         self.data = dataset[0]
         self.metadata = self.data.metadata()
 
-        print(self.data["user"].num_features)
-
         self.in_channels = {
             node_type: self.data[node_type].num_features for node_type in
             self.data.node_types
