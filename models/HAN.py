@@ -14,6 +14,7 @@ from torchmetrics.classification import Accuracy, F1Score, AUROC
 
 
 class CommonStepOutput(NamedTuple):
+    y: torch.Tensor
     y_hat: torch.Tensor
     loss: torch.Tensor
 
@@ -179,14 +180,9 @@ class HANLinkPredictor(L.LightningModule):
         self.test_acc = Accuracy(task="binary")
         self.test_f1 = F1Score(task="binary")
         self.test_auroc = AUROC(task="binary")
-        self.register_buffer("y", None)
         self.register_buffer("edge_label_index", None)
 
     def common_step(self, batch, pos_idx: str, neg_idx: str) -> CommonStepOutput:
-        self.y = torch.concat([
-            torch.ones(batch[self.target][pos_idx].size(1)),
-            torch.zeros(batch[self.target][neg_idx].size(1)),
-        ], dim=-1)
         x_dict = self.encoder(batch)
         self.edge_label_index = torch.concat(
             [
@@ -195,16 +191,20 @@ class HANLinkPredictor(L.LightningModule):
             ], dim=-1
         )
         y_hat = self.decoder(x_dict, self.edge_label_index)
+        y = torch.concat([
+            torch.ones(batch[self.target][pos_idx].size(1)),
+            torch.zeros(batch[self.target][neg_idx].size(1)),
+        ], dim=-1).to(y_hat)
 
         loss = F.binary_cross_entropy_with_logits(y_hat, self.y)
 
-        return CommonStepOutput(y_hat.softmax(dim=-1), loss)
+        return CommonStepOutput(y, y_hat.softmax(dim=-1), loss)
 
     def training_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:
-        y_hat, loss = self.common_step(batch, "edge_index",
-                                       "train_neg_edge_index")
+        y, y_hat, loss = self.common_step(batch, "edge_index",
+                                          "train_neg_edge_index")
 
-        self.train_acc(y_hat, self.y)
+        self.train_acc(y_hat, y)
 
         self.log_dict(
             {
@@ -221,10 +221,10 @@ class HANLinkPredictor(L.LightningModule):
         return loss
 
     def validation_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:
-        y_hat, loss = self.common_step(batch, "val_pos_edge_index",
-                                       "val_neg_edge_index")
+        y, y_hat, loss = self.common_step(batch, "val_pos_edge_index",
+                                          "val_neg_edge_index")
 
-        self.val_acc(y_hat, self.y)
+        self.val_acc(y_hat, y)
 
         self.log_dict(
             {
@@ -241,12 +241,12 @@ class HANLinkPredictor(L.LightningModule):
         return loss
 
     def test_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:
-        y_hat, loss = self.common_step(batch, "test_pos_edge_index",
-                                       "test_neg_edge_index")
+        y, y_hat, loss = self.common_step(batch, "test_pos_edge_index",
+                                          "test_neg_edge_index")
 
-        self.test_acc(y_hat, self.y)
-        self.test_f1(y_hat, self.y)
-        self.test_auroc(y_hat, self.y)
+        self.test_acc(y_hat, y)
+        self.test_f1(y_hat, y)
+        self.test_auroc(y_hat, y)
 
         self.log_dict(
             {
