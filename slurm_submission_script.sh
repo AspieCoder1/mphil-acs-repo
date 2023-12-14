@@ -8,4 +8,4 @@
 #SBATCH --exclusive
 
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
-srun python link_prediction.py +dataset=AmazonBooks
+srun python link_prediction.py
