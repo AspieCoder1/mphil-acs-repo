@@ -180,20 +180,22 @@ class HANLinkPredictor(L.LightningModule):
         self.test_acc = Accuracy(task="binary")
         self.test_f1 = F1Score(task="binary")
         self.test_auroc = AUROC(task="binary")
+        self.register_buffer("y", None)
+        self.register_buffer("edge_label_index", None)
 
     def common_step(self, batch, pos_idx: str, neg_idx: str) -> CommonStepOutput:
-        y = torch.concat([
-            torch.ones(batch[self.target][pos_idx].size(1), device=self.device),
-            torch.zeros(batch[self.target][neg_idx].size(1), device=self.device),
+        self.y = torch.concat([
+            torch.ones(batch[self.target][pos_idx].size(1)),
+            torch.zeros(batch[self.target][neg_idx].size(1)),
         ], dim=-1)
         x_dict = self.encoder(batch)
-        edge_label_index = torch.concat(
+        self.edge_label_index = torch.concat(
             [
                 batch[self.target][pos_idx],
                 batch[self.target][neg_idx]
             ], dim=-1
         )
-        y_hat = self.decoder(x_dict, edge_label_index)
+        y_hat = self.decoder(x_dict, self.edge_label_index)
 
         loss = F.binary_cross_entropy_with_logits(y_hat, y)
 
