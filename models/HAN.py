@@ -44,13 +44,21 @@ class HAN(nn.Module):
         return x_dict
 
 
-class EdgeDecoder(torch.nn.Module):
-    def __init__(self, target: tuple[str, str, str]):
+class HANEdgeDecoder(torch.nn.Module):
+    def __init__(
+            self,
+            metadata: tuple[list[str], list[tuple[str, str, str]]],
+            target: tuple[str, str, str],
+            hidden_channels: int = 256
+    ):
         super().__init__()
+
+        self.HAN = HAN(metadata, hidden_channels)
         self.rel_src = target[0]
         self.rel_dst = target[-1]
 
-    def forward(self, x_dict, edge_label_index):
+    def forward(self, data: HeteroData, edge_label_index):
+        x_dict = self.HAN(data)
         A = x_dict[self.rel_src][edge_label_index[0]]
         B = x_dict[self.rel_dst][edge_label_index[1]]
         return torch.bmm(A.unsqueeze(dim=1), B.unsqueeze(dim=2)).squeeze()
@@ -160,8 +168,7 @@ class HANLinkPredictor(L.LightningModule):
     ):
         super(HANLinkPredictor, self).__init__()
 
-        self.encoder = HAN(metadata, hidden_channels)
-        self.decoder = EdgeDecoder(edge_target)
+        self.model = HANEdgeDecoder(metadata, edge_target, hidden_channels)
         self.target = edge_target
 
         # metrics
@@ -183,7 +190,7 @@ class HANLinkPredictor(L.LightningModule):
                 batch[self.target][neg_idx]
             ], dim=-1
         )
-        y_hat = self.decoder(x_dict, edge_label_index)
+        y_hat = self.model(batch, edge_label_index)
 
         loss = F.binary_cross_entropy_with_logits(y_hat, y)
 

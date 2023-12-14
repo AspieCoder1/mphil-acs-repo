@@ -22,8 +22,9 @@ def main():
 
     trainer = L.Trainer(log_every_n_steps=1,
                         num_nodes=1,
-                        devices=1,
                         accelerator="gpu",
+                        devices=4,
+                        strategy="dpp",
                         max_epochs=200,
                         logger=logger,
                         callbacks=[EarlyStopping("valid/loss", patience=100),
