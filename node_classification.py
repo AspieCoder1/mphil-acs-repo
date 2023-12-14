@@ -128,7 +128,7 @@ def get_model(model: Models, datamodule: HGBBaseDataModule):
             )
 
 
-@hydra.main(version_base=None, config_name="config")
+@hydra.main(version_base=None, config_path=".", config_name="nc_config")
 def main(cfg: Config):
     if cfg.model == Models.HGT:
         datamodule = get_dataset_hgt(cfg.dataset)

@@ -26,11 +26,10 @@ class Models(UppercaseStrEnum):
 
 
 def get_dataset(dataset: Datasets) -> LinkPredBase:
-    match dataset:
-        case Datasets.LastFM:
-            return LastFMDataModule("data")
-        case _:
-            return AmazonBooksDataModule("data")
+    if dataset == Datasets.LastFM:
+        return LastFMDataModule("data")
+    else:
+        return AmazonBooksDataModule("data")
 
 
 @dataclass
