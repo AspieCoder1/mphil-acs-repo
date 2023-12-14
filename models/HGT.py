@@ -89,9 +89,9 @@ class HGTEntityPredictor(L.LightningModule):
 
         self.train_acc(y_hat, y)
         self.log('train/accuracy', self.train_acc, prog_bar=True, on_step=False,
-                 on_epoch=True)
+                 on_epoch=True, sync_dist=True)
         self.log('train/loss', loss, prog_bar=True, on_step=True,
-                 on_epoch=True, batch_size=64)
+                 on_epoch=True, batch_size=64, sync_dist=True)
 
         return loss
 
@@ -104,9 +104,9 @@ class HGTEntityPredictor(L.LightningModule):
         self.test_auroc(y_hat, y)
 
         self.log('valid/accuracy', self.test_acc, prog_bar=True, on_step=False,
-                 on_epoch=True)
+                 on_epoch=True, sync_dist=True)
         self.log('valid/loss', loss, prog_bar=False, on_step=False,
-                 on_epoch=True, batch_size=64)
+                 on_epoch=True, batch_size=64, sync_dist=True)
         return
 
     def test_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:
@@ -118,13 +118,13 @@ class HGTEntityPredictor(L.LightningModule):
         self.test_auroc(y_hat, y)
 
         self.log('test/accuracy', self.test_acc, prog_bar=True, on_step=False,
-                 on_epoch=True)
+                 on_epoch=True, sync_dist=True)
         self.log('test/f1-score', self.test_f1, prog_bar=False, on_step=False,
-                 on_epoch=True)
+                 on_epoch=True, sync_dist=True)
         self.log('test/auroc', self.test_auroc, prog_bar=False, on_step=False,
-                 on_epoch=True)
+                 on_epoch=True, sync_dist=True)
         self.log('test/loss', loss, prog_bar=False, on_step=False,
-                 on_epoch=True, batch_size=128)
+                 on_epoch=True, batch_size=128, sync_dist=True)
 
         return None
 

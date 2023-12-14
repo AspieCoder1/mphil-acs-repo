@@ -152,6 +152,7 @@ def main(cfg: Config):
 
     trainer = L.Trainer(accelerator="gpu", log_every_n_steps=1,
                         logger=logger,
+                        strategy="ddp_find_unused_parameters_true",
                         devices=4,
                         max_epochs=200,
                         callbacks=[EarlyStopping("valid/loss", patience=cfg.patience),
