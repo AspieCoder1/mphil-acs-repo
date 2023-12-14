@@ -24,7 +24,6 @@ def main():
 
     strategy = FSDPStrategy(
         auto_wrap_policy={HANEdgeDecoder, HAN},
-        sharding_strategy="FULL_SHARD"
     )
 
     trainer = L.Trainer(log_every_n_steps=1,
