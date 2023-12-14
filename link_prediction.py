@@ -25,7 +25,6 @@ def main():
                         devices=1,
                         accelerator="gpu",
                         max_epochs=200,
-                        fast_dev_run=True,
                         logger=logger,
                         callbacks=[EarlyStopping("valid/loss", patience=100),
                                    ModelCheckpoint(monitor="valid/accuracy",
