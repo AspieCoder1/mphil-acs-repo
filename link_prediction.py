@@ -48,8 +48,6 @@ def main(cfg: Config):
     datamodule = get_dataset(cfg.dataset)
     datamodule.prepare_data()
 
-    print(datamodule.metadata)
-
     model = HANLinkPredictor(datamodule.metadata, hidden_channels=256,
                              edge_target=datamodule.target,
                              in_channels=datamodule.in_channels)
