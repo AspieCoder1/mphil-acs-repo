@@ -25,7 +25,7 @@ def main():
                         num_nodes=1,
                         accelerator="cuda",
                         devices=4,
-                        strategy="fsdps",
+                        strategy="fsdp",
                         max_epochs=200,
                         logger=logger,
                         callbacks=[EarlyStopping("valid/loss", patience=100),
