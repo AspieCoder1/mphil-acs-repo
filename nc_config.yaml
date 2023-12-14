@@ -1,2 +1,3 @@
 model: HGT
 dataset: DBLP
+patience: 100
