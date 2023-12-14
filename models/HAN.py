@@ -195,7 +195,7 @@ class HANLinkPredictor(L.LightningModule):
             )
         )
         y_hat = self.decoder(x_dict, edge_label_index)
-        y = torch.vstack((
+        y = torch.hstack((
             torch.ones(num_pos_ex),
             torch.zeros(num_pos_ex),
         )).to(y_hat)
