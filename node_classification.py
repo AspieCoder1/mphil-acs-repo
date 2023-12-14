@@ -149,7 +149,7 @@ def main(cfg: Config):
         }
     )
 
-    trainer = L.Trainer(accelerator="cpu", log_every_n_steps=1,
+    trainer = L.Trainer(accelerator="gpu", log_every_n_steps=1,
                         logger=logger,
                         max_epochs=200,
                         callbacks=[EarlyStopping("valid/loss", patience=cfg.patience),
