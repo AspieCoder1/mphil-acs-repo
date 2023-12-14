@@ -88,7 +88,8 @@ def get_model(model: Models, datamodule: HGBBaseDataModule):
             datamodule.metadata,
             out_channels=datamodule.num_classes,
             target=datamodule.target,
-            task=datamodule.task
+            task=datamodule.task,
+            in_channel=datamodule.in_channels
         )
     elif model == Models.HGCN:
         return HeteroGNNNodeClassifier(

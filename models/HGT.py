@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Optional
 
 import lightning as L
 import torch
@@ -16,10 +16,14 @@ from torchmetrics.classification import Accuracy, F1Score, AUROC
 class HGT(nn.Module):
     def __init__(self, metadata: tuple[list[str], list[tuple[str, str, str]]],
                  hidden_channels: int = 256, out_channels: int = 10,
-                 target_type: str = "author"):
+                 target_type: str = "author",
+                 in_channels: Optional[dict[str, int]] = None):
         super().__init__()
+        if in_channels is None:
+            in_channels = -1
+
         self.conv = nn.ModuleList([
-            HGTConv(-1, hidden_channels, heads=8, dropout=0.6,
+            HGTConv(in_channels, hidden_channels, heads=8, dropout=0.6,
                     metadata=metadata),
             HGTConv(hidden_channels, hidden_channels, heads=8, dropout=0.6,
                     metadata=metadata),
@@ -41,11 +45,13 @@ class HGT(nn.Module):
 
 class HGTEntityPredictor(L.LightningModule):
     def __init__(self, metadata: tuple[list[str], list[tuple[str, str, str]]],
+                 in_channel: dict[str, int],
                  hidden_channels: int = 128, out_channels: int = 10,
                  target: str = "author", task: Literal[
                 "binary", "multiclass", "multilabel"] = "multilabel"):
         super().__init__()
-        self.model = HGT(metadata, hidden_channels, out_channels, target)
+        self.model = HGT(metadata, hidden_channels, out_channels, target,
+                         in_channels=in_channel)
         self.num_classes = out_channels
 
         metrics_params = {

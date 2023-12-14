@@ -22,6 +22,7 @@ class HGTBaseDataModule(L.LightningDataModule):
         self.data: Optional[HeteroData] = None
         self.metadata = None
         self.dataset = dataset
+        self.in_channels: Optional[dict[str, int]] = None
 
     def prepare_data(self) -> None:
         transform = T.Compose(
@@ -30,6 +31,10 @@ class HGTBaseDataModule(L.LightningDataModule):
                              transform=transform)
 
         self.data: HeteroData = dataset[0]
+        self.in_channels = {
+            node_type: self.data[node_type].num_featues for node_type in
+            self.data.node_types
+        }
         self.metadata = self.data.metadata()
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
