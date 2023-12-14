@@ -24,7 +24,6 @@ def main():
     trainer = L.Trainer(log_every_n_steps=1,
                         num_nodes=1,
                         accelerator="cuda",
-                        precision="bf16-mixed",
                         devices=4,
                         strategy="fsdp",
                         max_epochs=200,
