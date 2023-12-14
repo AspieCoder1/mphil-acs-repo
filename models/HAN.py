@@ -1,4 +1,4 @@
-from typing import Literal, NamedTuple
+from typing import Literal, NamedTuple, Optional
 
 import lightning as L
 import torch
@@ -23,15 +23,20 @@ class HAN(nn.Module):
     def __init__(
             self,
             metadata: tuple[list[str], list[tuple[str, str, str]]],
-            hidden_channels: int = 256
+            hidden_channels: int = 256,
+            in_channels: Optional[dict[str, int]] = None,
     ):
         super().__init__()
+
+        if in_channels is None:
+            in_channels = -1
+
         self.conv = nn.ModuleList([
-            HANConv(-1, hidden_channels, heads=8, dropout=0.6,
+            HANConv(in_channels, hidden_channels, heads=8, dropout=0.6,
                     metadata=metadata),
-            HANConv(-1, hidden_channels, heads=8, dropout=0.6,
+            HANConv(in_channels, hidden_channels, heads=8, dropout=0.6,
                     metadata=metadata),
-            HANConv(-1, hidden_channels, heads=8, dropout=0.6,
+            HANConv(in_channels, hidden_channels, heads=8, dropout=0.6,
                     metadata=metadata)
         ]
         )
@@ -49,11 +54,12 @@ class HANEdgeDecoder(torch.nn.Module):
             self,
             metadata: tuple[list[str], list[tuple[str, str, str]]],
             target: tuple[str, str, str],
+            in_channels: Optional[dict[str, int]] = None,
             hidden_channels: int = 256
     ):
         super().__init__()
 
-        self.HAN = HAN(metadata, hidden_channels)
+        self.HAN = HAN(metadata, hidden_channels, in_channels=in_channels)
         self.rel_src = target[0]
         self.rel_dst = target[-1]
 
@@ -164,11 +170,12 @@ class HANLinkPredictor(L.LightningModule):
             self,
             metadata: tuple[list[str], list[tuple[str, str, str]]],
             hidden_channels: int = 128,
-            edge_target: tuple[str, str, str] = ("user", "rates", "movie")
+            edge_target: tuple[str, str, str] = ("user", "rates", "movie"),
+            in_channels: Optional[dict[str, int]] = None
     ):
         super(HANLinkPredictor, self).__init__()
 
-        self.model = HANEdgeDecoder(metadata, edge_target, hidden_channels)
+        self.model = HANEdgeDecoder(metadata, edge_target, in_channels, hidden_channels)
         self.target = edge_target
 
         # metrics

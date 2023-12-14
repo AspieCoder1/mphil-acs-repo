@@ -13,7 +13,8 @@ def main():
     print(datamodule.metadata)
 
     model = HANLinkPredictor(datamodule.metadata, hidden_channels=256,
-                             edge_target=datamodule.target)
+                             edge_target=datamodule.target,
+                             in_channels=datamodule.in_channels)
 
     logger = WandbLogger(project="gnn-baselines", log_model=True)
     logger.experiment.config["model"] = "HAN"

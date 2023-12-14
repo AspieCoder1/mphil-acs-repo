@@ -25,12 +25,20 @@ class LastFMDataModule(L.LightningDataModule):
         self.metadata = None
         self.data = None
         self.pyg_datamodule = None
+        self.in_channels = None
 
     def prepare_data(self) -> None:
         dataset = LastFM(self.data_dir, transform=T.Constant())
 
         self.data = dataset[0]
         self.metadata = self.data.metadata()
+
+        print(self.data["user"].num_features)
+
+        self.in_channels = {
+            node_type: self.data[node_type].num_features for node_type in
+            self.data.node_types
+        }
 
         self.pyg_datamodule = LightningLinkData(
             self.data,
