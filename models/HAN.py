@@ -201,8 +201,8 @@ class HANLinkPredictor(L.LightningModule):
         )).to(y_hat)
 
         loss = F.binary_cross_entropy_with_logits(y_hat, y)
-
-        return CommonStepOutput(y, y_hat.softmax(dim=-1), loss)
+        y_hat = torch.round(torch.sigmoid(y_hat))
+        return CommonStepOutput(y, y_hat, loss)
 
     def training_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:
         y, y_hat, loss = self.common_step(batch, "edge_index",
