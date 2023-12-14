@@ -52,19 +52,14 @@ class HAN(nn.Module):
 class HANEdgeDecoder(torch.nn.Module):
     def __init__(
             self,
-            metadata: tuple[list[str], list[tuple[str, str, str]]],
             target: tuple[str, str, str],
-            in_channels: Optional[dict[str, int]] = None,
-            hidden_channels: int = 256
     ):
         super().__init__()
 
-        self.HAN = HAN(metadata, hidden_channels, in_channels=in_channels)
         self.rel_src = target[0]
         self.rel_dst = target[-1]
 
     def forward(self, data: HeteroData, edge_label_index):
-        x_dict = self.HAN(data)
         A = x_dict[self.rel_src][edge_label_index[0]]
         B = x_dict[self.rel_dst][edge_label_index[1]]
         return torch.bmm(A.unsqueeze(dim=1), B.unsqueeze(dim=2)).squeeze()
@@ -175,8 +170,9 @@ class HANLinkPredictor(L.LightningModule):
     ):
         super(HANLinkPredictor, self).__init__()
 
-        self.model = HANEdgeDecoder(metadata, edge_target, in_channels, hidden_channels)
         self.target = edge_target
+        self.encoder = HAN(metadata, hidden_channels, in_channels)
+        self.decoder = HANEdgeDecoder(target=edge_target)
 
         # metrics
         self.train_acc = Accuracy(task="binary")
@@ -186,18 +182,18 @@ class HANLinkPredictor(L.LightningModule):
         self.test_auroc = AUROC(task="binary")
 
     def common_step(self, batch, pos_idx: str, neg_idx: str) -> CommonStepOutput:
-        y = nn.Parameter(torch.concat([
+        y = torch.concat([
             torch.ones(batch[self.target][pos_idx].size(1), device=self.device),
             torch.zeros(batch[self.target][neg_idx].size(1), device=self.device),
-        ], dim=-1))
+        ], dim=-1)
         x_dict = self.encoder(batch)
-        edge_label_index = nn.Parameter(torch.concat(
+        edge_label_index = torch.concat(
             [
                 batch[self.target][pos_idx],
                 batch[self.target][neg_idx]
             ], dim=-1
-        ))
-        y_hat = self.model(batch, edge_label_index)
+        )
+        y_hat = self.decoder(x_dict, edge_label_index)
 
         loss = F.binary_cross_entropy_with_logits(y_hat, y)
 
