@@ -62,7 +62,7 @@ class HANEdgeDecoder(torch.nn.Module):
     def forward(self, x_dict, edge_label_index):
         A = x_dict[self.rel_src][edge_label_index[0]]
         B = x_dict[self.rel_dst][edge_label_index[1]]
-        return torch.bmm(A.unsqueeze(dim=1), B.unsqueeze(dim=2)).squeeze()
+        return torch.dot(A, B)
 
 
 class HANNodeClassifier(L.LightningModule):
