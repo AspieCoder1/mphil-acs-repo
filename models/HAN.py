@@ -187,7 +187,7 @@ class HANLinkPredictor(L.LightningModule):
         num_pos_ex = batch[self.target][pos_idx].size(1)
         num_neg_ex = batch[self.target][neg_idx].size(1)
         neg_ex = torch.randperm(num_neg_ex)[:num_pos_ex]
-        neg_samples = batch[self.target][neg_idx][neg_ex]
+        neg_samples = batch[self.target][neg_idx][:, neg_ex]
         edge_label_index = torch.hstack(
             (
                 batch[self.target][pos_idx],
