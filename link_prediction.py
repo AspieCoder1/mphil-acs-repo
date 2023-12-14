@@ -22,6 +22,7 @@ def main():
 
     trainer = L.Trainer(log_every_n_steps=1,
                         num_nodes=1,
+                        devices=1,
                         accelerator="gpu",
                         max_epochs=200,
                         fast_dev_run=True,
