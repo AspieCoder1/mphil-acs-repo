@@ -23,7 +23,7 @@ def main():
 
     trainer = L.Trainer(log_every_n_steps=1,
                         num_nodes=1,
-                        accelerator="cuda",
+                        accelerator="gpu",
                         devices=4,
                         strategy="ddp",
                         max_epochs=200,
