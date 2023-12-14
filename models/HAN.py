@@ -34,9 +34,9 @@ class HAN(nn.Module):
         self.conv = nn.ModuleList([
             HANConv(in_channels, hidden_channels, heads=8, dropout=0.6,
                     metadata=metadata),
-            HANConv(in_channels, hidden_channels, heads=8, dropout=0.6,
+            HANConv(hidden_channels, hidden_channels, heads=8, dropout=0.6,
                     metadata=metadata),
-            HANConv(in_channels, hidden_channels, heads=8, dropout=0.6,
+            HANConv(hidden_channels, hidden_channels, heads=8, dropout=0.6,
                     metadata=metadata)
         ]
         )
@@ -59,7 +59,7 @@ class HANEdgeDecoder(torch.nn.Module):
         self.rel_src = target[0]
         self.rel_dst = target[-1]
 
-    def forward(self, data: HeteroData, edge_label_index):
+    def forward(self, x_dict, edge_label_index):
         A = x_dict[self.rel_src][edge_label_index[0]]
         B = x_dict[self.rel_dst][edge_label_index[1]]
         return torch.bmm(A.unsqueeze(dim=1), B.unsqueeze(dim=2)).squeeze()
