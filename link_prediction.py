@@ -1,10 +1,9 @@
 import lightning as L
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
-from lightning.pytorch.strategies import FSDPStrategy
 
 from datasets.link_pred import LastFMDataModule
-from models.HAN import HANLinkPredictor, HAN, HANEdgeDecoder
+from models.HAN import HANLinkPredictor
 
 
 def main():
@@ -22,16 +21,12 @@ def main():
     logger.experiment.config["dataset"] = "LastFM"
     logger.experiment.tags = ['GNN', 'baseline', 'link_prediction']
 
-    strategy = FSDPStrategy(
-        sharding_strategy="FULL_SHARD",
-        auto_wrap_policy={HAN, HANEdgeDecoder},
-    )
-
     trainer = L.Trainer(log_every_n_steps=1,
                         num_nodes=1,
                         accelerator="cuda",
+                        precision="bf16-mixed",
                         devices=4,
-                        strategy=strategy,
+                        strategy="fsdp",
                         max_epochs=200,
                         logger=logger,
                         callbacks=[EarlyStopping("valid/loss", patience=100),
