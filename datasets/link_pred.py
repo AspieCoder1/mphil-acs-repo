@@ -4,33 +4,23 @@ import lightning as L
 import torch
 import torch_geometric.transforms as T
 from lightning.pytorch.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADERS
+from torch_geometric.data import HeteroData
 from torch_geometric.data.lightning import LightningLinkData
-from torch_geometric.datasets import MovieLens, LastFM
+from torch_geometric.datasets import MovieLens, LastFM, AmazonBook
 
 
 class LinkPredBase(L.LightningDataModule):
-    def __init__(self):
+    def __init__(self, target: tuple[str, str, str], data_dir: str = "data"):
         super(LinkPredBase, self).__init__()
-
-    def prepare_data(self) -> None:
-        ...
-
-
-class LastFMDataModule(L.LightningDataModule):
-    def __init__(self, data_dir: str = "data"):
-        super(LastFMDataModule, self).__init__()
-
-        self.target = ("user", "to", "artist")
+        self.target = target
         self.data_dir = data_dir
         self.metadata = None
         self.data = None
         self.pyg_datamodule = None
         self.in_channels = None
 
-    def prepare_data(self) -> None:
-        dataset = LastFM(self.data_dir, transform=T.Constant())
-
-        self.data = dataset[0]
+    def prepare_data_core(self, data: HeteroData) -> None:
+        self.data = data
         self.metadata = self.data.metadata()
 
         self.in_channels = {
@@ -87,6 +77,26 @@ class LastFMDataModule(L.LightningDataModule):
 
     def test_dataloader(self) -> EVAL_DATALOADERS:
         return self.pyg_datamodule.test_dataloader()
+
+
+class LastFMDataModule(LinkPredBase):
+    def __init__(self, data_dir: str = "data"):
+        super(LastFMDataModule, self).__init__(data_dir=data_dir,
+                                               target=("user", "to", "artist"))
+
+    def prepare_data(self) -> None:
+        dataset = LastFM(self.data_dir, transform=T.Constant())
+        self.prepare_data_core(dataset[0])
+
+
+class AmazonBooksDataModule(LinkPredBase):
+    def __init__(self, data_dir: str = "data"):
+        super(AmazonBooksDataModule, self).__init__(data_dir=data_dir,
+                                                    target=("user", "to", "artist"))
+
+    def prepare_data(self) -> None:
+        dataset = AmazonBook(self.data_dir, transform=T.Constant())
+        self.prepare_data_core(dataset[0])
 
 
 class MovieLensDataset(L.LightningDataModule):
