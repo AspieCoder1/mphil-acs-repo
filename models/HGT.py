@@ -33,7 +33,7 @@ class HGT(nn.Module):
     def forward(self, data: HeteroData):
         x_dict = data.x_dict
         for layer in self.conv:
-            x_dict = layer(x_dict, data.edge_index_dict).elu()
+            x_dict = layer(x_dict, data.edge_index_dict)
 
         out = self.linear(x_dict[self.target_type])
         return out
