@@ -57,75 +57,72 @@ cs.store("config", Config)
 
 
 def get_dataset(dataset: Datasets) -> HGBBaseDataModule:
-    match dataset:
-        case Datasets.DBLP:
-            return DBLPDataModule()
-        case Datasets.ACM:
-            return ACMDataModule()
-        case Datasets.IMDB:
-            return IMDBDataModule()
+    if dataset == Datasets.DBLP:
+        return DBLPDataModule()
+    elif dataset == Datasets.ACM:
+        return ACMDataModule()
+    else:
+        return IMDBDataModule()
 
 
 def get_dataset_hgt(dataset: Datasets) -> HGTBaseDataModule:
-    match dataset:
-        case Datasets.DBLP:
-            return HGTDBLPDataModule()
-        case Datasets.ACM:
-            return HGTACMDataModule()
-        case Datasets.IMDB:
-            return HGTIMDBDataModule()
+    if dataset == Datasets.DBLP:
+        return HGTDBLPDataModule()
+    elif dataset == Datasets.ACM:
+        return HGTACMDataModule()
+    else:
+        return HGTIMDBDataModule()
 
 
 def get_model(model: Models, datamodule: HGBBaseDataModule):
-    match model:
-        case Models.HAN:
-            return HANNodeClassifier(
-                datamodule.metadata,
-                in_channels=datamodule.in_channels,
-                out_channels=datamodule.num_classes,
-                target=datamodule.target,
-                task=datamodule.task
-            )
-        case Models.HGT:
-            return HGTEntityPredictor(
-                datamodule.metadata,
-                out_channels=datamodule.num_classes,
-                target=datamodule.target,
-                task=datamodule.task
-            )
-        case Models.HGCN:
-            return HeteroGNNNodeClassifier(
-                datamodule.metadata,
-                hidden_channels=256,
-                out_channels=datamodule.num_classes,
-                target=datamodule.target,
-                task=datamodule.task,
-                num_layers=3
-            )
-        case Models.RGCN:
-            return RGCNNodeClassifier(
-                metadata=datamodule.metadata,
-                hidden_channels=256,
-                out_channels=datamodule.num_classes,
-                num_nodes=datamodule.num_nodes,
-                num_relations=len(datamodule.metadata[1]),
-                task=datamodule.task,
-                target=datamodule.target
-            )
-        case Models.GCN:
-            return GCNNodeClassifier(
-                datamodule.metadata,
-                out_channels=datamodule.num_classes,
-                target=datamodule.target,
-                task=datamodule.task
-            )
-        case Models.GAT:
-            return GATNodeClassifier(
-                datamodule.metadata,
-                out_channels=datamodule.num_classes,
-                target=datamodule.target,
-                task=datamodule.task
-            )
+    if model == Models.HAN:
+        return HANNodeClassifier(
+            datamodule.metadata,
+            in_channels=datamodule.in_channels,
+            out_channels=datamodule.num_classes,
+            target=datamodule.target,
+            task=datamodule.task
+        )
+    elif model == Models.HGT:
+        return HGTEntityPredictor(
+            datamodule.metadata,
+            out_channels=datamodule.num_classes,
+            target=datamodule.target,
+            task=datamodule.task
+        )
+    elif model == Models.HGCN:
+        return HeteroGNNNodeClassifier(
+            datamodule.metadata,
+            hidden_channels=256,
+            out_channels=datamodule.num_classes,
+            target=datamodule.target,
+            task=datamodule.task,
+            num_layers=3
+        )
+    elif model == Models.RGCN:
+        return RGCNNodeClassifier(
+            metadata=datamodule.metadata,
+            hidden_channels=256,
+            out_channels=datamodule.num_classes,
+            num_nodes=datamodule.num_nodes,
+            num_relations=len(datamodule.metadata[1]),
+            task=datamodule.task,
+            target=datamodule.target
+        )
+    elif model == Models.GCN:
+        return GCNNodeClassifier(
+            datamodule.metadata,
+            out_channels=datamodule.num_classes,
+            target=datamodule.target,
+            task=datamodule.task
+        )
+    else:
+        return GATNodeClassifier(
+            datamodule.metadata,
+            out_channels=datamodule.num_classes,
+            target=datamodule.target,
+            task=datamodule.task
+        )
 
 
 @hydra.main(version_base=None, config_path=".", config_name="nc_config")
