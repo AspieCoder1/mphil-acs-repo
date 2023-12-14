@@ -1,11 +1,12 @@
 from dataclasses import dataclass
-from enum import StrEnum
+from enum import auto
 
 import hydra
 import lightning as L
 from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
+from strenum import UppercaseStrEnum
 
 from datasets.hgb import (
     DBLPDataModule,
@@ -29,19 +30,19 @@ from models import (
 )
 
 
-class Datasets(StrEnum):
-    DBLP = "DBLP"
-    ACM = "ACM"
-    IMDB = "IMDB"
+class Datasets(UppercaseStrEnum):
+    DBLP = auto()
+    ACM = auto()
+    IMDB = auto()
 
 
-class Models(StrEnum):
-    HAN = "HAN"
-    HGT = "HGT"
-    HGCN = "HGCN"
-    RGCN = "RGCN"
-    GCN = "GCN"
-    GAT = "GAT"
+class Models(UppercaseStrEnum):
+    HAN = auto()
+    HGT = auto()
+    HGCN = auto()
+    RGCN = auto()
+    GCN = auto()
+    GAT = auto()
 
 
 @dataclass
