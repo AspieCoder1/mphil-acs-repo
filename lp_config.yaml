@@ -1,1 +1,2 @@
-dataset: LastFM
+dataset: AmazonBooks
+model: HAN

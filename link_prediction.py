@@ -45,8 +45,11 @@ cs.store("config", Config)
 
 @hydra.main(version_base=None, config_path=".", config_name="lp_config")
 def main(cfg: Config):
+    print(cfg)
     datamodule = get_dataset(cfg.dataset)
+    print(datamodule)
     datamodule.prepare_data()
+    print(datamodule.data)
 
     model = HANLinkPredictor(datamodule.metadata, hidden_channels=256,
                              edge_target=datamodule.target,

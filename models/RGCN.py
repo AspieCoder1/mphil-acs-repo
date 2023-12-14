@@ -5,7 +5,7 @@ import torch
 import torch.nn.functional as F
 from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn
-from torch_geometric.data import Batch, HeteroData, Data
+from torch_geometric.data import Batch, HeteroData
 from torch_geometric.nn import RGCNConv
 from torchmetrics import F1Score, AUROC
 from torchmetrics.classification import Accuracy
@@ -39,7 +39,7 @@ class RGCN(nn.Module):
 
 
 class RGCNNodeClassifier(L.LightningModule):
-    def __init__(self, metadata: tuple[list[str], list[tuple[str, str, str]]],
+    def __init__(self, _metadata: tuple[list[str], list[tuple[str, str, str]]],
                  hidden_channels: int, out_channels: int, num_nodes: int,
                  num_relations: int,
                  task: Literal["binary", "multiclass", "multilabel"] = "multiclass",

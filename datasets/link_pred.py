@@ -20,6 +20,7 @@ class LinkPredBase(L.LightningDataModule):
         self.in_channels = None
 
     def prepare_data_core(self, data: HeteroData) -> None:
+        print(data)
         self.data = data
         self.metadata = self.data.metadata()
 
@@ -81,7 +82,7 @@ class LinkPredBase(L.LightningDataModule):
 
 class LastFMDataModule(LinkPredBase):
     def __init__(self, data_dir: str = "data"):
-        super(LastFMDataModule, self).__init__(data_dir=data_dir,
+        super(LastFMDataModule, self).__init__(data_dir=f"{data_dir}/lastfm",
                                                target=("user", "to", "artist"))
 
     def prepare_data(self) -> None:
@@ -91,11 +92,12 @@ class LastFMDataModule(LinkPredBase):
 
 class AmazonBooksDataModule(LinkPredBase):
     def __init__(self, data_dir: str = "data"):
-        super(AmazonBooksDataModule, self).__init__(data_dir=data_dir,
+        super(AmazonBooksDataModule, self).__init__(data_dir=f"{data_dir}/amazon_books",
                                                     target=("user", "to", "artist"))
 
     def prepare_data(self) -> None:
         dataset = AmazonBook(self.data_dir, transform=T.Constant())
+        print(dataset[0])
         self.prepare_data_core(dataset[0])
 
 
