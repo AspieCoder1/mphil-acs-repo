@@ -20,9 +20,10 @@ def main():
     logger.experiment.config["dataset"] = "LastFM"
     logger.experiment.tags = ['GNN', 'baseline', 'link_prediction']
 
-    trainer = L.Trainer(accelerator="ddp", log_every_n_steps=1,
+    trainer = L.Trainer(log_every_n_steps=1,
                         num_nodes=1,
                         gpus=4,
+                        accelerator="ddp",
                         max_epochs=200,
                         fast_dev_run=True,
                         logger=logger,
