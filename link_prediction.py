@@ -24,7 +24,7 @@ def main():
                         num_nodes=1,
                         accelerator="gpu",
                         devices=4,
-                        strategy="dpp",
+                        strategy="ddp",
                         max_epochs=200,
                         logger=logger,
                         callbacks=[EarlyStopping("valid/loss", patience=100),
