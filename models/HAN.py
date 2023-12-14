@@ -173,8 +173,8 @@ class HANLinkPredictor(L.LightningModule):
 
     def common_step(self, batch, pos_idx: str, neg_idx: str) -> CommonStepOutput:
         y = torch.concat([
-            torch.ones(batch[self.target][pos_idx].size(1)),
-            torch.zeros(batch[self.target][neg_idx].size(1)),
+            torch.ones(batch[self.target][pos_idx].size(1), device=self.device),
+            torch.zeros(batch[self.target][neg_idx].size(1), device=self.device),
         ], dim=-1)
         x_dict = self.encoder(batch)
         edge_label_index = torch.concat(
