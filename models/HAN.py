@@ -179,17 +179,17 @@ class HANLinkPredictor(L.LightningModule):
         self.test_auroc = AUROC(task="binary")
 
     def common_step(self, batch, pos_idx: str, neg_idx: str) -> CommonStepOutput:
-        y = torch.concat([
+        y = nn.Parameter(torch.concat([
             torch.ones(batch[self.target][pos_idx].size(1), device=self.device),
             torch.zeros(batch[self.target][neg_idx].size(1), device=self.device),
-        ], dim=-1)
+        ], dim=-1))
         x_dict = self.encoder(batch)
-        edge_label_index = torch.concat(
+        edge_label_index = nn.Parameter(torch.concat(
             [
                 batch[self.target][pos_idx],
                 batch[self.target][neg_idx]
             ], dim=-1
-        )
+        ))
         y_hat = self.model(batch, edge_label_index)
 
         loss = F.binary_cross_entropy_with_logits(y_hat, y)
