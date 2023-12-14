@@ -196,7 +196,7 @@ class HANLinkPredictor(L.LightningModule):
             torch.zeros(batch[self.target][neg_idx].size(1)),
         ], dim=-1).to(y_hat)
 
-        loss = F.binary_cross_entropy_with_logits(y_hat, self.y)
+        loss = F.binary_cross_entropy_with_logits(y_hat, y)
 
         return CommonStepOutput(y, y_hat.softmax(dim=-1), loss)
 
