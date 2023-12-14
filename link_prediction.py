@@ -25,7 +25,7 @@ def main():
                         num_nodes=1,
                         accelerator="gpu",
                         devices=4,
-                        strategy="ddp",
+                        strategy="ddp_find_unused_parameters_true",
                         max_epochs=200,
                         logger=logger,
                         callbacks=[EarlyStopping("valid/loss", patience=100),
