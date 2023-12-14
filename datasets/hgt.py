@@ -32,7 +32,7 @@ class HGTBaseDataModule(L.LightningDataModule):
 
         self.data: HeteroData = dataset[0]
         self.in_channels = {
-            node_type: self.data[node_type].num_featues for node_type in
+            node_type: self.data[node_type].num_features for node_type in
             self.data.node_types
         }
         self.metadata = self.data.metadata()
