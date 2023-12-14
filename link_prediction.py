@@ -15,7 +15,7 @@ def main():
     model = HANLinkPredictor(datamodule.metadata, hidden_channels=256,
                              edge_target=datamodule.target)
 
-    logger = WandbLogger(project="gnn-baselines", log_model="all")
+    logger = WandbLogger(project="gnn-baselines", log_model=True)
     logger.experiment.config["model"] = "HAN"
     logger.experiment.config["dataset"] = "LastFM"
     logger.experiment.tags = ['GNN', 'baseline', 'link_prediction']
@@ -26,7 +26,7 @@ def main():
                         logger=logger,
                         callbacks=[EarlyStopping("valid/loss", patience=100),
                                    ModelCheckpoint(monitor="valid/accuracy",
-                                                   mode="max")])
+                                                   mode="max", save_top_k=1)])
 
     trainer.fit(model, datamodule)
     trainer.test(model, datamodule)

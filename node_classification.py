@@ -137,7 +137,7 @@ def main(cfg: Config):
 
     model = get_model(cfg.model, datamodule)
 
-    logger = WandbLogger(project="gnn-baselines", log_model="all")
+    logger = WandbLogger(project="gnn-baselines", log_model=True)
     logger.experiment.config["model"] = cfg.model
     logger.experiment.config["dataset"] = cfg.dataset
     logger.experiment.tags = ['GNN', 'baseline', 'node classification']
@@ -155,7 +155,7 @@ def main(cfg: Config):
                         max_epochs=200,
                         callbacks=[EarlyStopping("valid/loss", patience=cfg.patience),
                                    ModelCheckpoint(monitor="valid/accuracy",
-                                                   mode="max")])
+                                                   mode="max", save_top_k=1)])
     trainer.fit(model, datamodule)
     trainer.test(model, datamodule)
 
