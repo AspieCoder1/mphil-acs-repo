@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/sh
 #SBATCH -A COMPUTERLAB-GPU
 #SBATCH --time=01:00:00
 #SBATCH -p ampere
