@@ -1,50 +1,31 @@
-from typing import Literal
+from typing import Literal, NamedTuple
 
-import lightning as L
+import lightning.pytorch as L
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
-from torch import nn
-from torch_geometric.data import Batch, HeteroData
-from torch_geometric.nn import RGCNConv
-from torchmetrics import F1Score, AUROC
-from torchmetrics.classification import Accuracy
+from torch_geometric.data import Batch
+from torch_geometric.nn import Linear
+from torchmetrics.classification import Accuracy, AUROC, F1Score
 
 
-class RGCN(nn.Module):
-    def __init__(self, hidden_channels: int, num_nodes: int,
-                 num_relations: int):
+class CommonStepOutput(NamedTuple):
+    y: torch.Tensor
+    y_hat: torch.Tensor
+    loss: torch.Tensor
+
+
+class NodeClassifier(L.LightningModule):
+    def __init__(self, model: nn.Module, hidden_channels: int = 256,
+                 out_channels: int = 10,
+                 target: str = "author", task: Literal[
+                "binary", "multiclass", "multilabel"] = "multilabel",
+                 homogeneous_model: bool = False):
         super().__init__()
-        self.conv1 = RGCNConv(num_nodes, hidden_channels, num_relations)
-        self.conv2 = RGCNConv(hidden_channels, hidden_channels, num_relations)
-
-    def forward(self, data: HeteroData):
-        node_type_names = data.node_types
-        data = data.to_homogeneous()
-
-        edge_type, edge_index = data.edge_type, data.edge_index
-        x = self.conv1(None, edge_index, edge_type)
-        x = F.elu(x)
-        x = self.conv2(x, edge_index, edge_type)
-        x = F.elu(x)
-
-        data.update({
-            "x": x
-        })
-        data = data.to_heterogeneous(node_type_names=node_type_names)
-        return data.x_dict
-
-
-class RGCNNodeClassifier(L.LightningModule):
-    def __init__(self, _metadata: tuple[list[str], list[tuple[str, str, str]]],
-                 hidden_channels: int, out_channels: int, num_nodes: int,
-                 num_relations: int,
-                 task: Literal["binary", "multiclass", "multilabel"] = "multiclass",
-                 target: str = "paper"):
-        super().__init__()
-        self.model = RGCN(hidden_channels, out_channels, num_nodes, num_relations,
-                          target=target)
-        self.num_classes = out_channels
+        self.encoder = model
+        self.decoder = Linear(hidden_channels, out_channels)
+        self.homogeneous = homogeneous_model
 
         metrics_params = {
             "task": task,
@@ -56,27 +37,32 @@ class RGCNNodeClassifier(L.LightningModule):
         self.test_acc = Accuracy(**metrics_params)
         self.test_f1 = F1Score(**metrics_params)
         self.test_auroc = AUROC(**metrics_params)
-        self.target_type = target
+        self.target = target
         self.task = task
+
         if task == "multilabel":
             self.loss_fn = F.multilabel_soft_margin_loss
         else:
             self.loss_fn = F.cross_entropy
 
-    def common_step(self, batch: Batch, mask: torch.Tensor) -> tuple[
-        torch.Tensor, torch.Tensor, torch.Tensor]:
-        y: torch.Tensor = batch[self.target_type].y[mask]
-        y_hat = self.model(batch)[mask]
+    def common_step(self, batch: Batch, mask: torch.Tensor) -> CommonStepOutput:
+        y: torch.Tensor = batch[self.target].y[mask]
+        if self.homogeneous:
+            x_dict = self.encoder(batch.x_dict, batch.edge_index_dict)
+        else:
+            x_dict = self.encoder(batch)
+
+        y_hat = self.decoder(x_dict[self.target])[mask]
         loss = self.loss_fn(y_hat, y)
         if self.task == "multilabel":
             y_hat = torch.sigmoid(y_hat)
             y = y.to(torch.int)
         else:
             y_hat = y_hat.softmax(dim=-1)
-        return y, y_hat, loss
+        return CommonStepOutput(y, y_hat, loss)
 
     def training_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:
-        mask = batch[self.target_type].train_mask
+        mask = batch[self.target].train_mask
         y, y_hat, loss = self.common_step(batch, mask)
 
         self.train_acc(y_hat, y)
@@ -88,21 +74,19 @@ class RGCNNodeClassifier(L.LightningModule):
         return loss
 
     def validation_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:
-        mask = batch[self.target_type].val_mask
+        mask = batch[self.target].val_mask
         y, y_hat, loss = self.common_step(batch, mask)
 
-        self.test_acc(y_hat, y)
-        self.test_f1(y_hat, y)
-        self.test_auroc(y_hat, y)
+        self.val_acc(y_hat, y)
 
-        self.log('valid/accuracy', self.test_acc, prog_bar=True, on_step=False,
+        self.log('valid/accuracy', self.val_acc, prog_bar=True, on_step=False,
                  on_epoch=True)
         self.log('valid/loss', loss, prog_bar=False, on_step=False,
                  on_epoch=True, batch_size=64)
         return
 
     def test_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:
-        mask = batch[self.target_type].test_mask
+        mask = batch[self.target].test_mask
         y, y_hat, loss = self.common_step(batch, mask)
 
         self.test_acc(y_hat, y)
@@ -116,7 +100,7 @@ class RGCNNodeClassifier(L.LightningModule):
         self.log('test/auroc', self.test_auroc, prog_bar=False, on_step=False,
                  on_epoch=True)
         self.log('test/loss', loss, prog_bar=False, on_step=False,
-                 on_epoch=True, batch_size=128)
+                 on_epoch=True, batch_size=1)
 
         return None
 

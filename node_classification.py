@@ -5,8 +5,8 @@ import hydra
 import lightning as L
 from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
-from lightning.pytorch.loggers import WandbLogger
 from strenum import UppercaseStrEnum
+from torch_geometric.nn import to_hetero, to_hetero_with_bases
 
 from datasets.hgb import (
     DBLPDataModule,
@@ -21,13 +21,14 @@ from datasets.hgt import (
     HGTBaseDataModule
 )
 from models import (
-    GATNodeClassifier,
-    GCNNodeClassifier,
-    HANNodeClassifier,
-    HGTEntityPredictor,
-    HeteroGNNNodeClassifier,
-    RGCNNodeClassifier
+    HAN,
+    GCN,
+    HGT,
+    HeteroGNN,
+    RGCN,
+    GAT
 )
+from models.NodeClassifier import NodeClassifier
 
 
 class Datasets(UppercaseStrEnum):
@@ -76,54 +77,43 @@ def get_dataset_hgt(dataset: Datasets) -> HGTBaseDataModule:
 
 def get_model(model: Models, datamodule: HGBBaseDataModule):
     if model == Models.HAN:
-        return HANNodeClassifier(
+        return HAN(
             datamodule.metadata,
             in_channels=datamodule.in_channels,
-            out_channels=datamodule.num_classes,
-            target=datamodule.target,
-            task=datamodule.task
-        )
+            hidden_channels=256
+        ), False
     elif model == Models.HGT:
-        return HGTEntityPredictor(
+        return HGT(
             datamodule.metadata,
             out_channels=datamodule.num_classes,
-            target=datamodule.target,
-            task=datamodule.task,
-            in_channel=datamodule.in_channels
-        )
+            hidden_channels=256
+        ), False
     elif model == Models.HGCN:
-        return HeteroGNNNodeClassifier(
+        return HeteroGNN(
             datamodule.metadata,
             hidden_channels=256,
             out_channels=datamodule.num_classes,
             target=datamodule.target,
-            task=datamodule.task,
             num_layers=3
-        )
+        ), False
     elif model == Models.RGCN:
-        return RGCNNodeClassifier(
-            metadata=datamodule.metadata,
+        return RGCN(
             hidden_channels=256,
-            out_channels=datamodule.num_classes,
             num_nodes=datamodule.num_nodes,
             num_relations=len(datamodule.metadata[1]),
-            task=datamodule.task,
-            target=datamodule.target
-        )
+        ), False
     elif model == Models.GCN:
-        return GCNNodeClassifier(
-            datamodule.metadata,
-            out_channels=datamodule.num_classes,
-            target=datamodule.target,
-            task=datamodule.task
+        gcn = GCN(
+            hidden_channels=256
         )
+
+        return to_hetero(gcn, datamodule.metadata), True
     else:
-        return GATNodeClassifier(
-            datamodule.metadata,
-            out_channels=datamodule.num_classes,
-            target=datamodule.target,
-            task=datamodule.task
+        gat = GAT(
+            hidden_channels=256
         )
+        return to_hetero_with_bases(gat, datamodule.metadata, num_bases=3,
+                                    in_channels={'x': 64}), True
 
 
 @hydra.main(version_base=None, config_path=".", config_name="nc_config")
@@ -135,31 +125,36 @@ def main(cfg: Config):
 
     datamodule.prepare_data()
 
-    model = get_model(cfg.model, datamodule)
+    model, is_homegeneous = get_model(cfg.model, datamodule)
 
-    logger = WandbLogger(project="gnn-baselines", log_model=True)
-    logger.experiment.config["model"] = cfg.model
-    logger.experiment.config["dataset"] = cfg.dataset
-    logger.experiment.tags = ['GNN', 'baseline', 'node classification']
-    logger.log_hyperparams(
-        {
-            "n_heads": 8,
-            "hidden_units": 256,
-            "n_layers": 3,
-            "optimiser": "AdamW"
-        }
-    )
+    classifier = NodeClassifier(model, hidden_channels=256, target=datamodule.target,
+                                out_channels=datamodule.num_classes,
+                                task=datamodule.task, homogeneous_model=is_homegeneous)
 
-    trainer = L.Trainer(accelerator="gpu", log_every_n_steps=1,
-                        logger=logger,
-                        strategy="ddp_find_unused_parameters_true",
-                        devices=4,
+    # logger = WandbLogger(project="gnn-baselines", log_model=True)
+    # logger.experiment.config["model"] = cfg.model
+    # logger.experiment.config["dataset"] = cfg.dataset
+    # logger.experiment.tags = ['GNN', 'baseline', 'node classification']
+    # logger.log_hyperparams(
+    #     {
+    #         "n_heads": 8,
+    #         "hidden_units": 256,
+    #         "n_layers": 3,
+    #         "optimiser": "AdamW"
+    #     }
+    # )
+
+    trainer = L.Trainer(accelerator="cpu", log_every_n_steps=1,
+                        fast_dev_run=True,
+                        # logger=logger,
+                        # strategy="ddp_find_unused_parameters_true",
+                        # devices=4,
                         max_epochs=200,
                         callbacks=[EarlyStopping("valid/loss", patience=cfg.patience),
                                    ModelCheckpoint(monitor="valid/accuracy",
                                                    mode="max", save_top_k=1)])
-    trainer.fit(model, datamodule)
-    trainer.test(model, datamodule)
+    trainer.fit(classifier, datamodule)
+    trainer.test(classifier, datamodule)
 
 
 if __name__ == '__main__':
