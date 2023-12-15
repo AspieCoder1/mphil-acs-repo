@@ -1,7 +1,7 @@
 dataset: LastFM
-model: GCN
+model: HGT
 trainer:
-  accelerator: "gpu"
+  accelerator: gpu
   devices: 1
   num_nodes: 1
   patience: 100

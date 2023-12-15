@@ -7,6 +7,7 @@ from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 from strenum import PascalCaseStrEnum
+import torch
 
 from datasets.link_pred import (
     LastFMDataModule,
@@ -50,11 +51,10 @@ cs.store("config", Config)
 
 @hydra.main(version_base=None, config_path=".", config_name="lp_config")
 def main(cfg: Config):
+    torch.set_float32_matmul_precision("high")
     print(cfg)
     datamodule = get_dataset(cfg.dataset)
-    print(datamodule)
     datamodule.prepare_data()
-    print(datamodule.data)
 
     model, is_homogeneous = get_model(cfg.model, datamodule)
 
