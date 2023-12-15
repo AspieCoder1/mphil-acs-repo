@@ -15,3 +15,4 @@ hydra:
     nodes: 1
     partition: ampere
     gres: "gpu:1"
+    gpus_per_task: 1
