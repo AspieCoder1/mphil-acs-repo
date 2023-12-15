@@ -70,6 +70,7 @@ def main(cfg: Config):
                         num_nodes=cfg.trainer.num_nodes,
                         accelerator=cfg.trainer.accelerator,
                         devices=cfg.trainer.devices,
+                        strategy=cfg.trainer.strategy,
                         max_epochs=200,
                         logger=logger,
                         callbacks=[
