@@ -3,6 +3,7 @@ from enum import auto
 
 import hydra
 import lightning as L
+import torch
 from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
@@ -129,6 +130,8 @@ def get_model(model: Models, datamodule: HGBBaseDataModule):
 
 @hydra.main(version_base=None, config_path=".", config_name="nc_config")
 def main(cfg: Config):
+    torch.set_float32_matmul_precision("high")
+
     if cfg.model == Models.HGT:
         datamodule = get_dataset_hgt(cfg.dataset)
     else:
