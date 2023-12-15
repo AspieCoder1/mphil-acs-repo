@@ -5,6 +5,7 @@ import hydra
 import lightning as L
 from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.loggers import WandbLogger
 from strenum import PascalCaseStrEnum
 
 from datasets.link_pred import (
@@ -29,10 +30,18 @@ def get_dataset(dataset: Datasets) -> LinkPredBase:
 
 
 @dataclass
+class Trainer:
+    accelerator: str
+    devices: int
+    num_nodes: int
+    patience: int
+
+
+@dataclass
 class Config:
     dataset: Datasets
     model: Models
-    patience: int = 100
+    trainer: Trainer
 
 
 cs = ConfigStore.instance()
@@ -52,21 +61,21 @@ def main(cfg: Config):
     link_predictor = LinkPredictor(model, edge_target=datamodule.target,
                                    homogeneous=is_homogeneous)
 
-    # logger = WandbLogger(project="gnn-baselines", log_model=True)
-    # logger.experiment.config["model"] = cfg.model
-    # logger.experiment.config["dataset"] = cfg.dataset
-    # logger.experiment.tags = ['GNN', 'baseline', 'link_prediction']
+    logger = WandbLogger(project="gnn-baselines", log_model=True)
+    logger.experiment.config["model"] = cfg.model
+    logger.experiment.config["dataset"] = cfg.dataset
+    logger.experiment.tags = ['GNN', 'baseline', 'link_prediction']
 
     trainer = L.Trainer(log_every_n_steps=1,
-                        num_nodes=1,
-                        accelerator="cpu",
-                        devices=1,
+                        num_nodes=cfg.trainer.num_nodes,
+                        accelerator=cfg.trainer.accelerator,
+                        devices=cfg.trainer.devices,
                         max_epochs=200,
-                        fast_dev_run=True,
-                        # logger=logger,
-                        callbacks=[EarlyStopping("valid/loss", patience=100),
-                                   ModelCheckpoint(monitor="valid/accuracy",
-                                                   mode="max", save_top_k=1)])
+                        logger=logger,
+                        callbacks=[
+                            EarlyStopping("valid/loss", patience=cfg.trainer.patience),
+                            ModelCheckpoint(monitor="valid/accuracy",
+                                            mode="max", save_top_k=1)])
 
     trainer.fit(link_predictor, datamodule)
     # trainer.test(link_predictor, datamodule)
