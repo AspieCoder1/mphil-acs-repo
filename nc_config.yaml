@@ -6,4 +6,3 @@ trainer:
   num_nodes: 1
   patience: 100
   strategy: ddp_find_unused_parameters_true
-
