@@ -1,5 +1,5 @@
 dataset: LastFM
-model: HGT
+model: RGCN
 trainer:
   accelerator: gpu
   devices: 2
