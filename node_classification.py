@@ -5,6 +5,7 @@ import hydra
 import lightning as L
 from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.loggers import WandbLogger
 from strenum import UppercaseStrEnum
 from torch_geometric.nn import to_hetero_with_bases
 
@@ -47,10 +48,19 @@ class Models(UppercaseStrEnum):
 
 
 @dataclass
+class Trainer:
+    accelerator: str
+    devices: int
+    num_nodes: int
+    patience: int
+    strategy: str
+
+
+@dataclass
 class Config:
     dataset: Datasets
     model: Models
-    patience: int = 100
+    trainer: Trainer
 
 
 cs = ConfigStore.instance()
@@ -132,28 +142,29 @@ def main(cfg: Config):
                                 out_channels=datamodule.num_classes,
                                 task=datamodule.task, homogeneous_model=is_homegeneous)
 
-    # logger = WandbLogger(project="gnn-baselines", log_model=True)
-    # logger.experiment.config["model"] = cfg.model
-    # logger.experiment.config["dataset"] = cfg.dataset
-    # logger.experiment.tags = ['GNN', 'baseline', 'node classification']
-    # logger.log_hyperparams(
-    #     {
-    #         "n_heads": 8,
-    #         "hidden_units": 256,
-    #         "n_layers": 3,
-    #         "optimiser": "AdamW"
-    #     }
-    # )
+    logger = WandbLogger(project="gnn-baselines", log_model=True)
+    logger.experiment.config["model"] = cfg.model
+    logger.experiment.config["dataset"] = cfg.dataset
+    logger.experiment.tags = ['GNN', 'baseline', 'node classification']
+    logger.log_hyperparams(
+        {
+            "n_heads": 8,
+            "hidden_units": 256,
+            "n_layers": 3,
+            "optimiser": "AdamW"
+        }
+    )
 
-    trainer = L.Trainer(accelerator="cpu", log_every_n_steps=1,
+    trainer = L.Trainer(accelerator=cfg.trainer.accelerator, log_every_n_steps=1,
                         fast_dev_run=True,
-                        # logger=logger,
-                        # strategy="ddp_find_unused_parameters_true",
-                        # devices=4,
+                        logger=logger,
+                        strategy=cfg.trainer.strategy,
+                        devices=cfg.trainer.devices,
                         max_epochs=200,
-                        callbacks=[EarlyStopping("valid/loss", patience=cfg.patience),
-                                   ModelCheckpoint(monitor="valid/accuracy",
-                                                   mode="max", save_top_k=1)])
+                        callbacks=[
+                            EarlyStopping("valid/loss", patience=cfg.trainer.patience),
+                            ModelCheckpoint(monitor="valid/accuracy",
+                                            mode="max", save_top_k=1)])
     trainer.fit(classifier, datamodule)
     trainer.test(classifier, datamodule)
 

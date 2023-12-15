@@ -1,3 +1,8 @@
 model: GAT
 dataset: DBLP
-patience: 100
+trainer:
+  accelerator: gpu
+  devices: 4
+  num_nodes: 1
+  patience: 100
+  strategy: ddp_find_unused_parameters_true

@@ -3,11 +3,11 @@ from enum import auto
 
 import hydra
 import lightning as L
+import torch
 from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 from strenum import PascalCaseStrEnum
-import torch
 
 from datasets.link_pred import (
     LastFMDataModule,
@@ -36,6 +36,7 @@ class Trainer:
     devices: int
     num_nodes: int
     patience: int
+    strategy: str
 
 
 @dataclass
