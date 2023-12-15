@@ -160,7 +160,6 @@ def main(cfg: Config):
 
     trainer = L.Trainer(accelerator=cfg.trainer.accelerator, log_every_n_steps=1,
                         logger=logger,
-                        # strategy=cfg.trainer.strategy,
                         devices=cfg.trainer.devices,
                         max_epochs=200,
                         callbacks=[

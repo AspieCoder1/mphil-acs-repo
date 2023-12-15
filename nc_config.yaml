@@ -1,4 +1,4 @@
-model: GAT
+model: GCN
 dataset: IMDB
 trainer:
   accelerator: gpu
