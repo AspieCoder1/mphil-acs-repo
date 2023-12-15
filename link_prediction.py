@@ -53,7 +53,6 @@ cs.store("config", Config)
 @hydra.main(version_base=None, config_path=".", config_name="lp_config")
 def main(cfg: Config):
     torch.set_float32_matmul_precision("high")
-    print(cfg)
     datamodule = get_dataset(cfg.dataset)
     datamodule.prepare_data()
 
