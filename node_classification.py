@@ -156,7 +156,6 @@ def main(cfg: Config):
     )
 
     trainer = L.Trainer(accelerator=cfg.trainer.accelerator, log_every_n_steps=1,
-                        fast_dev_run=True,
                         logger=logger,
                         # strategy=cfg.trainer.strategy,
                         devices=cfg.trainer.devices,
