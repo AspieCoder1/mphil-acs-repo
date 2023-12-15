@@ -78,7 +78,7 @@ def main(cfg: Config):
                                             mode="max", save_top_k=1)])
 
     trainer.fit(link_predictor, datamodule)
-    # trainer.test(link_predictor, datamodule)
+    trainer.test(link_predictor, datamodule)
 
 
 if __name__ == '__main__':
