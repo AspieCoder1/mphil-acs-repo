@@ -85,6 +85,7 @@ def get_model(model: Models, datamodule: HGBBaseDataModule):
     elif model == Models.HGT:
         return HGT(
             datamodule.metadata,
+            in_channels=datamodule.in_channels,
             hidden_channels=256
         ), False
     elif model == Models.HGCN:
