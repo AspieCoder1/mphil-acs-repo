@@ -1,2 +1,2 @@
-dataset: AmazonBooks
-model: HAN
+dataset: LastFM
+model: GCN

@@ -4,3 +4,5 @@ from .HAN import HAN
 from .HGT import HGT
 from .HeteroGNN import HeteroGNN
 from .RGCN import RGCN
+from .NodeClassifier import NodeClassifier
+from .LinkPredictor import LinkPredictor

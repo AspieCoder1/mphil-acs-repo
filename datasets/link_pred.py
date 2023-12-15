@@ -18,11 +18,13 @@ class LinkPredBase(L.LightningDataModule):
         self.data = None
         self.pyg_datamodule = None
         self.in_channels = None
+        self.num_nodes = None
 
     def prepare_data_core(self, data: HeteroData) -> None:
         print(data)
         self.data = data
         self.metadata = self.data.metadata()
+        self.num_nodes = self.data.num_nodes
 
         self.in_channels = {
             node_type: self.data[node_type].num_features for node_type in

@@ -7,7 +7,7 @@ class GCN(nn.Module):
     def __init__(self, hidden_channels: int = 256):
         super().__init__()
         self.conv = nn.ModuleList([
-            SAGEConv(-1, hidden_channels, add_self_loops=False),
+            SAGEConv(64, hidden_channels, add_self_loops=False),
             SAGEConv(hidden_channels, hidden_channels, add_self_loops=False),
             SAGEConv(hidden_channels, hidden_channels, add_self_loops=False)
         ]

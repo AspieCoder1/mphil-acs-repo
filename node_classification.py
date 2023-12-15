@@ -6,7 +6,7 @@ import lightning as L
 from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from strenum import UppercaseStrEnum
-from torch_geometric.nn import to_hetero, to_hetero_with_bases
+from torch_geometric.nn import to_hetero_with_bases
 
 from datasets.hgb import (
     DBLPDataModule,
@@ -85,14 +85,13 @@ def get_model(model: Models, datamodule: HGBBaseDataModule):
     elif model == Models.HGT:
         return HGT(
             datamodule.metadata,
-            out_channels=datamodule.num_classes,
             hidden_channels=256
         ), False
     elif model == Models.HGCN:
         return HeteroGNN(
             datamodule.metadata,
+            in_channels=datamodule.in_channels,
             hidden_channels=256,
-            out_channels=datamodule.num_classes,
             target=datamodule.target,
             num_layers=3
         ), False
@@ -107,7 +106,8 @@ def get_model(model: Models, datamodule: HGBBaseDataModule):
             hidden_channels=256
         )
 
-        return to_hetero(gcn, datamodule.metadata), True
+        return to_hetero_with_bases(gcn, datamodule.metadata, num_bases=3,
+                                    in_channels={'x': 64}), True
     else:
         gat = GAT(
             hidden_channels=256
