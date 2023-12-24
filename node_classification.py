@@ -22,6 +22,7 @@ from datasets.hgt import (
     HGTIMDBDataModule,
     HGTBaseDataModule
 )
+from models import NodeClassifier
 from models.baselines import (
     HAN,
     GCN,
@@ -30,7 +31,6 @@ from models.baselines import (
     RGCN,
     GAT
 )
-from models import NodeClassifier
 
 
 class Datasets(UppercaseStrEnum):

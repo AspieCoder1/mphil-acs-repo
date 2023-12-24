@@ -3,3 +3,4 @@ from .GCN import GCN
 from .HAN import HAN
 from .HeteroGNN import HeteroGNN
 from .HGT import HGT
+from .RGCN import RGCN
