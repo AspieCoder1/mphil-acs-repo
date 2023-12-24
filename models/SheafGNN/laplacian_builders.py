@@ -1,5 +1,7 @@
 # Copyright 2022 Twitter, Inc.
 # SPDX-License-Identifier: Apache-2.0
+# https://github.com/twitter-research/neural-sheaf-diffusion
+# Bodnar et al. (NeurIPS 2022)
 
 import torch
 import lib.laplace as lap
@@ -7,7 +9,7 @@ import lib.laplace as lap
 from torch import nn
 from torch_scatter import scatter_add
 from torch_geometric.utils import degree
-from models.orthogonal import Orthogonal
+from orthogonal import Orthogonal
 
 
 class LaplacianBuilder(nn.Module):

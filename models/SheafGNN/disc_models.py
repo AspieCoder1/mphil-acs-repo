@@ -1,14 +1,16 @@
 # Copyright 2022 Twitter, Inc.
 # SPDX-License-Identifier: Apache-2.0
+# https://github.com/twitter-research/neural-sheaf-diffusion
+# Bodnar et al. (NeurIPS 2022)
 
 import torch
 import torch.nn.functional as F
 import torch_sparse
 
 from torch import nn
-from models.sheaf_base import SheafDiffusion
-from models import laplacian_builders as lb
-from models.sheaf_models import LocalConcatSheafLearner, EdgeWeightLearner, LocalConcatSheafLearnerVariant
+from sheaf_base import SheafDiffusion
+import laplacian_builders as lb
+from sheaf_models import LocalConcatSheafLearner, EdgeWeightLearner, LocalConcatSheafLearnerVariant
 
 
 class DiscreteDiagSheafDiffusion(SheafDiffusion):
