@@ -6,7 +6,7 @@ from torch import nn
 from torch_geometric.data import Batch
 from torchmetrics.classification import Accuracy, F1Score, AUROC
 
-from .NodeClassifier import CommonStepOutput
+from models.NodeClassifier import CommonStepOutput
 
 
 class DotProductEdgeDecoder(nn.Module):
