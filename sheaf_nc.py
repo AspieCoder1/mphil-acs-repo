@@ -6,7 +6,7 @@ import hydra
 import lightning as L
 from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
-from pytorch_lightning.loggers import WandbLogger
+from lightning.pytorch.loggers import WandbLogger
 from strenum import PascalCaseStrEnum
 
 from core.datasets import NCDatasets, get_dataset_nc
@@ -64,7 +64,7 @@ def main(cfg: Config) -> None:
     logger = WandbLogger(project="gnn-baselines", log_model=True)
     logger.experiment.config["model"] = cfg.model
     logger.experiment.config["dataset"] = cfg.dataset
-    logger.experiment.tags = ['GNN', 'baseline', 'link_prediction']
+    logger.experiment.tags = ['GNN', 'sheaf', 'node_classification']
 
     # 4) initialise trainer
     trainer = L.Trainer(
@@ -72,6 +72,7 @@ def main(cfg: Config) -> None:
         devices=cfg.trainer.devices,
         num_nodes=cfg.trainer.num_nodes,
         strategy=cfg.trainer.strategy,
+        logger=logger,
         max_epochs=200,
         callbacks=[
             EarlyStopping("valid/loss",
