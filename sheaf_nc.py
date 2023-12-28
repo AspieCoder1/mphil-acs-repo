@@ -49,9 +49,10 @@ def main(cfg: Config) -> None:
     cfg.model_args.graph_size = datamodule.graph_size
     cfg.model_args.input_dim = datamodule.in_channels
     cfg.model_args.output_dim = datamodule.num_classes
+    edge_index = datamodule.edge_index.to(cfg.model_args.device)
 
     # 3) Initialise models
-    model = DiscreteBundleSheafDiffusion(datamodule.edge_index, cfg.model_args)
+    model = DiscreteBundleSheafDiffusion(edge_index, cfg.model_args)
     sheaf_nc = SheafNodeClassifier(
         model=model,
         hidden_channels=model.hidden_dim,
