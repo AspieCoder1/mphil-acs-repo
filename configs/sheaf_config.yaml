@@ -11,7 +11,7 @@ trainer:
   patience: 100
   strategy: auto
 model_args:
-  device: ${trainer.accelerator}
+  device: cuda
   layers: 3
   hidden_channels: 256
 hydra:
