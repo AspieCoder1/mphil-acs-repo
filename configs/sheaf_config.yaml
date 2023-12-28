@@ -4,7 +4,7 @@ defaults:
   - override hydra/launcher: submitit_slurm
 
 model: BundleSheaf
-dataset: ACM
+dataset: DBLP
 trainer:
   accelerator: cuda
   devices: 1
