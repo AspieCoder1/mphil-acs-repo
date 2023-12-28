@@ -215,8 +215,7 @@ class DiagSheafDiffusion(SheafDiffusion):
             x = x.view(self.graph_size * self.final_d, -1)
             x = self.odeblock(x)
         x = x.view(self.graph_size, -1)
-        x = self.lin2(x)
-        return F.log_softmax(x, dim=1)
+        return x
 
 
 class BundleSheafDiffusion(SheafDiffusion):
@@ -269,8 +268,7 @@ class BundleSheafDiffusion(SheafDiffusion):
             x = x.view(self.graph_size * self.final_d, -1)
             x = self.odeblock(x)
         x = x.view(self.graph_size, -1)
-        x = self.lin2(x)
-        return F.log_softmax(x, dim=1)
+        return x
 
 
 class GeneralSheafDiffusion(SheafDiffusion):
@@ -318,5 +316,4 @@ class GeneralSheafDiffusion(SheafDiffusion):
         assert torch.all(torch.isfinite(x))
 
         x = x.view(self.graph_size, -1)
-        x = self.lin2(x)
-        return F.log_softmax(x, dim=1)
+        return x

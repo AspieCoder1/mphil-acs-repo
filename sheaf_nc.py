@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import auto
-from typing import Any
+from typing import Any, Type
 
 import hydra
 import lightning as L
@@ -11,8 +11,16 @@ from strenum import PascalCaseStrEnum
 
 from core.datasets import NCDatasets, get_dataset_nc
 from core.trainer import TrainerArgs
-from models.SheafGNN import DiscreteBundleSheafDiffusion
+from models.SheafGNN import (
+    DiscreteBundleSheafDiffusion,
+    DiscreteDiagSheafDiffusion,
+    DiscreteGeneralSheafDiffusion,
+    DiagSheafDiffusion,
+    BundleSheafDiffusion,
+    GeneralSheafDiffusion
+)
 from models.SheafGNN.config import SheafModelArguments
+from models.SheafGNN.sheaf_base import SheafDiffusion
 from models.SheafNodeClassifier import SheafNodeClassifier
 
 
@@ -23,6 +31,21 @@ class Model(PascalCaseStrEnum):
     DiagSheafODE = auto()
     BundleSheafODE = auto()
     GeneralSheafODE = auto()
+
+
+def get_model(model: Model) -> Type[SheafDiffusion]:
+    if model == Model.DiagSheaf:
+        return DiscreteDiagSheafDiffusion
+    if model == Model.BundleSheaf:
+        return DiscreteBundleSheafDiffusion
+    if model == Model.GeneralSheaf:
+        return DiscreteGeneralSheafDiffusion
+    if model == Model.DiagSheafODE:
+        return DiagSheafDiffusion
+    if model == Model.BundleSheafODE:
+        return BundleSheafDiffusion
+    if model == Model.GeneralSheafODE:
+        return GeneralSheafDiffusion
 
 
 @dataclass
@@ -52,7 +75,8 @@ def main(cfg: Config) -> None:
     edge_index = datamodule.edge_index.to(cfg.model_args.device)
 
     # 3) Initialise models
-    model = DiscreteBundleSheafDiffusion(edge_index, cfg.model_args)
+    model_cls = get_model(cfg.model)
+    model = model_cls(edge_index, cfg.model_args)
     sheaf_nc = SheafNodeClassifier(
         model=model,
         hidden_channels=model.hidden_dim,
@@ -75,6 +99,8 @@ def main(cfg: Config) -> None:
         strategy=cfg.trainer.strategy,
         logger=logger,
         max_epochs=200,
+        fast_dev_run=True,
+        log_every_n_steps=1,
         callbacks=[
             EarlyStopping("valid/loss",
                           patience=cfg.trainer.patience),

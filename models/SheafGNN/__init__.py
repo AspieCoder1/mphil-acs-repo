@@ -4,11 +4,13 @@
 
 from .cont_models import (
     BundleSheafDiffusion,
-    DiagSheafDiffusion
+    DiagSheafDiffusion,
+    GeneralSheafDiffusion
 )
 
 from .disc_models import (
     DiscreteDiagSheafDiffusion,
-    DiscreteBundleSheafDiffusion
+    DiscreteBundleSheafDiffusion,
+    DiscreteGeneralSheafDiffusion
 )
 
