@@ -9,7 +9,7 @@ from lightning.pytorch.loggers import WandbLogger
 
 from core.datasets import NCDatasets, get_dataset_nc, get_dataset_hgt
 from core.models import Models, get_model
-from core.trainer import Trainer
+from core.trainer import TrainerArgs
 from models import NodeClassifier
 
 
@@ -17,7 +17,7 @@ from models import NodeClassifier
 class Config:
     dataset: NCDatasets
     model: Models
-    trainer: Trainer
+    trainer: TrainerArgs
 
 
 cs = ConfigStore.instance()

@@ -13,6 +13,7 @@ from . import laplacian_builders as lb
 from .sheaf_models import LocalConcatSheafLearner, EdgeWeightLearner
 from torchdiffeq import odeint
 from torchdiffeq import odeint_adjoint
+from .config import ODEArguments
 
 
 class LaplacianODEFunc(nn.Module):
@@ -86,7 +87,7 @@ class LaplacianODEFunc(nn.Module):
 class ODEBlock(nn.Module):
     """Module performing the ODE Integration."""
 
-    def __init__(self, odefunc, t, opt):
+    def __init__(self, odefunc, t, opt: ODEArguments):
         super(ODEBlock, self).__init__()
         self.t = t
         self.opt = opt
@@ -94,11 +95,11 @@ class ODEBlock(nn.Module):
         self.set_tol()
 
     def set_tol(self):
-        self.atol = self.opt['tol_scale'] * 1e-7
-        self.rtol = self.opt['tol_scale'] * 1e-9
-        if self.opt['adjoint']:
-            self.atol_adjoint = self.opt['tol_scale_adjoint'] * 1e-7
-            self.rtol_adjoint = self.opt['tol_scale_adjoint'] * 1e-9
+        self.atol = self.opt.tol_scale * 1e-7
+        self.rtol = self.opt.tol_scale * 1e-9
+        if self.opt.adjoint:
+            self.atol_adjoint = self.opt.tol_scale_adjoint * 1e-7
+            self.rtol_adjoint = self.opt.tol_scale_adjoint * 1e-9
 
     def reset_tol(self):
         self.atol = 1e-7
@@ -107,13 +108,13 @@ class ODEBlock(nn.Module):
         self.rtol_adjoint = 1e-9
 
     def forward(self, x):
-        if self.opt["adjoint"] and self.training:
+        if self.opt.adjoint and self.training:
             z = odeint_adjoint(
                 self.odefunc, x, self.t,
-                method=self.opt['int_method'],
-                options=dict(step_size=self.opt['step_size'], max_iters=self.opt['max_iters']),
-                adjoint_method=self.opt['adjoint_method'],
-                adjoint_options=dict(step_size=self.opt['adjoint_step_size'], max_iters=self.opt['max_iters']),
+                method=self.opt.int_method,
+                options=dict(step_size=self.opt.step_size, max_iters=self.opt.max_iters),
+                adjoint_method=self.opt.adjoint_method,
+                adjoint_options=dict(step_size=self.opt.adjoint_step_size, max_iters=self.opt.max_iters),
                 atol=self.atol,
                 rtol=self.rtol,
                 adjoint_atol=self.atol_adjoint,
@@ -121,8 +122,8 @@ class ODEBlock(nn.Module):
         else:
             z = odeint(
                 self.odefunc, x, self.t,
-                method=self.opt['int_method'],
-                options=dict(step_size=self.opt['step_size'], max_iters=self.opt['max_iters']),
+                method=self.opt.int_method,
+                options=dict(step_size=self.opt.step_size, max_iters=self.opt.max_iters),
                 atol=self.atol,
                 rtol=self.rtol)
         self.odefunc.L = None
@@ -135,7 +136,7 @@ class GraphLaplacianDiffusion(SheafDiffusion):
 
     def __init__(self, edge_index, args):
         super(GraphLaplacianDiffusion, self).__init__(edge_index, args)
-        assert args['d'] == 1
+        assert args.d == 1
 
         self.lin1 = nn.Linear(self.input_dim, self.hidden_dim)
         if self.second_linear:
@@ -150,7 +151,7 @@ class GraphLaplacianDiffusion(SheafDiffusion):
             self.final_d, self.sheaf_learner, self.laplacian_builder, edge_index, self.graph_size, self.hidden_channels,
             nonlinear=self.nonlinear, left_weights=self.left_weights, right_weights=self.right_weights,
             use_act=self.use_act)
-        self.odeblock = ODEBlock(self.odefunc, self.time_range, args)
+        self.odeblock = ODEBlock(self.odefunc, self.time_range, args.ode_args)
 
     def update_edge_index(self, edge_index):
         super().update_edge_index(edge_index)
@@ -195,7 +196,7 @@ class DiagSheafDiffusion(SheafDiffusion):
             self.final_d, self.sheaf_learner, self.laplacian_builder, edge_index, self.graph_size, self.hidden_channels,
             nonlinear=self.nonlinear, left_weights=self.left_weights, right_weights=self.right_weights,
             use_act=self.use_act)
-        self.odeblock = ODEBlock(self.odefunc, self.time_range, args)
+        self.odeblock = ODEBlock(self.odefunc, self.time_range, args.ode_args)
 
     def update_edge_index(self, edge_index):
         super().update_edge_index(edge_index)
@@ -224,7 +225,7 @@ class BundleSheafDiffusion(SheafDiffusion):
     def __init__(self, edge_index, args):
         super(BundleSheafDiffusion, self).__init__(edge_index, args)
         # Should use diagonal sheaf diffusion instead if d=1.
-        assert args['d'] > 1
+        assert args.d > 1
 
         self.lin1 = nn.Linear(self.input_dim, self.hidden_dim)
         if self.second_linear:
@@ -242,7 +243,7 @@ class BundleSheafDiffusion(SheafDiffusion):
             self.final_d, self.sheaf_learner, self.laplacian_builder, edge_index, self.graph_size, self.hidden_channels,
             nonlinear=self.nonlinear, left_weights=self.left_weights, right_weights=self.right_weights,
             use_act=self.use_act, weight_learner=self.weight_learner)
-        self.odeblock = ODEBlock(self.odefunc, self.time_range, args)
+        self.odeblock = ODEBlock(self.odefunc, self.time_range, args.ode_args)
 
     def update_edge_index(self, edge_index):
         super().update_edge_index(edge_index)
@@ -250,7 +251,7 @@ class BundleSheafDiffusion(SheafDiffusion):
         self.weight_learner.update_edge_index(edge_index)
 
     def get_param_size(self):
-        if self.orth_trans in ['matrix_exp', 'cayley']:
+        if self.orth_trans in ['matrix_exp', 'cayleyopt']:
             return self.d * (self.d + 1) // 2
         else:
             return self.d * (self.d - 1) // 2
@@ -277,7 +278,7 @@ class GeneralSheafDiffusion(SheafDiffusion):
     def __init__(self, edge_index, args):
         super(GeneralSheafDiffusion, self).__init__(edge_index, args)
         # Should use diagoal diffusion if d == 1
-        assert args['d'] > 1
+        assert args.d > 1
 
         self.lin1 = nn.Linear(self.input_dim, self.hidden_dim)
         if self.second_linear:
@@ -294,7 +295,7 @@ class GeneralSheafDiffusion(SheafDiffusion):
             self.final_d, self.sheaf_learner, self.laplacian_builder, edge_index, self.graph_size, self.hidden_channels,
             nonlinear=self.nonlinear, left_weights=self.left_weights, right_weights=self.right_weights,
             use_act=self.use_act)
-        self.odeblock = ODEBlock(self.odefunc, self.time_range, args)
+        self.odeblock = ODEBlock(self.odefunc, self.time_range, args.ode_args)
 
     def update_edge_index(self, edge_index):
         super().update_edge_index(edge_index)

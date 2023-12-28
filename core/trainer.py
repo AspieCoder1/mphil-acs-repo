@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class Trainer:
+class TrainerArgs:
     accelerator: str
     devices: int
     num_nodes: int

@@ -9,7 +9,7 @@ from lightning.pytorch.loggers import WandbLogger
 
 from core.datasets import get_dataset_lp, LinkPredDatasets
 from core.models import Models, get_model
-from core.trainer import Trainer
+from core.trainer import TrainerArgs
 from models import LinkPredictor
 
 
@@ -17,7 +17,7 @@ from models import LinkPredictor
 class Config:
     dataset: LinkPredDatasets
     model: Models
-    trainer: Trainer
+    trainer: TrainerArgs
 
 
 cs = ConfigStore.instance()

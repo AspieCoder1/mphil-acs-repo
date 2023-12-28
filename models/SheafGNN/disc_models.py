@@ -17,7 +17,7 @@ class DiscreteDiagSheafDiffusion(SheafDiffusion):
 
     def __init__(self, edge_index, args):
         super(DiscreteDiagSheafDiffusion, self).__init__(edge_index, args)
-        assert args['d'] > 0
+        assert args.d > 0
 
         self.lin_right_weights = nn.ModuleList()
         self.lin_left_weights = nn.ModuleList()
@@ -94,15 +94,15 @@ class DiscreteDiagSheafDiffusion(SheafDiffusion):
             x = x0
 
         x = x.reshape(self.graph_size, -1)
-        x = self.lin2(x)
-        return F.log_softmax(x, dim=1)
+        # x = self.lin2(x)
+        return x
 
 
 class DiscreteBundleSheafDiffusion(SheafDiffusion):
 
     def __init__(self, edge_index, args):
         super(DiscreteBundleSheafDiffusion, self).__init__(edge_index, args)
-        assert args['d'] > 1
+        assert args.d > 1
         assert not self.deg_normalised
 
         self.lin_right_weights = nn.ModuleList()
@@ -201,15 +201,15 @@ class DiscreteBundleSheafDiffusion(SheafDiffusion):
             x = x0
 
         x = x.reshape(self.graph_size, -1)
-        x = self.lin2(x)
-        return F.log_softmax(x, dim=1)
+        # x = self.lin2(x)
+        return x
 
 
 class DiscreteGeneralSheafDiffusion(SheafDiffusion):
 
     def __init__(self, edge_index, args):
         super(DiscreteGeneralSheafDiffusion, self).__init__(edge_index, args)
-        assert args['d'] > 1
+        assert args.d > 1
 
         self.lin_right_weights = nn.ModuleList()
         self.lin_left_weights = nn.ModuleList()
@@ -294,5 +294,5 @@ class DiscreteGeneralSheafDiffusion(SheafDiffusion):
         assert torch.all(torch.isfinite(x))
 
         x = x.reshape(self.graph_size, -1)
-        x = self.lin2(x)
-        return F.log_softmax(x, dim=1)
+        # x = self.lin2(x)
+        return x

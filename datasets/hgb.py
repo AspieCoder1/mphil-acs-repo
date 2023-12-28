@@ -25,9 +25,10 @@ class HGBBaseDataModule(L.LightningDataModule):
         self.metadata = None
         self.dataset = dataset
         self.num_nodes = None
-        self.in_channels: Optional[dict[str, int]] = None
+        self.in_channels: Union[Optional[dict[str, int]], int] = None
         self.homogeneous = homogeneous
         self.edge_index: Optional[Union[dict[str, torch.Tensor], torch.Tensor]] = None
+        self.graph_size: Optional[int] = None
 
     def prepare_data(self) -> None:
         transform = T.Compose(
@@ -37,7 +38,6 @@ class HGBBaseDataModule(L.LightningDataModule):
 
         data: Union[HeteroData, Data] = dataset[0]
         input_nodes = data[self.target]
-
 
         self.edge_index = data.edge_index_dict
         self.in_channels = {
@@ -50,6 +50,8 @@ class HGBBaseDataModule(L.LightningDataModule):
             data = data.to_homogeneous()
             self.edge_index = data.edge_index
             input_nodes = data
+            self.graph_size = data.x.size(0)
+            self.in_channels = data.num_features
 
         self.pyg_datamodule = LightningNodeData(
             data,
