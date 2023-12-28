@@ -57,7 +57,7 @@ class Config:
 
 
 cs = ConfigStore.instance()
-cs.store("config", Config)
+cs.store("base_config", Config)
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="sheaf_config.yaml")
