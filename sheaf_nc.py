@@ -53,7 +53,6 @@ class Config:
     model: Model
     dataset: NCDatasets
     trainer: TrainerArgs
-    defaults: list[Any] = field(default_factory=lambda: ["_self_"])
     model_args: SheafModelArguments = field(default_factory=SheafModelArguments)
 
 

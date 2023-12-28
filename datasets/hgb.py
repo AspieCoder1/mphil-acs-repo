@@ -106,9 +106,9 @@ class ACMDataModule(HGBBaseDataModule):
     def __init__(self, data_dir: str = "data", homogeneous: bool = False):
         super().__init__(
             data_dir=data_dir,
+            dataset="ACM",
             num_classes=3,
             target="paper",
-            dataset="ACM",
             task="multiclass",
             homogeneous=homogeneous
         )
