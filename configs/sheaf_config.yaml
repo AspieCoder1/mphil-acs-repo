@@ -1,6 +1,8 @@
 defaults:
   - config
+  - _self_
   - override hydra/launcher: submitit_slurm
+
 model: BundleSheaf
 dataset: ACM
 trainer:
