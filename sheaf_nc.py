@@ -99,7 +99,6 @@ def main(cfg: Config) -> None:
         strategy=cfg.trainer.strategy,
         logger=logger,
         max_epochs=200,
-        fast_dev_run=True,
         log_every_n_steps=1,
         callbacks=[
             EarlyStopping("valid/loss",
