@@ -1,60 +1,24 @@
 defaults:
   - config
   - _self_
+  - override hydra/launcher: submitit_slurm
 model: BundleSheaf
 dataset: DBLP
 trainer:
-  accelerator: cpu
+  accelerator: gpu
   devices: 1
   num_nodes: 1
   patience: 100
+  strategy: auto
 model_args:
-  device: cpu
-#model_args:
-#  ode_args:
-#    int_method: dopri5
-#    max_t: 1.0
-#    step_size:  1.0
-#    max_iters: 100
-#    adjoint_method: adaptive_heun
-#    adjoint: false
-#    adjoint_step_size: 1.0
-#    tol_scale: 1.0
-#    tol_scale_adjoint: 1.0
-#    max_nfe: 1000
-#    no_early: false
-#    earlystopxT: 3.0
-#    max_test_steps: 100
-#  d: 2
-#  layers: 2
-#  normalised: true
-#  deg_normalised: false
-#  linear: true
-#  hidden_channels: 20
-#  input_dropout: 0.0
-#  left_weights: true
-#  right_weights: true
-#  add_lp: true
-#  add_hp: true
-#  use_act: true
-#  second_linear: false
-#  orth: householder
-#  sheaf_act: tanh
-#  edge_weights: true
-#  sparse_learner: false
-#  graph_size: null
-#  input_dim: null
-#  output_dim: null
-#  dropout: 0.0
-#  initial_dropout: 0.0
-#  device: cpu
-##defaults:
-#  - override hydra/launcher: submitit_slurm
-#hydra:
-#  launcher:
-#    account: COMPUTERLAB-SL2-GPU
-#    timeout_min: 60
-#    nodes: 1
-#    partition: ampere
-#    gres: "gpu:1"
-#    gpus_per_task: 1
+  device: gpu
+  layers: 3
+  hidden_channels: 256
+hydra:
+  launcher:
+    account: COMPUTERLAB-SL2-GPU
+    timeout_min: 60
+    nodes: 1
+    partition: ampere
+    gres: "gpu:1"
+    gpus_per_task: 1

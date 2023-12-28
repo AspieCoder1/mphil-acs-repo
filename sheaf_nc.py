@@ -3,10 +3,11 @@ from enum import auto
 from typing import Any
 
 import hydra
+import lightning as L
 from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from pytorch_lightning.loggers import WandbLogger
 from strenum import PascalCaseStrEnum
-import lightning as L
 
 from core.datasets import NCDatasets, get_dataset_nc
 from core.trainer import TrainerArgs
@@ -49,7 +50,6 @@ def main(cfg: Config) -> None:
     cfg.model_args.input_dim = datamodule.in_channels
     cfg.model_args.output_dim = datamodule.num_classes
 
-
     # 3) Initialise models
     model = DiscreteBundleSheafDiffusion(datamodule.edge_index, cfg.model_args)
     sheaf_nc = SheafNodeClassifier(
@@ -60,10 +60,18 @@ def main(cfg: Config) -> None:
         task=datamodule.task
     )
 
+    # 3.5) initialise logger
+    logger = WandbLogger(project="gnn-baselines", log_model=True)
+    logger.experiment.config["model"] = cfg.model
+    logger.experiment.config["dataset"] = cfg.dataset
+    logger.experiment.tags = ['GNN', 'baseline', 'link_prediction']
+
     # 4) initialise trainer
     trainer = L.Trainer(
         accelerator=cfg.trainer.accelerator,
-        # fast_dev_run=True,
+        devices=cfg.trainer.devices,
+        num_nodes=cfg.trainer.num_nodes,
+        strategy=cfg.trainer.strategy,
         max_epochs=200,
         callbacks=[
             EarlyStopping("valid/loss",
