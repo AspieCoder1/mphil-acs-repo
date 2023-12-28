@@ -8,9 +8,9 @@ import torch.nn.functional as F
 import torch_sparse
 
 from torch import nn
-from sheaf_base import SheafDiffusion
-import laplacian_builders as lb
-from sheaf_models import LocalConcatSheafLearner, EdgeWeightLearner
+from .sheaf_base import SheafDiffusion
+from . import laplacian_builders as lb
+from .sheaf_models import LocalConcatSheafLearner, EdgeWeightLearner
 from torchdiffeq import odeint
 from torchdiffeq import odeint_adjoint
 

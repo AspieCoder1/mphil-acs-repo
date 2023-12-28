@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from enum import auto
 
 import hydra
 import lightning as L
@@ -7,41 +6,16 @@ import torch
 from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
-from strenum import PascalCaseStrEnum
 
-from datasets.link_pred import (
-    LastFMDataModule,
-    AmazonBooksDataModule,
-    LinkPredBase
-)
+from core.datasets import get_dataset_lp, LinkPredDatasets
+from core.models import Models, get_model
+from core.trainer import Trainer
 from models import LinkPredictor
-from node_classification import get_model, Models
-
-
-class Datasets(PascalCaseStrEnum):
-    LastFM = "LastFM"
-    AmazonBooks = auto()
-
-
-def get_dataset(dataset: Datasets) -> LinkPredBase:
-    if dataset == Datasets.LastFM:
-        return LastFMDataModule("data")
-    else:
-        return AmazonBooksDataModule("data")
-
-
-@dataclass
-class Trainer:
-    accelerator: str
-    devices: int
-    num_nodes: int
-    patience: int
-    strategy: str
 
 
 @dataclass
 class Config:
-    dataset: Datasets
+    dataset: LinkPredDatasets
     model: Models
     trainer: Trainer
 
@@ -53,7 +27,7 @@ cs.store("config", Config)
 @hydra.main(version_base=None, config_path=".", config_name="lp_config")
 def main(cfg: Config):
     torch.set_float32_matmul_precision("high")
-    datamodule = get_dataset(cfg.dataset)
+    datamodule = get_dataset_lp(cfg.dataset)
     datamodule.prepare_data()
 
     model, is_homogeneous = get_model(cfg.model, datamodule)

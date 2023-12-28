@@ -1,9 +1,10 @@
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
 import lightning as L
+import torch
 from pytorch_lightning.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADERS
 from torch_geometric import transforms as T
-from torch_geometric.data import HeteroData
+from torch_geometric.data import HeteroData, Data
 from torch_geometric.data.lightning import LightningNodeData
 from torch_geometric.datasets import HGBDataset
 
@@ -12,7 +13,8 @@ class HGBBaseDataModule(L.LightningDataModule):
     def __init__(self, target: str = "author", num_classes: int = 4,
                  data_dir: str = "data",
                  task: Literal["multiclass", "multilabel", "binary"] = "multiclass",
-                 dataset: Literal["IMDB", "DBLP", "ACM", "Freebase"] = "DBLP"
+                 dataset: Literal["IMDB", "DBLP", "ACM", "Freebase"] = "DBLP",
+                 homogeneous: bool = False,
                  ):
         super().__init__()
         self.data_dir = data_dir
@@ -24,6 +26,8 @@ class HGBBaseDataModule(L.LightningDataModule):
         self.dataset = dataset
         self.num_nodes = None
         self.in_channels: Optional[dict[str, int]] = None
+        self.homogeneous = homogeneous
+        self.edge_index: Optional[Union[dict[str, torch.Tensor], torch.Tensor]] = None
 
     def prepare_data(self) -> None:
         transform = T.Compose(
@@ -31,22 +35,30 @@ class HGBBaseDataModule(L.LightningDataModule):
         dataset = HGBDataset(root=self.data_dir, name=self.dataset,
                              transform=transform)
 
-        data: HeteroData = dataset[0]
+        data: Union[HeteroData, Data] = dataset[0]
+        input_nodes = data[self.target]
 
+
+        self.edge_index = data.edge_index_dict
         self.in_channels = {
             node_type: data[node_type].num_features for node_type in data.node_types
         }
+        self.metadata = data.metadata()
+        self.num_nodes = data.num_nodes
+
+        if self.homogeneous:
+            data = data.to_homogeneous()
+            self.edge_index = data.edge_index
+            input_nodes = data
 
         self.pyg_datamodule = LightningNodeData(
             data,
-            input_train_nodes=(self.target, data[self.target].train_mask),
-            input_val_nodes=(self.target, data[self.target].val_mask),
-            input_test_nodes=(self.target, data[self.target].test_mask),
+            input_train_nodes=(self.target, input_nodes.train_mask),
+            input_val_nodes=(self.target, input_nodes.val_mask),
+            input_test_nodes=(self.target, input_nodes.test_mask),
             loader="full",
             batch_size=128
         )
-        self.metadata = data.metadata()
-        self.num_nodes = data.num_nodes
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return self.pyg_datamodule.train_dataloader()
@@ -59,31 +71,44 @@ class HGBBaseDataModule(L.LightningDataModule):
 
 
 class IMDBDataModule(HGBBaseDataModule):
-    def __init__(self, data_dir: str = "data"):
-        super().__init__(data_dir=data_dir, task="multilabel", num_classes=5,
-                         dataset="IMDB", target="movie")
+    def __init__(self, data_dir: str = "data", homogeneous: bool = False):
+        super().__init__(
+            data_dir=data_dir,
+            task="multilabel",
+            num_classes=5,
+            dataset="IMDB",
+            target="movie",
+            homogeneous=homogeneous
+        )
 
     def __str__(self):
         return "IMDB"
 
 
 class DBLPDataModule(HGBBaseDataModule):
-    def __init__(self, data_dir: str = "data"):
-        super().__init__(dataset="DBLP", num_classes=4, target="author",
-                         task="multiclass", data_dir=data_dir)
+    def __init__(self, data_dir: str = "data", homogeneous: bool = False):
+        super().__init__(
+            dataset="DBLP",
+            num_classes=4,
+            target="author",
+            task="multiclass",
+            data_dir=data_dir,
+            homogeneous=homogeneous
+        )
 
     def __str__(self):
         return "DBLP"
 
 
 class ACMDataModule(HGBBaseDataModule):
-    def __init__(self, data_dir: str = "data"):
+    def __init__(self, data_dir: str = "data", homogeneous: bool = False):
         super().__init__(
             data_dir=data_dir,
             num_classes=3,
             target="paper",
             dataset="ACM",
-            task="multiclass"
+            task="multiclass",
+            homogeneous=homogeneous
         )
 
     def __str__(self):

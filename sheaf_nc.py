@@ -1,7 +1,13 @@
 from dataclasses import dataclass
-from typing import Literal
+from enum import auto
+from typing import Literal, Optional
 
-from node_classification import Datasets
+import hydra
+from hydra.core.config_store import ConfigStore
+from strenum import PascalCaseStrEnum
+
+from core.datasets import NCDatasets, get_dataset_nc
+from core.trainer import Trainer
 
 
 @dataclass
@@ -20,7 +26,7 @@ class SheafModelArguments:
     use_act: bool = True
     second_linear: bool = False
     orth: Literal['matrix_exp', 'cayley', 'householder', 'euler'] = 'householder'
-    sheaf_act: str = "tanh"
+    sheaf_act: str = 'tanh'
     edge_weights: bool = True
     sparse_learner: bool = False
 
@@ -42,10 +48,42 @@ class ODEArguments:
     max_test_steps: int = 100
 
 
+class Model(PascalCaseStrEnum):
+    DiagSheaf = auto()
+    BundleSheaf = auto()
+    GeneralSheaf = auto()
+    DiagSheafODE = auto()
+    BundleSheafODE = auto()
+    GeneralSheafODE = auto()
+
+
 @dataclass
 class Config:
-    model_args: SheafModelArguments
-    ode_args: ODEArguments
-    model: Literal[
-        'DiagSheaf', 'BundleSheaf', 'GeneralSheaf', 'DiagSheafODE', 'BundleSheafODE', 'GeneralSheafODE']
-    dataset: Datasets
+    model_args: Optional[SheafModelArguments]
+    ode_args: Optional[ODEArguments]
+    model: Model
+    dataset: NCDatasets
+    trainer: Trainer
+
+
+cs = ConfigStore.instance()
+cs.store("config", Config)
+
+
+@hydra.main(version_base=None, config_path="configs", config_name="sheaf_config.yaml")
+def main(cfg: Config) -> None:
+    ...
+    # 1) get the datamodule
+    # The data  must be homogeneous due to how code is configured
+    datamodule = get_dataset_nc(cfg.dataset, True)
+    datamodule.prepare_data()
+    # 2) initialise model
+    print(datamodule.edge_index)
+    # model = DiscreteBundleSheafDiffusion(cfg.model_args, datamodule.edge_index)
+    # 3) initialise trainer
+    # 4) train the model
+    # 5) test the model
+
+
+if __name__ == '__main__':
+    main()

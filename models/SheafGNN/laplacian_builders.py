@@ -9,7 +9,7 @@ import lib.laplace as lap
 from torch import nn
 from torch_scatter import scatter_add
 from torch_geometric.utils import degree
-from orthogonal import Orthogonal
+from .orthogonal import Orthogonal
 
 
 class LaplacianBuilder(nn.Module):
