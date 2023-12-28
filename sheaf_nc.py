@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import auto
-from typing import Any, Type
+from typing import Type
 
 import hydra
 import lightning as L
