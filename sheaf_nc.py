@@ -61,7 +61,7 @@ cs = ConfigStore.instance()
 cs.store("base_config", Config)
 
 
-@hydra.main(version_base=None, config_path="configs", config_name="sheaf_config.yaml")
+@hydra.main(version_base="1.2", config_path="configs", config_name="sheaf_config.yaml")
 def main(cfg: Config) -> None:
     print(OmegaConf.to_yaml(cfg))
     # 1) get the datamodule
