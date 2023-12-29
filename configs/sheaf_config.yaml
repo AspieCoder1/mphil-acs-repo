@@ -4,7 +4,7 @@ defaults:
   - _self_
 
 model: BundleSheaf
-dataset: DBLP
+dataset: IMDB
 trainer:
   accelerator: cuda
   devices: 1
