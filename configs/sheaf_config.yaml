@@ -11,7 +11,7 @@ trainer:
   num_nodes: 1
   patience: 100
   strategy: auto
-  fast_dev_run: true
+  fast_dev_run: false
 model_args:
   device: cuda
   layers: 3

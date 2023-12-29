@@ -133,8 +133,8 @@ def main(cfg: Config) -> None:
     # 5) train the model
     trainer.fit(sheaf_nc, datamodule)
 
-    # # 6) test the model
-    # trainer.test(sheaf_nc, datamodule)
+    # 6) test the model
+    trainer.test(sheaf_nc, datamodule)
 
 
 if __name__ == '__main__':
