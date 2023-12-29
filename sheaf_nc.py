@@ -1,13 +1,16 @@
+import logging
 from dataclasses import dataclass, field
 from enum import auto
-from typing import Type
+from typing import Type, Any
 
 import hydra
 import lightning as L
 from hydra.core.config_store import ConfigStore
+from hydra.core.utils import JobReturn, JobStatus
+from hydra.experimental.callback import Callback
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf, DictConfig
 from strenum import PascalCaseStrEnum
 
 from core.datasets import NCDatasets, get_dataset_nc
@@ -23,6 +26,23 @@ from models.SheafGNN import (
 from models.SheafGNN.config import SheafModelArguments
 from models.SheafGNN.sheaf_base import SheafDiffusion
 from models.SheafNodeClassifier import SheafNodeClassifier
+
+
+class LogJobReturnCallback(Callback):
+    """Log the job's return value or error upon job end"""
+
+    def __init__(self) -> None:
+        self.log = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+
+    def on_job_end(
+            self, config: DictConfig, job_return: JobReturn, **kwargs: Any
+    ) -> None:
+        if job_return.status == JobStatus.COMPLETED:
+            self.log.info(f"Succeeded with return value: {job_return.return_value}")
+        elif job_return.status == JobStatus.FAILED:
+            self.log.error("", exc_info=job_return._return_value)
+        else:
+            self.log.error("Status unknown. This should never happen.")
 
 
 class Model(PascalCaseStrEnum):
