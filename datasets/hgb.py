@@ -8,6 +8,8 @@ from torch_geometric.data import HeteroData, Data
 from torch_geometric.data.lightning import LightningNodeData
 from torch_geometric.datasets import HGBDataset
 
+from .utils import RemoveSelfLoops
+
 
 class HGBBaseDataModule(L.LightningDataModule):
     def __init__(self, target: str = "author", num_classes: int = 4,
@@ -32,7 +34,8 @@ class HGBBaseDataModule(L.LightningDataModule):
 
     def prepare_data(self) -> None:
         transform = T.Compose(
-            [T.Constant(node_types=None), T.RandomNodeSplit()])
+            [T.Constant(node_types=None), T.RandomNodeSplit(), T.ToUndirected(),
+             RemoveSelfLoops()])
         dataset = HGBDataset(root=self.data_dir, name=self.dataset,
                              transform=transform)
 

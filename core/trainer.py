@@ -8,3 +8,4 @@ class TrainerArgs:
     num_nodes: int = 1
     patience: int = 100
     strategy: str = "auto"
+    fast_dev_run: bool = False

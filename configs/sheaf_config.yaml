@@ -4,15 +4,16 @@ defaults:
   - _self_
 
 model: BundleSheaf
-dataset: IMDB
+dataset: DBLP
 trainer:
-  accelerator: cuda
+  accelerator: cpu
   devices: 1
   num_nodes: 1
   patience: 100
   strategy: auto
+  fast_dev_run: true
 model_args:
-  device: cuda
+  device: cpu
   layers: 3
   hidden_channels: 256
 hydra:

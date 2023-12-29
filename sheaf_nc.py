@@ -83,7 +83,6 @@ cs.store("base_config", Config)
 
 @hydra.main(version_base="1.2", config_path="configs", config_name="sheaf_config.yaml")
 def main(cfg: Config) -> None:
-    print(OmegaConf.to_yaml(cfg))
     # 1) get the datamodule
     # The data  must be homogeneous due to how code is configured
     datamodule = get_dataset_nc(cfg.dataset, True)
@@ -94,6 +93,8 @@ def main(cfg: Config) -> None:
     cfg.model_args.input_dim = datamodule.in_channels
     cfg.model_args.output_dim = datamodule.num_classes
     edge_index = datamodule.edge_index.to(cfg.model_args.device)
+    print(edge_index)
+    print(datamodule.pyg_datamodule.data)
 
     # 3) Initialise models
     model_cls = get_model(cfg.model)
@@ -118,6 +119,7 @@ def main(cfg: Config) -> None:
         devices=cfg.trainer.devices,
         num_nodes=cfg.trainer.num_nodes,
         strategy=cfg.trainer.strategy,
+        fast_dev_run=cfg.trainer.fast_dev_run,
         logger=logger,
         max_epochs=200,
         log_every_n_steps=1,
@@ -131,8 +133,8 @@ def main(cfg: Config) -> None:
     # 5) train the model
     trainer.fit(sheaf_nc, datamodule)
 
-    # 6) test the model
-    trainer.test(sheaf_nc, datamodule)
+    # # 6) test the model
+    # trainer.test(sheaf_nc, datamodule)
 
 
 if __name__ == '__main__':
