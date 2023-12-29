@@ -51,9 +51,9 @@ def get_model(model: Model) -> Type[SheafDiffusion]:
 
 @dataclass
 class Config:
-    model: Model
-    dataset: NCDatasets
     trainer: TrainerArgs
+    model: Model = Model.BundleSheaf
+    dataset: NCDatasets = NCDatasets.DBLP
     model_args: SheafModelArguments = field(default_factory=SheafModelArguments)
 
 
