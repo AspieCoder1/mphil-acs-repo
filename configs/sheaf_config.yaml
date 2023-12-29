@@ -6,14 +6,14 @@ defaults:
 model: BundleSheaf
 dataset: DBLP
 trainer:
-  accelerator: cpu
+  accelerator: gpu
   devices: 1
   num_nodes: 1
   patience: 100
   strategy: auto
   fast_dev_run: true
 model_args:
-  device: cpu
+  device: cuda
   layers: 3
   hidden_channels: 256
 hydra:
