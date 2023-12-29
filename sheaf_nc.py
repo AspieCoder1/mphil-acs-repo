@@ -7,6 +7,7 @@ import lightning as L
 from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
+from omegaconf import OmegaConf
 from strenum import PascalCaseStrEnum
 
 from core.datasets import NCDatasets, get_dataset_nc
@@ -62,6 +63,7 @@ cs.store("base_config", Config)
 
 @hydra.main(version_base=None, config_path="configs", config_name="sheaf_config.yaml")
 def main(cfg: Config) -> None:
+    print(OmegaConf.to_yaml(cfg))
     # 1) get the datamodule
     # The data  must be homogeneous due to how code is configured
     datamodule = get_dataset_nc(cfg.dataset, True)
