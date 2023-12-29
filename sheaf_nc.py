@@ -10,7 +10,7 @@ from hydra.core.utils import JobReturn, JobStatus
 from hydra.experimental.callback import Callback
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
-from omegaconf import OmegaConf, DictConfig
+from omegaconf import DictConfig
 from strenum import PascalCaseStrEnum
 
 from core.datasets import NCDatasets, get_dataset_nc
