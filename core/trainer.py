@@ -3,8 +3,8 @@ from dataclasses import dataclass
 
 @dataclass
 class TrainerArgs:
-    accelerator: str
-    devices: int
-    num_nodes: int
-    patience: int
-    strategy: str
+    accelerator: str = "gpu"
+    devices: int = 1
+    num_nodes: int = 1
+    patience: int = 100
+    strategy: str = "auto"
