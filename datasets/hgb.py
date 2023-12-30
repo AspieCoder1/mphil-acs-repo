@@ -35,7 +35,7 @@ class HGBBaseDataModule(L.LightningDataModule):
     def prepare_data(self) -> None:
         transform = T.Compose(
             [T.Constant(node_types=None), T.RandomNodeSplit(), T.ToUndirected(),
-             RemoveSelfLoops()])
+             RemoveSelfLoops(), T.NormalizeFeatures()])
         dataset = HGBDataset(root=self.data_dir, name=self.dataset,
                              transform=transform)
 
