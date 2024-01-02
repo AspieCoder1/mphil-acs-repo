@@ -1,4 +1,4 @@
-from typing import Literal, NamedTuple
+from typing import Literal, NamedTuple, Callable
 
 import lightning.pytorch as L
 import torch
@@ -41,11 +41,11 @@ class NodeClassifier(L.LightningModule):
         self.task = task
 
         if task == "multilabel":
-            self.loss_fn = F.multilabel_soft_margin_loss
-            self.act_fn = nn.Sigmoid()
+            self.loss_fn: Callable = F.multilabel_soft_margin_loss
+            self.act_fn: Callable = F.sigmoid
         else:
-            self.loss_fn = F.cross_entropy
-            self.act_fn = nn.Softmax(dim=-1)
+            self.loss_fn: Callable = F.cross_entropy
+            self.act_fn: Callable = F.softmax
 
     def common_step(self, batch: Batch, mask: torch.Tensor) -> CommonStepOutput:
         y: torch.Tensor = batch[self.target].y[mask]
