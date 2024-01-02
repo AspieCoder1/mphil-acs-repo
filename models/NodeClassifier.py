@@ -42,8 +42,10 @@ class NodeClassifier(L.LightningModule):
 
         if task == "multilabel":
             self.loss_fn = F.multilabel_soft_margin_loss
+            self.act_fn = nn.Sigmoid()
         else:
             self.loss_fn = F.cross_entropy
+            self.act_fn = nn.Softmax(dim=-1)
 
     def common_step(self, batch: Batch, mask: torch.Tensor) -> CommonStepOutput:
         y: torch.Tensor = batch[self.target].y[mask]
@@ -54,11 +56,7 @@ class NodeClassifier(L.LightningModule):
 
         y_hat = self.decoder(x_dict[self.target])[mask]
         loss = self.loss_fn(y_hat, y)
-        if self.task == "multilabel":
-            y_hat = torch.sigmoid(y_hat)
-            y = y.to(torch.int)
-        else:
-            y_hat = y_hat.softmax(dim=-1)
+        y_hat = self.act_fn(y_hat)
         return CommonStepOutput(y, y_hat, loss)
 
     def training_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:

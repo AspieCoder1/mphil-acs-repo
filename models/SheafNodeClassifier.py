@@ -2,7 +2,6 @@ from typing import Literal
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 from torch_geometric.data import Data
 
@@ -29,9 +28,10 @@ class SheafNodeClassifier(NodeClassifier):
 
         y_hat = self.decoder(logits)[mask][target_mask]
 
-        loss = F.cross_entropy(y_hat, y)
+        loss = self.loss_fn(y_hat, y)
+        y_hat = self.act_fn(y_hat)
 
-        return CommonStepOutput(y=y, y_hat=y_hat.softmax(dim=-1), loss=loss)
+        return CommonStepOutput(y=y, y_hat=y_hat, loss=loss)
 
     def training_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
         y, y_hat, loss = self.common_step(batch, batch.train_mask)
