@@ -106,10 +106,10 @@ def main(cfg: Config) -> None:
     )
 
     # 3.5) initialise logger
-    # logger = WandbLogger(project="gnn-baselines", log_model=True)
-    # logger.experiment.config["model"] = cfg.model
-    # logger.experiment.config["dataset"] = cfg.dataset
-    # logger.experiment.tags = ['GNN', 'sheaf', 'node_classification']
+    logger = WandbLogger(project="gnn-baselines", log_model=True)
+    logger.experiment.config["model"] = cfg.model
+    logger.experiment.config["dataset"] = cfg.dataset
+    logger.experiment.tags = ['GNN', 'sheaf', 'node_classification']
 
     # 4) initialise trainer
     trainer = L.Trainer(
@@ -118,7 +118,7 @@ def main(cfg: Config) -> None:
         num_nodes=cfg.trainer.num_nodes,
         strategy=cfg.trainer.strategy,
         fast_dev_run=cfg.trainer.fast_dev_run,
-        # logger=logger,
+        logger=logger,
         max_epochs=200,
         log_every_n_steps=1,
         callbacks=[
