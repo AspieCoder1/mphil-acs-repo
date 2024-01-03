@@ -93,8 +93,6 @@ def main(cfg: Config) -> None:
     cfg.model_args.input_dim = datamodule.in_channels
     cfg.model_args.output_dim = datamodule.num_classes
     edge_index = datamodule.edge_index.to(cfg.model_args.device)
-    print(edge_index)
-    print(datamodule.pyg_datamodule.data)
 
     # 3) Initialise models
     model_cls = get_model(cfg.model)
@@ -108,10 +106,10 @@ def main(cfg: Config) -> None:
     )
 
     # 3.5) initialise logger
-    logger = WandbLogger(project="gnn-baselines", log_model=True)
-    logger.experiment.config["model"] = cfg.model
-    logger.experiment.config["dataset"] = cfg.dataset
-    logger.experiment.tags = ['GNN', 'sheaf', 'node_classification']
+    # logger = WandbLogger(project="gnn-baselines", log_model=True)
+    # logger.experiment.config["model"] = cfg.model
+    # logger.experiment.config["dataset"] = cfg.dataset
+    # logger.experiment.tags = ['GNN', 'sheaf', 'node_classification']
 
     # 4) initialise trainer
     trainer = L.Trainer(
@@ -120,7 +118,7 @@ def main(cfg: Config) -> None:
         num_nodes=cfg.trainer.num_nodes,
         strategy=cfg.trainer.strategy,
         fast_dev_run=cfg.trainer.fast_dev_run,
-        logger=logger,
+        # logger=logger,
         max_epochs=200,
         log_every_n_steps=1,
         callbacks=[

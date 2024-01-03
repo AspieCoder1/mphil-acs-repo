@@ -8,6 +8,7 @@ from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch_geometric.data import Batch
 from torch_geometric.nn import Linear
 from torchmetrics.classification import Accuracy, AUROC, F1Score
+import functools
 
 
 class CommonStepOutput(NamedTuple):
@@ -45,7 +46,7 @@ class NodeClassifier(L.LightningModule):
             self.act_fn: Callable = F.sigmoid
         else:
             self.loss_fn: Callable = F.cross_entropy
-            self.act_fn: Callable = F.softmax
+            self.act_fn: Callable = functools.partial(F.softmax, dim=-1)
 
     def common_step(self, batch: Batch, mask: torch.Tensor) -> CommonStepOutput:
         y: torch.Tensor = batch[self.target].y[mask]
@@ -57,7 +58,7 @@ class NodeClassifier(L.LightningModule):
         y_hat = self.decoder(x_dict[self.target])[mask]
         loss = self.loss_fn(y_hat, y)
         y_hat = self.act_fn(y_hat)
-        print(y_hat.shape)
+
         return CommonStepOutput(y, y_hat, loss)
 
     def training_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:

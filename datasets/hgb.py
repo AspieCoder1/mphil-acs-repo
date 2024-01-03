@@ -39,7 +39,7 @@ class HGBBaseDataModule(L.LightningDataModule):
         dataset = HGBDataset(root=self.data_dir, name=self.dataset,
                              transform=transform)
 
-        data: Union[HeteroData, Data] = dataset[0]
+        data: Union[HeteroData, Data] = dataset[0].coalesce()
         input_nodes = data[self.target]
 
         self.edge_index = data.edge_index_dict

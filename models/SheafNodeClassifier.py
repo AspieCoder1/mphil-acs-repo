@@ -1,3 +1,4 @@
+import logging
 from typing import Literal
 
 import torch
@@ -21,15 +22,20 @@ class SheafNodeClassifier(NodeClassifier):
                          homogeneous_model=homogeneous_model)
 
     def common_step(self, batch: Data, mask: torch.Tensor) -> CommonStepOutput:
+        if self.task == "multilabel":
+            target_mask = torch.any(~batch.y.isnan(), dim=1)
+        else:
+            target_mask = batch.y != -1
+
+        mask = torch.logical_and(target_mask, mask)
         y = batch.y[mask]
-        target_mask = y != -1
-        y = y[target_mask]
         logits = self.encoder(batch.x)
 
-        y_hat = self.decoder(logits)[mask][target_mask]
+        y_hat = self.decoder(logits)[mask]
 
         loss = self.loss_fn(y_hat, y)
         y_hat = self.act_fn(y_hat)
+        y = y.to(torch.int)
 
         return CommonStepOutput(y=y, y_hat=y_hat, loss=loss)
 
