@@ -57,6 +57,7 @@ class NodeClassifier(L.LightningModule):
         y_hat = self.decoder(x_dict[self.target])[mask]
         loss = self.loss_fn(y_hat, y)
         y_hat = self.act_fn(y_hat)
+        print(y_hat.shape)
         return CommonStepOutput(y, y_hat, loss)
 
     def training_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:
