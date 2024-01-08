@@ -4,9 +4,10 @@ import lightning as L
 import torch
 import torch_geometric.transforms as T
 from lightning.pytorch.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADERS
-from torch_geometric.data import HeteroData
 from torch_geometric.data.lightning import LightningLinkData
 from torch_geometric.datasets import MovieLens, LastFM, AmazonBook
+
+from .utils import RemoveSelfLoops
 
 
 class LinkPredBase(L.LightningDataModule):
@@ -19,67 +20,18 @@ class LinkPredBase(L.LightningDataModule):
         self.pyg_datamodule = None
         self.in_channels = None
         self.num_nodes = None
-
-    def prepare_data_core(self, data: HeteroData) -> None:
-        print(data)
-        self.data = data
-        self.metadata = self.data.metadata()
-        self.num_nodes = self.data.num_nodes
-
-        self.in_channels = {
-            node_type: self.data[node_type].num_features for node_type in
-            self.data.node_types
-        }
-
-        self.pyg_datamodule = LightningLinkData(
-            self.data,
-            input_train_edges=torch.concat(
-                [
-                    self.data[self.target].edge_index,
-                    self.data[self.target].train_neg_edge_index
-                ], dim=-1
-            ),
-            input_train_labels=torch.concat(
-                [
-                    torch.ones(self.data[self.target].edge_index.size(1)),
-                    torch.zeros(self.data[self.target].train_neg_edge_index.size(1))
-                ], dim=-1
-            ),
-            input_val_edges=torch.concat(
-                [
-                    self.data[self.target].val_pos_edge_index,
-                    self.data[self.target].val_neg_edge_index,
-                ], dim=-1
-            ),
-            input_val_labels=torch.concat(
-                [
-                    torch.ones(self.data[self.target].val_pos_edge_index.size(1)),
-                    torch.zeros(self.data[self.target].val_neg_edge_index.size(1))
-                ], dim=-1
-            ),
-            input_test_edges=torch.concat(
-                [
-                    self.data[self.target].test_pos_edge_index,
-                    self.data[self.target].test_neg_edge_index,
-                ], dim=-1
-            ),
-            input_test_labels=torch.concat(
-                [
-                    torch.ones(self.data[self.target].test_pos_edge_index.size(1)),
-                    torch.zeros(self.data[self.target].test_neg_edge_index.size(1))
-                ], dim=-1
-            ),
-            loader="full"
-        )
+        self.train_data = None
+        self.val_data = None
+        self.test_data = None
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
-        return self.pyg_datamodule.train_dataloader()
+        return LightningLinkData(self.train_data, loader="full").full_dataloader()
 
     def val_dataloader(self) -> EVAL_DATALOADERS:
-        return self.pyg_datamodule.val_dataloader()
+        return LightningLinkData(self.val_data, loader="full").full_dataloader()
 
     def test_dataloader(self) -> EVAL_DATALOADERS:
-        return self.pyg_datamodule.test_dataloader()
+        return LightningLinkData(self.test_data, loader="full").full_dataloader()
 
 
 class LastFMDataModule(LinkPredBase):
@@ -88,19 +40,66 @@ class LastFMDataModule(LinkPredBase):
                                                target=("user", "to", "artist"))
 
     def prepare_data(self) -> None:
-        dataset = LastFM(self.data_dir, transform=T.Constant())
-        self.prepare_data_core(dataset[0])
+        transform = T.Compose([
+            T.Constant(),
+            T.ToUndirected(),
+            T.NormalizeFeatures(),
+            RemoveSelfLoops(),
+        ]
+        )
+
+        data = LastFM(self.data_dir, transform=transform)[0]
+
+        del data['user', 'artist']['train_neg_edge_index']
+        del data['user', 'artist']['val_pos_edge_index']
+        del data['user', 'artist']['val_neg_edge_index']
+        del data['user', 'artist']['test_pos_edge_index']
+        del data['user', 'artist']['test_neg_edge_index']
+
+        split = T.RandomLinkSplit(edge_types=("user", "to", "artist"),
+                                  is_undirected=True,
+                                  rev_edge_types=("artist", "to", "user"))
+
+        self.train_data, self.val_data, self.test_data = split(data)
+
+        self.metadata = data.metadata()
+        self.num_nodes = data.num_nodes
+
+        self.in_channels = {
+            node_type: data[node_type].num_features for node_type in
+            data.node_types
+        }
 
 
 class AmazonBooksDataModule(LinkPredBase):
     def __init__(self, data_dir: str = "data"):
         super(AmazonBooksDataModule, self).__init__(data_dir=f"{data_dir}/amazon_books",
-                                                    target=("user", "to", "artist"))
+                                                    target=("user", "rates", "book"))
 
     def prepare_data(self) -> None:
-        dataset = AmazonBook(self.data_dir, transform=T.Constant())
-        print(dataset[0])
-        self.prepare_data_core(dataset[0])
+        transform = T.Compose([
+            T.Constant(),
+            T.ToUndirected(),
+            T.NormalizeFeatures(),
+            RemoveSelfLoops(),
+        ]
+        )
+
+        split = T.RandomLinkSplit(edge_types=('user', 'rates', 'book'),
+                                  is_undirected=True,
+                                  rev_edge_types=('book', 'rated_by', 'user'))
+
+        dataset = AmazonBook(self.data_dir, transform=transform)[0]
+
+        self.train_data, self.val_data, self.test_data = split(dataset)
+
+        self.metadata = dataset.metadata()
+        self.num_nodes = dataset.num_nodes
+
+        self.in_channels = {
+            node_type: dataset[node_type].num_features for node_type in
+            dataset.node_types
+        }
 
 
 class MovieLensDataset(L.LightningDataModule):

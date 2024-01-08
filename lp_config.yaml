@@ -1,9 +1,9 @@
 dataset: LastFM
 model: RGCN
 trainer:
-  accelerator: gpu
-  devices: 2
-  strategy: ddp_find_unused_parameters_true
+  accelerator: cpu
+  devices: 1
+  strategy: auto
   num_nodes: 1
   patience: 100
 defaults:

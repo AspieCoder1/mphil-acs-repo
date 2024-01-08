@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn
-from torch_geometric.data import Batch
+from torch_geometric.data import HeteroData
 from torchmetrics.classification import Accuracy, F1Score, AUROC
 
 from models.NodeClassifier import CommonStepOutput
@@ -41,35 +41,26 @@ class LinkPredictor(L.LightningModule):
         self.test_auroc = AUROC(task="binary")
         self.target = edge_target
 
-    def common_step(self, batch, pos_idx: str, neg_idx: str) -> CommonStepOutput:
+    def common_step(self, batch: HeteroData) -> CommonStepOutput:
         if self.homogeneous:
             x_dict = self.encoder(batch.x_dict, batch.edge_index_dict)
         else:
             x_dict = self.encoder(batch)
 
-        num_pos_ex = batch[self.target][pos_idx].size(1)
-        num_neg_ex = batch[self.target][neg_idx].size(1)
-        neg_ex = torch.randperm(num_neg_ex)[:num_pos_ex]
-        neg_samples = batch[self.target][neg_idx][:, neg_ex]
-        edge_label_index = torch.hstack(
-            (
-                batch[self.target][pos_idx],
-                neg_samples
-            )
-        )
-        y_hat = self.decoder(x_dict, edge_label_index)
-        y = torch.hstack((
-            torch.ones(num_pos_ex),
-            torch.zeros(num_pos_ex),
-        )).to(y_hat)
+        print(self.target)
+
+        print(batch[self.target].edge_label)
+
+        y_hat = self.decoder(x_dict,
+                             batch[self.target].edge_label_index)
+        y = batch[self.target].edge_label
 
         loss = F.binary_cross_entropy_with_logits(y_hat, y)
         y_hat = torch.round(torch.sigmoid(y_hat))
         return CommonStepOutput(y, y_hat, loss)
 
-    def training_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss = self.common_step(batch, "edge_index",
-                                          "train_neg_edge_index")
+    def training_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
+        y, y_hat, loss = self.common_step(batch)
 
         self.train_acc(y_hat, y)
 
@@ -87,9 +78,8 @@ class LinkPredictor(L.LightningModule):
 
         return loss
 
-    def validation_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss = self.common_step(batch, "val_pos_edge_index",
-                                          "val_neg_edge_index")
+    def validation_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
+        y, y_hat, loss = self.common_step(batch)
 
         self.val_acc(y_hat, y)
 
@@ -107,9 +97,8 @@ class LinkPredictor(L.LightningModule):
 
         return loss
 
-    def test_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss = self.common_step(batch, "test_pos_edge_index",
-                                          "test_neg_edge_index")
+    def test_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
+        y, y_hat, loss = self.common_step(batch)
 
         self.test_acc(y_hat, y)
         self.test_f1(y_hat, y)
