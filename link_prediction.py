@@ -48,7 +48,6 @@ def main(cfg: Config):
                         devices=cfg.trainer.devices,
                         strategy=cfg.trainer.strategy,
                         max_epochs=200,
-                        fast_dev_run=True,
                         logger=logger,
                         callbacks=[
                             EarlyStopping("valid/loss", patience=cfg.trainer.patience),
