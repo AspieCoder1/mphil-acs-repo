@@ -20,3 +20,6 @@ hydra:
     params:
       dataset: AmazonBooks
       model: RGCN,GAT,HGT,GCN,HGCN,HAN
+  callbacks:
+    my_callback:
+      _target_: sheaf_nc.LogJobReturnCallback
