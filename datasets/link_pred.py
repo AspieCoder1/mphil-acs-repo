@@ -40,12 +40,6 @@ class LinkPredBase(L.LightningDataModule):
     def prepare_data(self) -> None:
         data = self.download_data()
 
-        split = T.RandomLinkSplit(edge_types=self.target,
-                                  is_undirected=True,
-                                  rev_edge_types=self.rev_target)
-
-        self.train_data, self.val_data, self.test_data = split(data)
-
         self.metadata = data.metadata()
         self.num_nodes = data.num_nodes
 
@@ -53,6 +47,12 @@ class LinkPredBase(L.LightningDataModule):
             node_type: data[node_type].num_features for node_type in
             data.node_types
         }
+
+        split = T.RandomLinkSplit(edge_types=self.target,
+                                  is_undirected=True,
+                                  rev_edge_types=self.rev_target)
+
+        self.train_data, self.val_data, self.test_data = split(data)
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return LightningLinkData(self.train_data, loader="full").full_dataloader()
