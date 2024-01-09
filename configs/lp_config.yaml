@@ -1,4 +1,4 @@
-dataset: l
+dataset: LastFM
 model: RGCN
 trainer:
   accelerator: gpu
@@ -16,3 +16,7 @@ hydra:
     nodes: 1
     partition: ampere
     gres: "gpu:1"
+  sweeper:
+    params:
+      dataset: AmazonBooks
+      model: RGCN,GAT,HGT,GCN,HGCN,HAN
