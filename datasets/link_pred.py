@@ -7,6 +7,7 @@ from lightning.pytorch.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADER
 from torch_geometric.data import HeteroData
 from torch_geometric.data.lightning import LightningLinkData
 from torch_geometric.datasets import MovieLens, LastFM, AmazonBook
+from torch_geometric.loader import LinkNeighborLoader
 
 from .utils import RemoveSelfLoops
 
@@ -97,27 +98,27 @@ class AmazonBooksDataModule(LinkPredBase):
         return data
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
-        return LightningLinkData(
+        return LinkNeighborLoader(
             self.train_data,
-            num_workers=8,
-            batch_size=64,
-            num_neighbors=[10] * 4
+            edge_index=(self.target, self.train_data[self.target].edge_index),
+            num_neighbors=[30] * 4,
+            batch_size=self.batch_size
         )
 
     def val_dataloader(self) -> EVAL_DATALOADERS:
-        return LightningLinkData(
+        return LinkNeighborLoader(
             self.val_data,
-            num_workers=8,
-            batch_size=1,
-            num_neighbors=[10] * 4
+            edge_index=(self.target, self.val_data[self.target].edge_index),
+            num_neighbors=[30] * 4,
+            batch_size=self.batch_size
         )
 
     def test_dataloader(self) -> EVAL_DATALOADERS:
-        return LightningLinkData(
+        return LinkNeighborLoader(
             self.test_data,
-            num_workers=8,
-            batch_size=1,
-            num_neighbors=[10] * 4
+            edge_index=(self.target, self.test_data[self.target].edge_index),
+            num_neighbors=[30] * 4,
+            batch_size=self.batch_size
         )
 
 
