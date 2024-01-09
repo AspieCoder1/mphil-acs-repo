@@ -33,6 +33,7 @@ class LinkPredBase(L.LightningDataModule):
         ]
         )
         self.rev_target = rev_target
+        self.batch_size = 1
 
     def download_data(self) -> HeteroData:
         ...
@@ -87,12 +88,37 @@ class AmazonBooksDataModule(LinkPredBase):
         super(AmazonBooksDataModule, self).__init__(
             data_dir=f"{data_dir}/amazon_books",
             target=("user", "rates", "book"),
-            rev_target=('book', 'rated_by', 'user')
+            rev_target=('book', 'rated_by', 'user'),
         )
+        self.batch_size = 64
 
     def download_data(self) -> HeteroData:
         data = AmazonBook(self.data_dir, transform=self.transform)[0]
         return data
+
+    def train_dataloader(self) -> TRAIN_DATALOADERS:
+        return LightningLinkData(
+            self.train_data,
+            num_workers=8,
+            batch_size=64,
+            num_neighbours=[10] * 4
+        )
+
+    def val_dataloader(self) -> EVAL_DATALOADERS:
+        return LightningLinkData(
+            self.val_data,
+            num_workers=8,
+            batch_size=1,
+            num_neighbours=[10] * 4
+        )
+
+    def test_dataloader(self) -> EVAL_DATALOADERS:
+        return LightningLinkData(
+            self.test_data,
+            num_workers=8,
+            batch_size=1,
+            num_neighbours=[10] * 4
+        )
 
 
 class MovieLensDataset(L.LightningDataModule):

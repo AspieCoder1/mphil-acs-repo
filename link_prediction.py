@@ -33,7 +33,8 @@ def main(cfg: Config):
     model, is_homogeneous = get_model(cfg.model, datamodule)
 
     link_predictor = LinkPredictor(model, edge_target=datamodule.target,
-                                   homogeneous=is_homogeneous)
+                                   homogeneous=is_homogeneous,
+                                   batch_size=datamodule.batch_size)
 
     logger = WandbLogger(project="gnn-baselines", log_model=True)
     logger.experiment.config["model"] = cfg.model

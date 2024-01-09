@@ -28,7 +28,8 @@ class DotProductEdgeDecoder(nn.Module):
 class LinkPredictor(L.LightningModule):
     def __init__(self, model: nn.Module,
                  edge_target: tuple[str, str, str] = ("user", "rates", "movie"),
-                 homogeneous: bool = False):
+                 homogeneous: bool = False,
+                 batch_size: int = 1):
         super(LinkPredictor, self).__init__()
         self.encoder = model
         self.decoder = DotProductEdgeDecoder(target=edge_target)
@@ -40,6 +41,7 @@ class LinkPredictor(L.LightningModule):
         self.test_f1 = F1Score(task="binary")
         self.test_auroc = AUROC(task="binary")
         self.target = edge_target
+        self.batch_size = batch_size
 
     def common_step(self, batch: HeteroData) -> CommonStepOutput:
         if self.homogeneous:
@@ -68,7 +70,7 @@ class LinkPredictor(L.LightningModule):
             prog_bar=True,
             on_step=True,
             on_epoch=True,
-            batch_size=1,
+            batch_size=self.batch_size,
             sync_dist=True
         )
 
