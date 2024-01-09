@@ -109,7 +109,7 @@ class AmazonBooksDataModule(LinkPredBase):
             self.val_data,
             num_workers=8,
             batch_size=1,
-            num_neighbours=[10] * 4
+            num_neighbors=[10] * 4
         )
 
     def test_dataloader(self) -> EVAL_DATALOADERS:
