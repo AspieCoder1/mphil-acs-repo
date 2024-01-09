@@ -36,10 +36,10 @@ def main(cfg: Config):
                                    homogeneous=is_homogeneous,
                                    batch_size=datamodule.batch_size)
 
-    logger = WandbLogger(project="gnn-baselines", log_model=True)
-    logger.experiment.config["model"] = cfg.model
-    logger.experiment.config["dataset"] = cfg.dataset
-    logger.experiment.tags = ['GNN', 'baseline', 'link_prediction']
+    # logger = WandbLogger(project="gnn-baselines", log_model=True)
+    # logger.experiment.config["model"] = cfg.model
+    # logger.experiment.config["dataset"] = cfg.dataset
+    # logger.experiment.tags = ['GNN', 'baseline', 'link_prediction']
 
     trainer = L.Trainer(log_every_n_steps=1,
                         num_nodes=cfg.trainer.num_nodes,
@@ -48,7 +48,7 @@ def main(cfg: Config):
                         strategy=cfg.trainer.strategy,
                         fast_dev_run=cfg.trainer.fast_dev_run,
                         max_epochs=200,
-                        logger=logger,
+                        # logger=logger,
                         callbacks=[
                             EarlyStopping("valid/loss", patience=cfg.trainer.patience),
                             ModelCheckpoint(monitor="valid/accuracy",

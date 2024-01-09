@@ -1,4 +1,8 @@
-dataset: LastFM
+defaults:
+  - config
+  - override hydra/launcher: submitit_slurm
+  - _self_
+dataset: AmazonBooks
 model: RGCN
 trainer:
   accelerator: gpu
@@ -6,9 +10,8 @@ trainer:
   num_nodes: 1
   patience: 100
   strategy: auto
-  fast_dev_run: false
-defaults:
-  - override hydra/launcher: submitit_slurm
+  fast_dev_run: true
+  log_every_n_steps: 10
 hydra:
   launcher:
     account: COMPUTERLAB-SL2-GPU

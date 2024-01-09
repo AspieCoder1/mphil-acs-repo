@@ -9,3 +9,4 @@ class TrainerArgs:
     patience: int = 100
     strategy: str = "auto"
     fast_dev_run: bool = False
+    log_every_n_steps: int = 1

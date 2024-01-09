@@ -102,16 +102,20 @@ class AmazonBooksDataModule(LinkPredBase):
             self.train_data,
             edge_label_index=(
                 self.target, self.train_data[self.target].edge_label_index),
+            edge_label=self.train_data[self.target].edge_label,
             num_neighbors=[30] * 4,
-            batch_size=self.batch_size
+            batch_size=self.batch_size,
+            num_workers=7
         )
 
     def val_dataloader(self) -> EVAL_DATALOADERS:
         return LinkNeighborLoader(
             self.val_data,
             edge_label_index=(self.target, self.val_data[self.target].edge_label_index),
+            edge_label=self.val_data[self.target].edge_label,
             num_neighbors=[30] * 4,
-            batch_size=self.batch_size
+            batch_size=self.batch_size,
+            num_workers=7
         )
 
     def test_dataloader(self) -> EVAL_DATALOADERS:
@@ -119,8 +123,10 @@ class AmazonBooksDataModule(LinkPredBase):
             self.test_data,
             edge_label_index=(
                 self.target, self.test_data[self.target].edge_label_index),
+            edge_label=self.test_data[self.target].edge_label,
             num_neighbors=[30] * 4,
-            batch_size=self.batch_size
+            batch_size=self.batch_size,
+            num_workers=7
         )
 
 
