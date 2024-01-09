@@ -47,10 +47,6 @@ class LinkPredictor(L.LightningModule):
         else:
             x_dict = self.encoder(batch)
 
-        print(self.target)
-
-        print(batch[self.target].edge_label)
-
         y_hat = self.decoder(x_dict,
                              batch[self.target].edge_label_index)
         y = batch[self.target].edge_label

@@ -4,6 +4,7 @@ import lightning as L
 import torch
 import torch_geometric.transforms as T
 from lightning.pytorch.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADERS
+from torch_geometric.data import HeteroData
 from torch_geometric.data.lightning import LightningLinkData
 from torch_geometric.datasets import MovieLens, LastFM, AmazonBook
 
@@ -11,9 +12,10 @@ from .utils import RemoveSelfLoops
 
 
 class LinkPredBase(L.LightningDataModule):
-    def __init__(self, target: tuple[str, str, str], data_dir: str = "data"):
+    def __init__(self, target: tuple[str, str, str], rev_target: tuple[str, str, str],
+                 data_dir: str = "data"):
         super(LinkPredBase, self).__init__()
-        self.target = target
+        self.target: tuple[str, str, str] = target
         self.data_dir = data_dir
         self.metadata = None
         self.data = None
@@ -23,6 +25,34 @@ class LinkPredBase(L.LightningDataModule):
         self.train_data = None
         self.val_data = None
         self.test_data = None
+        self.transform = T.Compose([
+            T.Constant(),
+            T.ToUndirected(),
+            T.NormalizeFeatures(),
+            RemoveSelfLoops(),
+        ]
+        )
+        self.rev_target = rev_target
+
+    def download_data(self) -> HeteroData:
+        ...
+
+    def prepare_data(self) -> None:
+        data = self.download_data()
+
+        split = T.RandomLinkSplit(edge_types=self.target,
+                                  is_undirected=True,
+                                  rev_edge_types=self.rev_target)
+
+        self.train_data, self.val_data, self.test_data = split(data)
+
+        self.metadata = data.metadata()
+        self.num_nodes = data.num_nodes
+
+        self.in_channels = {
+            node_type: data[node_type].num_features for node_type in
+            data.node_types
+        }
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return LightningLinkData(self.train_data, loader="full").full_dataloader()
@@ -37,69 +67,32 @@ class LinkPredBase(L.LightningDataModule):
 class LastFMDataModule(LinkPredBase):
     def __init__(self, data_dir: str = "data"):
         super(LastFMDataModule, self).__init__(data_dir=f"{data_dir}/lastfm",
-                                               target=("user", "to", "artist"))
+                                               target=("user", "to", "artist"),
+                                               rev_target=("artist", "to", "user"))
 
-    def prepare_data(self) -> None:
-        transform = T.Compose([
-            T.Constant(),
-            T.ToUndirected(),
-            T.NormalizeFeatures(),
-            RemoveSelfLoops(),
-        ]
-        )
+    def download_data(self) -> HeteroData:
+        data = LastFM(self.data_dir, transform=self.transform)[0]
 
-        data = LastFM(self.data_dir, transform=transform)[0]
+        del data[self.target]['train_neg_edge_index']
+        del data[self.target]['val_pos_edge_index']
+        del data[self.target]['val_neg_edge_index']
+        del data[self.target]['test_pos_edge_index']
+        del data[self.target]['test_neg_edge_index']
 
-        del data['user', 'artist']['train_neg_edge_index']
-        del data['user', 'artist']['val_pos_edge_index']
-        del data['user', 'artist']['val_neg_edge_index']
-        del data['user', 'artist']['test_pos_edge_index']
-        del data['user', 'artist']['test_neg_edge_index']
-
-        split = T.RandomLinkSplit(edge_types=("user", "to", "artist"),
-                                  is_undirected=True,
-                                  rev_edge_types=("artist", "to", "user"))
-
-        self.train_data, self.val_data, self.test_data = split(data)
-
-        self.metadata = data.metadata()
-        self.num_nodes = data.num_nodes
-
-        self.in_channels = {
-            node_type: data[node_type].num_features for node_type in
-            data.node_types
-        }
+        return data
 
 
 class AmazonBooksDataModule(LinkPredBase):
     def __init__(self, data_dir: str = "data"):
-        super(AmazonBooksDataModule, self).__init__(data_dir=f"{data_dir}/amazon_books",
-                                                    target=("user", "rates", "book"))
-
-    def prepare_data(self) -> None:
-        transform = T.Compose([
-            T.Constant(),
-            T.ToUndirected(),
-            T.NormalizeFeatures(),
-            RemoveSelfLoops(),
-        ]
+        super(AmazonBooksDataModule, self).__init__(
+            data_dir=f"{data_dir}/amazon_books",
+            target=("user", "rates", "book"),
+            rev_target=('book', 'rated_by', 'user')
         )
 
-        split = T.RandomLinkSplit(edge_types=('user', 'rates', 'book'),
-                                  is_undirected=True,
-                                  rev_edge_types=('book', 'rated_by', 'user'))
-
-        dataset = AmazonBook(self.data_dir, transform=transform)[0]
-
-        self.train_data, self.val_data, self.test_data = split(dataset)
-
-        self.metadata = dataset.metadata()
-        self.num_nodes = dataset.num_nodes
-
-        self.in_channels = {
-            node_type: dataset[node_type].num_features for node_type in
-            dataset.node_types
-        }
+    def download_data(self) -> HeteroData:
+        data = AmazonBook(self.data_dir, transform=self.transform)[0]
+        return data
 
 
 class MovieLensDataset(L.LightningDataModule):
