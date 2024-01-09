@@ -5,6 +5,7 @@ import lightning as L
 import torch
 from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.loggers import WandbLogger
 
 from core.datasets import get_dataset_lp, LinkPredDatasets
 from core.models import Models, get_model
