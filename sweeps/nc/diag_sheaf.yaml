@@ -5,19 +5,22 @@ metric:
   metric: test/accuracy
 parameters:
   model:
+    distrbution: constant
     value: DiagSheaf
   dataset:
-    value:
+    distribution: constant
+    value: DBLP
   model_args.d:
-    distribution: categorical
-    values: [ 2, 3, 4 ]
-  model_args.layers:
     distribution: int_uniform
     min: 1
     max: 5
+  model_args.layers:
+    distribution: int_uniform
+    min: 2
+    max: 8
   model_args.hidden_channels:
     distribution: categorical
-    values: [ 20, 32, 64, 128 ]
+    values: [ 8, 16, 32, 64 ]
   model_args.input_dropout:
     distribution: uniform
     min: 0
