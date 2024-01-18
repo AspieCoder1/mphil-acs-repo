@@ -1,5 +1,9 @@
 model: GCN
 dataset: IMDB
+tags:
+  - GNN
+  - baseline
+  - node classification
 trainer:
   accelerator: gpu
   devices: 1

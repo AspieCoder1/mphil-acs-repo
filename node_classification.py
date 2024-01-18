@@ -15,6 +15,7 @@ from models import NodeClassifier
 
 @dataclass
 class Config:
+    tags: list[str]
     dataset: NCDatasets
     model: Models
     trainer: TrainerArgs
@@ -46,7 +47,7 @@ def main(cfg: Config):
     logger = WandbLogger(project="gnn-baselines", log_model=True)
     logger.experiment.config["model"] = cfg.model
     logger.experiment.config["dataset"] = cfg.dataset
-    logger.experiment.tags = ['GNN', 'baseline', 'node classification']
+    logger.experiment.tags = cfg.tags
     logger.log_hyperparams(
         {
             "n_heads": 8,

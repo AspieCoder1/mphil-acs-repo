@@ -72,6 +72,7 @@ def get_model(model: Model) -> Type[SheafDiffusion]:
 @dataclass
 class Config:
     trainer: TrainerArgs = field(default_factory=TrainerArgs)
+    tags: list[str] = field(default_factory=list)
     model: Model = Model.BundleSheaf
     dataset: NCDatasets = NCDatasets.DBLP
     model_args: SheafModelArguments = field(default_factory=SheafModelArguments)
@@ -109,7 +110,7 @@ def main(cfg: Config) -> None:
     logger = WandbLogger(project="gnn-baselines", log_model=True)
     logger.experiment.config["model"] = cfg.model
     logger.experiment.config["dataset"] = cfg.dataset
-    logger.experiment.tags = ['GNN', 'sheaf', 'node_classification']
+    logger.experiment.tags = cfg.tags
 
     # 4) initialise trainer
     trainer = L.Trainer(

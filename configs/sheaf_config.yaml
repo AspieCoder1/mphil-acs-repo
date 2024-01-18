@@ -3,6 +3,10 @@ defaults:
   - override hydra/launcher: submitit_slurm
   - _self_
 
+tags:
+  - GNN
+  - sheaf
+  - node_classification
 model: BundleSheaf
 dataset: DBLP
 trainer:
