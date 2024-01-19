@@ -7,7 +7,8 @@ tags:
   - GNN
   - sheaf
   - node_classification
-  - hyperparam_sweep
+  - hyperparam-sweep
+  - DiagSheaf-DBLP
 model: BundleSheaf
 dataset: DBLP
 trainer:

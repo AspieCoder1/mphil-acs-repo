@@ -1,8 +1,9 @@
+name: DiagSheaf-DBLP
 program: sheaf_nc.py
 method: random
 metric:
   goal: maximize
-  metric: test/accuracy
+  name: test/accuracy
 parameters:
   model:
     value: DiagSheaf
