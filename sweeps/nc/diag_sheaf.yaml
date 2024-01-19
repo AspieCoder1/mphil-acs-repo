@@ -5,10 +5,8 @@ metric:
   metric: test/accuracy
 parameters:
   model:
-    distrbution: constant
     value: DiagSheaf
   dataset:
-    distribution: constant
     value: DBLP
   model_args.d:
     distribution: int_uniform
