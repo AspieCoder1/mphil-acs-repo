@@ -1,4 +1,4 @@
-name: DiagSheaf-DBLP
+name: DiagSheaf-ACM
 program: sheaf_nc.py
 method: random
 metric:
@@ -8,7 +8,7 @@ parameters:
   model:
     value: DiagSheaf
   dataset:
-    value: DBLP
+    value: ACM
   model_args.d:
     distribution: int_uniform
     min: 1
@@ -37,7 +37,7 @@ parameters:
     values: [ 10, 25, 50, 75, 100 ]
 early_terminate:
   type: hyperband
-  max_iter: 100
+  max_iter: 10
   s: 2
   eta: 2
 command:
