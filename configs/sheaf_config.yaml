@@ -8,7 +8,7 @@ tags:
   - sheaf
   - node_classification
   - hyperparam-sweep
-  - DiagSheaf-DBLP
+  - DiagSheaf-IMDB
 model: BundleSheaf
 dataset: DBLP
 trainer:

@@ -1,6 +1,6 @@
 name: DiagSheaf-IMDB
 program: sheaf_nc.py
-method: random
+method: bayes
 metric:
   goal: maximize
   name: test/accuracy
