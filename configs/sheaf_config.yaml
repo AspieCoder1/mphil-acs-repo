@@ -8,9 +8,9 @@ tags:
   - sheaf
   - node_classification
   - hyperparam-sweep
-  - BundleSheaf-DBLP
+  - BundleSheaf-IMDB
 model: BundleSheaf
-dataset: DBLP
+dataset: IMDB
 trainer:
   accelerator: gpu
   devices: 1

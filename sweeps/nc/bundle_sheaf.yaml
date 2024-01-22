@@ -1,4 +1,4 @@
-name: BundleSheaf-DBLP
+name: BundleSheaf-IMDB
 program: sheaf_nc.py
 method: bayes
 metric:
@@ -8,7 +8,7 @@ parameters:
   model:
     value: BundleSheaf
   dataset:
-    value: DBLP
+    value: IMDB
   model_args.d:
     distribution: int_uniform
     min: 1
