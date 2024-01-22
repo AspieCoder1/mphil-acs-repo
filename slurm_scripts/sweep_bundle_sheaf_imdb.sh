@@ -7,4 +7,4 @@
 #SBATCH --gpu-bind=none
 
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
-srun python -m wandb agent "acs-thesis-lb2027/gnn-baselines/b65igluu"
+srun python -m wandb agent "acs-thesis-lb2027/gnn-baselines/o1usozzi"
