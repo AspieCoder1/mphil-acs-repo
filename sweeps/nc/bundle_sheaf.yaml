@@ -1,4 +1,4 @@
-name: BundleSheaf-ACM
+name: BundleSheaf-DBLP
 program: sheaf_nc.py
 method: bayes
 metric:
@@ -8,7 +8,7 @@ parameters:
   model:
     value: BundleSheaf
   dataset:
-    value: ACM
+    value: DBLP
   model_args.d:
     distribution: int_uniform
     min: 1
