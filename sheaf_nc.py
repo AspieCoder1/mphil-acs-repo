@@ -126,7 +126,8 @@ def main(cfg: Config) -> None:
         callbacks=[
             EarlyStopping("valid/loss",
                           patience=cfg.trainer.patience),
-            ModelCheckpoint(dirpath="~/rds/hpc-work/gnn-baselines/", monitor="valid/accuracy",
+            ModelCheckpoint(dirpath=f"~/rds/hpc-work/gnn-baselines/{logger.version}",
+                            monitor="valid/accuracy",
                             mode="max", save_top_k=1)
         ]
     )
