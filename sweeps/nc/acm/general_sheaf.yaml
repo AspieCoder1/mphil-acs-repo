@@ -11,7 +11,7 @@ parameters:
     value: ACM
   model_args.d:
     distribution: int_uniform
-    min: 1
+    min: 2
     max: 5
   model_args.layers:
     distribution: int_uniform
