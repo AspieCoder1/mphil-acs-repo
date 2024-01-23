@@ -11,10 +11,11 @@ from torch_geometric.loader import LinkNeighborLoader
 
 from .utils import RemoveSelfLoops
 
+DATA_DIR = "~/rds/hpc-work/data"
 
 class LinkPredBase(L.LightningDataModule):
     def __init__(self, target: tuple[str, str, str], rev_target: tuple[str, str, str],
-                 data_dir: str = "data"):
+                 data_dir: str = DATA_DIR):
         super(LinkPredBase, self).__init__()
         self.target: tuple[str, str, str] = target
         self.data_dir = data_dir
@@ -67,7 +68,7 @@ class LinkPredBase(L.LightningDataModule):
 
 
 class LastFMDataModule(LinkPredBase):
-    def __init__(self, data_dir: str = "data"):
+    def __init__(self, data_dir: str = DATA_DIR):
         super(LastFMDataModule, self).__init__(data_dir=f"{data_dir}/lastfm",
                                                target=("user", "to", "artist"),
                                                rev_target=("artist", "to", "user"))
@@ -85,7 +86,7 @@ class LastFMDataModule(LinkPredBase):
 
 
 class AmazonBooksDataModule(LinkPredBase):
-    def __init__(self, data_dir: str = "data"):
+    def __init__(self, data_dir: str = DATA_DIR):
         super(AmazonBooksDataModule, self).__init__(
             data_dir=f"{data_dir}/amazon_books",
             target=("user", "rates", "book"),
@@ -131,7 +132,7 @@ class AmazonBooksDataModule(LinkPredBase):
 
 
 class MovieLensDataset(L.LightningDataModule):
-    def __init__(self, data_dir: str = "data"):
+    def __init__(self, data_dir: str = DATA_DIR):
         super(MovieLensDataset, self).__init__()
         self.data_dir = data_dir
         self.pyg_datamodule: Optional[LightningLinkData] = None

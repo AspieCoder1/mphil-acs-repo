@@ -10,10 +10,12 @@ from torch_geometric.datasets import HGBDataset
 
 from .utils import RemoveSelfLoops
 
+DATA_DIR = "~/rds/hpc-work/data"
+
 
 class HGBBaseDataModule(L.LightningDataModule):
     def __init__(self, target: str = "author", num_classes: int = 4,
-                 data_dir: str = "data",
+                 data_dir: str = DATA_DIR,
                  task: Literal["multiclass", "multilabel", "binary"] = "multiclass",
                  dataset: Literal["IMDB", "DBLP", "ACM", "Freebase"] = "DBLP",
                  homogeneous: bool = False,
@@ -76,7 +78,8 @@ class HGBBaseDataModule(L.LightningDataModule):
 
 
 class IMDBDataModule(HGBBaseDataModule):
-    def __init__(self, data_dir: str = "data", homogeneous: bool = False):
+    def __init__(self, data_dir: str = DATA_DIR,
+                 homogeneous: bool = False):
         super().__init__(
             data_dir=data_dir,
             task="multilabel",
@@ -91,7 +94,8 @@ class IMDBDataModule(HGBBaseDataModule):
 
 
 class DBLPDataModule(HGBBaseDataModule):
-    def __init__(self, data_dir: str = "data", homogeneous: bool = False):
+    def __init__(self, data_dir: str = DATA_DIR,
+                 homogeneous: bool = False):
         super().__init__(
             dataset="DBLP",
             num_classes=4,
@@ -106,7 +110,8 @@ class DBLPDataModule(HGBBaseDataModule):
 
 
 class ACMDataModule(HGBBaseDataModule):
-    def __init__(self, data_dir: str = "data", homogeneous: bool = False):
+    def __init__(self, data_dir: str = DATA_DIR,
+                 homogeneous: bool = False):
         super().__init__(
             data_dir=data_dir,
             dataset="ACM",

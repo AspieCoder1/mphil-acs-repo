@@ -7,10 +7,12 @@ from torch_geometric.data import HeteroData
 from torch_geometric.datasets import HGBDataset
 from torch_geometric.loader import HGTLoader
 
+DATA = "data"
+
 
 class HGTBaseDataModule(L.LightningDataModule):
     def __init__(self, target: str = "author", num_classes: int = 4,
-                 data_dir: str = "data",
+                 data_dir: str = DATA,
                  task: Literal["multiclass", "multilabel", "binary"] = "multiclass",
                  dataset: Literal["IMDB", "DBLP", "ACM", "Freebase"] = "DBLP"
                  ):
@@ -69,7 +71,7 @@ class HGTBaseDataModule(L.LightningDataModule):
 
 
 class HGTIMDBDataModule(HGTBaseDataModule):
-    def __init__(self, data_dir: str = "data"):
+    def __init__(self, data_dir: str = DATA):
         super().__init__(data_dir=data_dir, task="multilabel", num_classes=5,
                          dataset="IMDB", target="movie")
 
@@ -78,7 +80,7 @@ class HGTIMDBDataModule(HGTBaseDataModule):
 
 
 class HGTDBLPDataModule(HGTBaseDataModule):
-    def __init__(self, data_dir: str = "data"):
+    def __init__(self, data_dir: str = DATA):
         super().__init__(dataset="DBLP", num_classes=4, target="author",
                          task="multiclass", data_dir=data_dir)
 
@@ -87,7 +89,7 @@ class HGTDBLPDataModule(HGTBaseDataModule):
 
 
 class HGTACMDataModule(HGTBaseDataModule):
-    def __init__(self, data_dir: str = "data"):
+    def __init__(self, data_dir: str = DATA):
         super().__init__(
             data_dir=data_dir,
             num_classes=3,
@@ -101,7 +103,7 @@ class HGTACMDataModule(HGTBaseDataModule):
 
 
 class HGTFreebaseDataModule(HGTBaseDataModule):
-    def __init__(self, data_dir: str = "data"):
+    def __init__(self, data_dir: str = DATA):
         super().__init__(
             data_dir=data_dir,
             dataset="Freebase",
