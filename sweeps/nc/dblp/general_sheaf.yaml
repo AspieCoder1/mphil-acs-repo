@@ -1,4 +1,4 @@
-name: GeneralSheaf-IMDB
+name: GeneralSheaf-DBLP
 program: sheaf_nc.py
 method: random
 metric:
