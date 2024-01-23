@@ -8,7 +8,7 @@ import lightning as L
 from hydra.core.config_store import ConfigStore
 from hydra.core.utils import JobReturn, JobStatus
 from hydra.experimental.callback import Callback
-from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.callbacks import EarlyStopping
 from lightning.pytorch.loggers import WandbLogger
 from omegaconf import DictConfig
 from strenum import PascalCaseStrEnum
@@ -107,7 +107,7 @@ def main(cfg: Config) -> None:
     )
 
     # 3.5) initialise logger
-    logger = WandbLogger(log_model=False, dir="~/rds/hpc-work")
+    logger = WandbLogger(project="gnn-baselines", log_model=False, dir="~/rds/hpc-work")
     logger.experiment.config["model"] = cfg.model
     logger.experiment.config["dataset"] = cfg.dataset
     logger.experiment.tags = cfg.tags
