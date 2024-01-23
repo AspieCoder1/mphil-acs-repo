@@ -82,7 +82,7 @@ cs = ConfigStore.instance()
 cs.store("base_config", Config)
 
 
-@hydra.main(version_base="1.2", config_path="configs", config_name="sheaf_config.yaml")
+@hydra.main(version_base="1.2", config_path="configs", config_name="sheaf_config")
 def main(cfg: Config) -> None:
     # 1) get the datamodule
     # The data  must be homogeneous due to how code is configured
