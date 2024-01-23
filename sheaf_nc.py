@@ -8,7 +8,7 @@ import lightning as L
 from hydra.core.config_store import ConfigStore
 from hydra.core.utils import JobReturn, JobStatus
 from hydra.experimental.callback import Callback
-from lightning.pytorch.callbacks import EarlyStopping
+from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 from omegaconf import DictConfig
 from strenum import PascalCaseStrEnum
@@ -125,8 +125,8 @@ def main(cfg: Config) -> None:
         callbacks=[
             EarlyStopping("valid/loss",
                           patience=cfg.trainer.patience),
-            # ModelCheckpoint(dirpath="~/rds/hpc-work", monitor="valid/accuracy",
-            #                 mode="max", save_top_k=1)
+            ModelCheckpoint(dirpath="~/rds/hpc-work", monitor="valid/accuracy",
+                            mode="max", save_top_k=1)
         ]
     )
 
