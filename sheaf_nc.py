@@ -107,7 +107,7 @@ def main(cfg: Config) -> None:
     )
 
     # 3.5) initialise logger
-    logger = WandbLogger(log_model=False)
+    logger = WandbLogger(log_model=False, dir="~/rds/hpc-work")
     logger.experiment.config["model"] = cfg.model
     logger.experiment.config["dataset"] = cfg.dataset
     logger.experiment.tags = cfg.tags
