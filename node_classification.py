@@ -44,7 +44,7 @@ def main(cfg: Config):
                                 task=datamodule.task,
                                 homogeneous_model=is_homogeneous)
 
-    logger = WandbLogger(project="gnn-baselines", log_model=True)
+    logger = WandbLogger(log_model=True)
     logger.experiment.config["model"] = cfg.model
     logger.experiment.config["dataset"] = cfg.dataset
     logger.experiment.tags = cfg.tags
