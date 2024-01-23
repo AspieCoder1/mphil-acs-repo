@@ -125,8 +125,9 @@ def main(cfg: Config) -> None:
         callbacks=[
             EarlyStopping("valid/loss",
                           patience=cfg.trainer.patience),
-            ModelCheckpoint(dirpath="~/rds/hpc-work", monitor="valid/accuracy",
-                            mode="max", save_top_k=1)]
+            # ModelCheckpoint(dirpath="~/rds/hpc-work", monitor="valid/accuracy",
+            #                 mode="max", save_top_k=1)
+        ]
     )
 
     # 5) train the model
