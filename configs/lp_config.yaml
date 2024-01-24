@@ -1,21 +1,8 @@
 defaults:
   - config
   - trainer: trainer
+  - hydra: slurm_submit
   - override hydra/launcher: submitit_slurm
   - _self_
 dataset: AmazonBooks
 model: RGCN
-hydra:
-  launcher:
-    account: COMPUTERLAB-SL2-GPU
-    timeout_min: 60
-    nodes: 1
-    partition: ampere
-    gres: "gpu:1"
-  sweeper:
-    params:
-      dataset: AmazonBooks
-      model: RGCN,GAT,HGT,GCN,HGCN,HAN
-  callbacks:
-    my_callback:
-      _target_: sheaf_nc.LogJobReturnCallback

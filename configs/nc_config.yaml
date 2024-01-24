@@ -6,12 +6,5 @@ tags:
   - node classification
 defaults:
   - trainer: trainer
+  - hydra: slurm_submit
   - override hydra/launcher: submitit_slurm
-hydra:
-  launcher:
-    account: COMPUTERLAB-SL2-GPU
-    timeout_min: 60
-    nodes: 1
-    partition: ampere
-    gres: "gpu:1"
-    gpus_per_task: 1
