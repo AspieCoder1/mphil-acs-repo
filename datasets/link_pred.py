@@ -13,6 +13,7 @@ from .utils import RemoveSelfLoops
 
 DATA_DIR = "~/rds/hpc-work/data"
 
+
 class LinkPredBase(L.LightningDataModule):
     def __init__(self, target: tuple[str, str, str], rev_target: tuple[str, str, str],
                  data_dir: str = DATA_DIR):

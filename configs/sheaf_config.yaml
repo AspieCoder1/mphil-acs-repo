@@ -8,8 +8,8 @@ tags:
   - sheaf
   - node_classification
   - hyperparam-sweep
-  - GeneralSheaf-DBLP
-model: GeneralSheaf
+  - BundleSheaf-DBLP
+model: BundleSheaf
 dataset: DBLP
 trainer:
   accelerator: gpu
