@@ -45,7 +45,7 @@ class LogJobReturnCallback(Callback):
             self.log.error("Status unknown. This should never happen.")
 
 
-class Model(PascalCaseStrEnum):
+class ModelTypes(PascalCaseStrEnum):
     DiagSheaf = auto()
     BundleSheaf = auto()
     GeneralSheaf = auto()
@@ -54,27 +54,37 @@ class Model(PascalCaseStrEnum):
     GeneralSheafODE = auto()
 
 
-def get_model(model: Model) -> Type[SheafDiffusion]:
-    if model == Model.DiagSheaf:
+def get_model(model: ModelTypes) -> Type[SheafDiffusion]:
+    if model == ModelTypes.DiagSheaf:
         return DiscreteDiagSheafDiffusion
-    if model == Model.BundleSheaf:
+    if model == ModelTypes.BundleSheaf:
         return DiscreteBundleSheafDiffusion
-    if model == Model.GeneralSheaf:
+    if model == ModelTypes.GeneralSheaf:
         return DiscreteGeneralSheafDiffusion
-    if model == Model.DiagSheafODE:
+    if model == ModelTypes.DiagSheafODE:
         return DiagSheafDiffusion
-    if model == Model.BundleSheafODE:
+    if model == ModelTypes.BundleSheafODE:
         return BundleSheafDiffusion
-    if model == Model.GeneralSheafODE:
+    if model == ModelTypes.GeneralSheafODE:
         return GeneralSheafDiffusion
+
+
+@dataclass
+class ModelConfig:
+    type: ModelTypes = ModelTypes.BundleSheaf
+
+
+@dataclass
+class DatasetConfig:
+    name: NCDatasets = NCDatasets.DBLP
 
 
 @dataclass
 class Config:
     trainer: TrainerArgs = field(default_factory=TrainerArgs)
     tags: list[str] = field(default_factory=list)
-    model: Model = Model.BundleSheaf
-    dataset: NCDatasets = NCDatasets.DBLP
+    model: ModelConfig = field(default_factory=ModelConfig)
+    dataset: DatasetConfig = field(default_factory=DatasetConfig)
     model_args: SheafModelArguments = field(default_factory=SheafModelArguments)
 
 
@@ -86,7 +96,7 @@ cs.store("base_config", Config)
 def main(cfg: Config) -> None:
     # 1) get the datamodule
     # The data  must be homogeneous due to how code is configured
-    datamodule = get_dataset_nc(cfg.dataset, True)
+    datamodule = get_dataset_nc(cfg.dataset.name, True)
     datamodule.prepare_data()
 
     # 2) Update the config
@@ -96,7 +106,7 @@ def main(cfg: Config) -> None:
     edge_index = datamodule.edge_index.to(cfg.model_args.device)
 
     # 3) Initialise models
-    model_cls = get_model(cfg.model)
+    model_cls = get_model(cfg.model.type)
     model = model_cls(edge_index, cfg.model_args)
     sheaf_nc = SheafNodeClassifier(
         model=model,

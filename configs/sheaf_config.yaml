@@ -1,6 +1,10 @@
 defaults:
   - base_config
   - trainer: trainer
+  - model: bundle_sheaf
+  - dataset: dblp
+  - model_args: ${model}_${dataset}
+  - hydra: slurm_submit
   - override hydra/launcher: submitit_slurm
   - _self_
 tags:
@@ -9,20 +13,4 @@ tags:
   - node_classification
   - hyperparam-sweep
   - BundleSheaf-DBLP
-model: BundleSheaf
-dataset: DBLP
-model_args:
-  device: cuda
-  layers: 3
-  hidden_channels: 256
-hydra:
-  launcher:
-    account: COMPUTERLAB-SL2-GPU
-    timeout_min: 60
-    nodes: 1
-    partition: ampere
-    gres: "gpu:1"
-    gpus_per_task: 1
-  callbacks:
-    my_callback:
-      _target_: sheaf_nc.LogJobReturnCallback
+
