@@ -1,8 +1,8 @@
 defaults:
   - base_config
+  - trainer: trainer
   - override hydra/launcher: submitit_slurm
   - _self_
-
 tags:
   - GNN
   - sheaf
@@ -11,13 +11,6 @@ tags:
   - BundleSheaf-DBLP
 model: BundleSheaf
 dataset: DBLP
-trainer:
-  accelerator: gpu
-  devices: 1
-  num_nodes: 1
-  patience: 100
-  strategy: auto
-  fast_dev_run: false
 model_args:
   device: cuda
   layers: 3

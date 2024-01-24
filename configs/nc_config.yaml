@@ -4,13 +4,8 @@ tags:
   - GNN
   - baseline
   - node classification
-trainer:
-  accelerator: gpu
-  devices: 1
-  num_nodes: 1
-  patience: 100
-  strategy: auto
 defaults:
+  - trainer: trainer
   - override hydra/launcher: submitit_slurm
 hydra:
   launcher:
