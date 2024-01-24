@@ -1,0 +1,7 @@
+device: cuda
+d: 5
+dropout: 0.055436005626421994
+hidden_channels: 64
+initial_dropout: 0.7445418516519158
+input_dropout: 0.13520833642561345
+layers: 7
