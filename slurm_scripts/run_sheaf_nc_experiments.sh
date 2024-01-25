@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J sheafnc_baselines
-#SBATCH --output=sheafnc_baselines/%A_%a.out
-#SBATCH --error=sheafnc_baselines/%A_%a.err
+#SBATCH --output=sheafnc_baselines/out/%A_%a.out
+#SBATCH --error=sheafnc_baselines/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=1:00:00
 #SBATCH -a 0-89%10
