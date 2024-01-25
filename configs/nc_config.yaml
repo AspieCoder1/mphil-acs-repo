@@ -7,5 +7,4 @@ tags:
 defaults:
   - trainer: trainer
   - hydra: slurm_submit
-  - __self__
   - override hydra/launcher: submitit_slurm
