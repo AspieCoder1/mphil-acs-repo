@@ -25,4 +25,5 @@ MODEL=${MODEL_PARAMS[MODEL_IDX]}
 DATASET=${DATASETS[DATA_IDX]}
 
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
+source ~/venv/bin/activate
 srun python sheaf_nc.py model="${MODEL}" dataset="${DATASET}" +tag="${MODEL,DATASET,'exp1'}"
