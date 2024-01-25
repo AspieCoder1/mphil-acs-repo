@@ -1,10 +1,12 @@
+defaults:
+  - config
+  - trainer: trainer
+  - hydra: slurm_submit
+  - override hydra/launcher: submitit_slurm
+  - _self_
 model: GCN
 dataset: IMDB
 tags:
   - GNN
   - baseline
   - nc
-defaults:
-  - trainer: trainer
-  - hydra: slurm_submit
-  - override hydra/launcher: submitit_slurm
