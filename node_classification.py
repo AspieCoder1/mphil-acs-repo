@@ -55,7 +55,7 @@ def main(cfg: Config):
                                 task=datamodule.task,
                                 homogeneous_model=is_homogeneous)
 
-    logger = WandbLogger(project="gnn-baselines", log_model=True,
+    logger = WandbLogger(project="gnn-baselines", log_model=False,
                          save_dir="~/rds/hpc-work/wandb")
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name
@@ -76,10 +76,10 @@ def main(cfg: Config):
                         callbacks=[
                             EarlyStopping("valid/loss",
                                           patience=cfg.trainer.patience),
-                            ModelCheckpoint(
-                                dirpath=f"~/rds/hpc-work/gnn-baselines/{logger.version}",
-                                monitor="valid/accuracy",
-                                mode="max", save_top_k=1)
+                            # ModelCheckpoint(
+                            #     dirpath=f"~/rds/hpc-work/gnn-baselines/{logger.version}",
+                            #     monitor="valid/accuracy",
+                            #     mode="max", save_top_k=1)
                         ])
     trainer.fit(classifier, datamodule)
     trainer.test(classifier, datamodule)
