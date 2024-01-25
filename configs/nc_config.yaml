@@ -2,10 +2,10 @@ defaults:
   - config
   - trainer: trainer
   - hydra: slurm_submit
+  - dataset: dblp
+  - model: gcn
   - override hydra/launcher: submitit_slurm
   - _self_
-model: GCN
-dataset: IMDB
 tags:
   - GNN
   - baseline

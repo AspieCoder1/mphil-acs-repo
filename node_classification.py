@@ -14,10 +14,20 @@ from models import NodeClassifier
 
 
 @dataclass
+class ModelConfig:
+    type: Models = Models.GCN
+
+
+@dataclass
+class DatasetConfig:
+    name: NCDatasets = NCDatasets.DBLP
+
+
+@dataclass
 class Config:
     tags: list[str]
-    dataset: NCDatasets
-    model: Models
+    dataset: DatasetConfig
+    model: ModelConfig
     trainer: TrainerArgs
 
 
@@ -30,13 +40,13 @@ def main(cfg: Config):
     torch.set_float32_matmul_precision("high")
 
     if cfg.model == Models.HGT:
-        datamodule = get_dataset_hgt(cfg.dataset)
+        datamodule = get_dataset_hgt(cfg.dataset.name)
     else:
-        datamodule = get_dataset_nc(cfg.dataset)
+        datamodule = get_dataset_nc(cfg.dataset.name)
 
     datamodule.prepare_data()
 
-    model, is_homogeneous = get_model(cfg.model, datamodule.metadata)
+    model, is_homogeneous = get_model(cfg.model.type, datamodule.metadata)
 
     classifier = NodeClassifier(model, hidden_channels=256,
                                 target=datamodule.target,
@@ -45,8 +55,8 @@ def main(cfg: Config):
                                 homogeneous_model=is_homogeneous)
 
     logger = WandbLogger(project="gnn-baselines", log_model=True)
-    logger.experiment.config["model"] = cfg.model
-    logger.experiment.config["dataset"] = cfg.dataset
+    logger.experiment.config["model"] = cfg.model.type
+    logger.experiment.config["dataset"] = cfg.dataset.name
     logger.experiment.tags = cfg.tags
     logger.log_hyperparams(
         {
