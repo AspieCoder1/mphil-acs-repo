@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J sheafnc_baselines
-#SBATCH --output=~/rds/hpc-work/out/sheafnc_baselines_%A_%a.out
-#SBATCH --error=~/rds/hpc-work/err/sheafnc_baselines_%A_%a.err
+#SBATCH --output=~/rds/hpc-work/out/sheafnc_baselines/%A_%a.out
+#SBATCH --error=~/rds/hpc-work/err/sheafnc_baselines/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=01:00:00
 #SBATCH -a 0-89%10
@@ -26,4 +26,5 @@ DATASET=${DATASETS[DATA_IDX]}
 
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
 module load python-3.9.6-gcc-5.4.0-sbr552h
+source ~/rds/hpc-work/venev/bin/activate
 srun python sheaf_nc.py model="${MODEL}" dataset="${DATASET}" +tag="${MODEL,DATASET,'exp1'}"
