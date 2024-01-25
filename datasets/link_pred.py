@@ -11,7 +11,7 @@ from torch_geometric.loader import LinkNeighborLoader
 
 from .utils import RemoveSelfLoops
 
-DATA_DIR = "~/rds/hpc-work/data"
+DATA_DIR = "data"
 
 
 class LinkPredBase(L.LightningDataModule):

@@ -45,8 +45,9 @@ def main(cfg: Config):
         datamodule = get_dataset_nc(cfg.dataset.name)
 
     datamodule.prepare_data()
+    print(datamodule.metadata)
 
-    model, is_homogeneous = get_model(cfg.model.type, datamodule.metadata)
+    model, is_homogeneous = get_model(cfg.model.type, datamodule)
 
     classifier = NodeClassifier(model, hidden_channels=256,
                                 target=datamodule.target,

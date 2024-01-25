@@ -10,7 +10,7 @@ from torch_geometric.datasets import HGBDataset
 
 from .utils import RemoveSelfLoops
 
-DATA_DIR = "~/rds/hpc-work/data"
+DATA_DIR = "data"
 
 
 class HGBBaseDataModule(L.LightningDataModule):
