@@ -119,7 +119,7 @@ def main(cfg: Config) -> None:
     # 3.5) initialise logger
     logger = WandbLogger(project="gnn-baselines", log_model=True,
                          save_dir="~/rds/hpc-work/gnn-baselines/")
-    logger.experiment.config["model"] = cfg.model
+    logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset
     logger.experiment.tags = cfg.tags
 
