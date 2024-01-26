@@ -4,14 +4,14 @@
 #SBATCH --error=gnn_baselines/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=1:00:00
-#SBATCH -a 0-149%10
+#SBATCH -a 0-29%10
 #SBATCH -p ampere
 #SBATCH --nodes 1
 #SBATCH --gres=gpu:1
 #SBATCH --gpu-bind=none
 #SBATCH --mail-type=ALL
 
-MODEL_PARAMS=( hgt hgcn rgcn gcn gat )
+MODEL_PARAMS=( hgt )
 DATASETS=( dblp acm imdb )
 
 N_TRIALS=10
