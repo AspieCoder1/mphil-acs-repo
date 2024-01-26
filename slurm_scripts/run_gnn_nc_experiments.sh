@@ -4,15 +4,15 @@
 #SBATCH --error=gnn_baselines/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=1:00:00
-#SBATCH -a 0-19%10
+#SBATCH -a 0-9%10
 #SBATCH -p ampere
 #SBATCH --nodes 1
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:2
 #SBATCH --gpu-bind=none
 #SBATCH --mail-type=ALL
 
-MODEL_PARAMS=( hgt )
-DATASETS=( dblp acm )
+MODEL_PARAMS=( gat )
+DATASETS=( acm )
 
 N_TRIALS=10
 N_DATASETS=${#DATASETS[@]}
@@ -29,4 +29,4 @@ DATASET=${DATASETS[DATA_IDX]}
 export WANDB_CACHE_DIR="~/rds/hpc-work/.wandb"
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
 source ~/venv/bin/activate
-srun python node_classification.py model="${MODEL}" dataset="${DATASET}" +tags=["${MODEL}","${DATASET}",nc,gnn,exp1]
+srun python node_classification.py trainer.strategy=dpp_find_unused_parameters trainer.devices=2 model="${MODEL}" dataset="${DATASET}" +tags=["${MODEL}","${DATASET}",nc,gnn,exp1]
