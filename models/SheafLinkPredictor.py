@@ -3,7 +3,7 @@ import torch
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 from torch import nn
 from torch.nn import functional as F
-from torch_geometric.data import Data, HeteroData
+from torch_geometric.data import Data
 
 from models.NodeClassifier import CommonStepOutput
 
@@ -72,7 +72,7 @@ class SheafLinkPredictor(L.LightningModule):
 
         return loss
 
-    def test_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
+    def test_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
         y, y_hat, loss = self.common_step(batch)
 
         self.test_acc(y_hat, y)
