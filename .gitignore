@@ -166,3 +166,4 @@ outputs/
 *.out
 **/.DS_Store
 logs/
+results/
