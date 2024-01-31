@@ -38,8 +38,9 @@ class LinkPredDatasets(PascalCaseStrEnum):
     AmazonBooks = auto()
 
 
-def get_dataset_lp(dataset: LinkPredDatasets) -> LinkPredBase:
+def get_dataset_lp(dataset: LinkPredDatasets,
+                   is_homogeneous: bool = False) -> LinkPredBase:
     if dataset == LinkPredDatasets.LastFM:
-        return LastFMDataModule("data")
+        return LastFMDataModule("data", is_homogeneous)
     else:
         return AmazonBooksDataModule("data")

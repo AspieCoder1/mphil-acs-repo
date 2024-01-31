@@ -1,10 +1,10 @@
-from typing import Optional
+from typing import Optional, Union
 
 import lightning as L
 import torch
 import torch_geometric.transforms as T
 from lightning.pytorch.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADERS
-from torch_geometric.data import HeteroData
+from torch_geometric.data import HeteroData, Data
 from torch_geometric.data.lightning import LightningLinkData
 from torch_geometric.datasets import MovieLens, LastFM, AmazonBook
 from torch_geometric.loader import LinkNeighborLoader
@@ -16,7 +16,7 @@ DATA_DIR = "data"
 
 class LinkPredBase(L.LightningDataModule):
     def __init__(self, target: tuple[str, str, str], rev_target: tuple[str, str, str],
-                 data_dir: str = DATA_DIR):
+                 data_dir: str = DATA_DIR, is_homogeneous: bool = False):
         super(LinkPredBase, self).__init__()
         self.target: tuple[str, str, str] = target
         self.data_dir = data_dir
@@ -25,9 +25,9 @@ class LinkPredBase(L.LightningDataModule):
         self.pyg_datamodule = None
         self.in_channels = None
         self.num_nodes = None
-        self.train_data = None
-        self.val_data = None
-        self.test_data = None
+        self.train_data: Optional[Union[Data, HeteroData]] = None
+        self.val_data: Optional[Union[Data, HeteroData]] = None
+        self.test_data: Optional[Union[Data, HeteroData]] = None
         self.transform = T.Compose([
             T.Constant(),
             T.ToUndirected(),
@@ -37,6 +37,7 @@ class LinkPredBase(L.LightningDataModule):
         )
         self.rev_target = rev_target
         self.batch_size = 1
+        self.is_homogeneous = is_homogeneous
 
     def download_data(self) -> HeteroData:
         ...
@@ -52,11 +53,21 @@ class LinkPredBase(L.LightningDataModule):
             data.node_types
         }
 
-        split = T.RandomLinkSplit(edge_types=self.target,
-                                  is_undirected=True,
-                                  rev_edge_types=self.rev_target)
+        if self.is_homogeneous:
+            data = data.to_homogeneous()
+
+        split = T.RandomLinkSplit(
+            edge_types=None if self.is_homogeneous else self.target,
+            is_undirected=True,
+            rev_edge_types=self.rev_target
+        )
 
         self.train_data, self.val_data, self.test_data = split(data)
+
+        # if self.is_homogeneous:
+        #     self.train_data = self.train_data.to_homogeneous()
+        #     self.val_data = self.val_data.to_homogeneous()
+        #     self.test_data = self.test_data.to_homogeneous()
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return LightningLinkData(self.train_data, loader="full").full_dataloader()
@@ -69,10 +80,11 @@ class LinkPredBase(L.LightningDataModule):
 
 
 class LastFMDataModule(LinkPredBase):
-    def __init__(self, data_dir: str = DATA_DIR):
+    def __init__(self, data_dir: str = DATA_DIR, is_homogeneous: bool = False):
         super(LastFMDataModule, self).__init__(data_dir=f"{data_dir}/lastfm",
                                                target=("user", "to", "artist"),
-                                               rev_target=("artist", "to", "user"))
+                                               rev_target=("artist", "to", "user"),
+                                               is_homogeneous=is_homogeneous)
 
     def download_data(self) -> HeteroData:
         data = LastFM(self.data_dir, transform=self.transform)[0]

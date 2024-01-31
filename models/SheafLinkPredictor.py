@@ -31,14 +31,14 @@ class SheafLinkPredictor(L.LightningModule):
 
     def common_step(self, batch: Data) -> CommonStepOutput:
         # (1) Remove NaNs from edge_labels
-        label_idx = ~batch.edge_label.is_nan()
+        label_idx = ~batch.edge_label.isnan()
         y = batch.edge_label[label_idx]
 
         # (2) Compute the hidden representation of nodes
         h = self.encoder(batch.x, batch.edge_index)
 
         # (3) reduced edge_index
-        edge_index = batch.edge_index[label_idx]
+        edge_index = batch.edge_label_index[:, label_idx]
 
         # (4) Calculate dot product h[i].h[j] for i, j in edge_index
         y_hat = self.decoder(h, edge_index)

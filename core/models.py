@@ -1,12 +1,17 @@
 from enum import auto
-from typing import Union
+from typing import Union, Type
 
 from strenum import UppercaseStrEnum
 from torch_geometric.nn import to_hetero_with_bases
 
 from datasets.hgb import HGBBaseDataModule
 from datasets.link_pred import LinkPredBase
+from models.SheafGNN import DiscreteDiagSheafDiffusion, DiscreteBundleSheafDiffusion, \
+    DiscreteGeneralSheafDiffusion, DiagSheafDiffusion, BundleSheafDiffusion, \
+    GeneralSheafDiffusion
+from models.SheafGNN.sheaf_base import SheafDiffusion
 from models.baselines import HAN, HGT, HeteroGNN, RGCN, GCN, GAT
+from core.sheaf_configs import ModelTypes
 
 
 class Models(UppercaseStrEnum):
@@ -58,3 +63,18 @@ def get_model(model: Models, datamodule: Union[HGBBaseDataModule, LinkPredBase])
         )
         return to_hetero_with_bases(gat, datamodule.metadata, num_bases=3,
                                     in_channels={'x': 64}), True
+
+
+def get_sheaf_model(model: ModelTypes) -> Type[SheafDiffusion]:
+    if model == ModelTypes.DiagSheaf:
+        return DiscreteDiagSheafDiffusion
+    if model == ModelTypes.BundleSheaf:
+        return DiscreteBundleSheafDiffusion
+    if model == ModelTypes.GeneralSheaf:
+        return DiscreteGeneralSheafDiffusion
+    if model == ModelTypes.DiagSheafODE:
+        return DiagSheafDiffusion
+    if model == ModelTypes.BundleSheafODE:
+        return BundleSheafDiffusion
+    if model == ModelTypes.GeneralSheafODE:
+        return GeneralSheafDiffusion
