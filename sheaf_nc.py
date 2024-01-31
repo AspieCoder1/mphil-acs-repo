@@ -53,7 +53,7 @@ def main(cfg: Config) -> None:
         task=datamodule.task
     )
 
-    # 3.5) initialise logger
+    # 4) init trainer
     trainer = init_trainer(cfg)
 
     # 5) train the model
@@ -69,7 +69,7 @@ def init_trainer(cfg) -> L.Trainer:
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name
     logger.experiment.tags = cfg.tags
-    # 4) initialise trainer
+    
     trainer = L.Trainer(
         accelerator=cfg.trainer.accelerator,
         devices=cfg.trainer.devices,
