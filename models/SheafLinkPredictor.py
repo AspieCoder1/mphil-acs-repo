@@ -1,10 +1,10 @@
+import lightning as L
 import torch
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 from torch import nn
 from torch.nn import functional as F
 from torch_geometric.data import Data, HeteroData
 
-from models import LinkPredictor
 from models.NodeClassifier import CommonStepOutput
 
 
@@ -19,19 +19,12 @@ class SheafEdgeDecoder(nn.Module):
         return torch.bmm(h_src.unsqueeze(dim=1), h_dest.unsqueeze(dim=2)).squeeze()
 
 
-class SheafLinkPredictor(LinkPredictor):
-    def __init__(self, model: nn.Module,
-                 edge_target: tuple[str, str, str] = ("user", "rates", "movie"),
-                 homogeneous: bool = False,
-                 batch_size: int = 1,
+class SheafLinkPredictor(L.LightningModule):
+    def __init__(self, model: nn.Module, batch_size: int = 1,
                  decoder=SheafEdgeDecoder()):
-        super(LinkPredictor).__init__(
-            model=model,
-            edge_target=edge_target,
-            homogeneous=homogeneous,
-            batch_size=batch_size
-        )
-
+        super(SheafLinkPredictor, self).__init__()
+        self.encoder = model
+        self.batch_size = batch_size
         self.decoder = decoder
 
         self.save_hyperparameters()
