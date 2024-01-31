@@ -107,7 +107,7 @@ def main(cfg: Config) -> None:
 
     # 3) Initialise models
     model_cls = get_model(cfg.model.type)
-    model = model_cls(edge_index, cfg.model_args)
+    model = model_cls(None, cfg.model_args)
     sheaf_nc = SheafNodeClassifier(
         model=model,
         hidden_channels=model.hidden_dim,

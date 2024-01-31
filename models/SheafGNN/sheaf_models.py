@@ -3,18 +3,20 @@
 # https://github.com/twitter-research/neural-sheaf-diffusion
 # Bodnar et al. (NeurIPS 2022)
 
+from abc import abstractmethod
+from typing import Tuple
+
+import numpy as np
 import torch
 import torch.nn.functional as F
-import numpy as np
-
-from typing import Tuple
-from abc import abstractmethod
 from torch import nn
+
 from lib import laplace as lap
 
 
 class SheafLearner(nn.Module):
     """Base model that learns a sheaf from the features and the graph structure."""
+
     def __init__(self):
         super(SheafLearner, self).__init__()
         self.L = None
@@ -34,7 +36,8 @@ class LocalConcatSheafLearner(SheafLearner):
         super(LocalConcatSheafLearner, self).__init__()
         assert len(out_shape) in [1, 2]
         self.out_shape = out_shape
-        self.linear1 = torch.nn.Linear(in_channels*2, int(np.prod(out_shape)), bias=False)
+        self.linear1 = torch.nn.Linear(in_channels * 2, int(np.prod(out_shape)),
+                                       bias=False)
 
         if sheaf_act == 'id':
             self.act = lambda x: x
@@ -64,13 +67,15 @@ class LocalConcatSheafLearner(SheafLearner):
 class LocalConcatSheafLearnerVariant(SheafLearner):
     """Learns a sheaf by concatenating the local node features and passing them through a linear layer + activation."""
 
-    def __init__(self, d: int, hidden_channels: int, out_shape: Tuple[int, ...], sheaf_act="tanh"):
+    def __init__(self, d: int, hidden_channels: int, out_shape: Tuple[int, ...],
+                 sheaf_act="tanh"):
         super(LocalConcatSheafLearnerVariant, self).__init__()
         assert len(out_shape) in [1, 2]
         self.out_shape = out_shape
         self.d = d
         self.hidden_channels = hidden_channels
-        self.linear1 = torch.nn.Linear(hidden_channels * 2, int(np.prod(out_shape)), bias=False)
+        self.linear1 = torch.nn.Linear(hidden_channels * 2, int(np.prod(out_shape)),
+                                       bias=False)
         # self.linear2 = torch.nn.Linear(self.d, 1, bias=False)
 
         # std1 = 1.414 * math.sqrt(2. / (hidden_channels * 2 + 1))
@@ -115,7 +120,7 @@ class AttentionSheafLearner(SheafLearner):
     def __init__(self, in_channels, d):
         super(AttentionSheafLearner, self).__init__()
         self.d = d
-        self.linear1 = torch.nn.Linear(in_channels*2, d**2, bias=False)
+        self.linear1 = torch.nn.Linear(in_channels * 2, d ** 2, bias=False)
 
     def forward(self, x, edge_index):
         row, col = edge_index
@@ -133,8 +138,9 @@ class EdgeWeightLearner(SheafLearner):
     def __init__(self, in_channels: int, edge_index):
         super(EdgeWeightLearner, self).__init__()
         self.in_channels = in_channels
-        self.linear1 = torch.nn.Linear(in_channels*2, 1, bias=False)
-        self.full_left_right_idx, _ = lap.compute_left_right_map_index(edge_index, full_matrix=True)
+        self.linear1 = torch.nn.Linear(in_channels * 2, 1, bias=False)
+        self.full_left_right_idx, _ = lap.compute_left_right_map_index(edge_index,
+                                                                       full_matrix=True)
 
     def forward(self, x, edge_index):
         _, full_right_idx = self.full_left_right_idx
@@ -145,11 +151,13 @@ class EdgeWeightLearner(SheafLearner):
         weights = self.linear1(torch.cat([x_row, x_col], dim=1))
         weights = torch.sigmoid(weights)
 
-        edge_weights = weights * torch.index_select(weights, index=full_right_idx, dim=0)
+        edge_weights = weights * torch.index_select(weights, index=full_right_idx,
+                                                    dim=0)
         return edge_weights
 
     def update_edge_index(self, edge_index):
-        self.full_left_right_idx, _ = lap.compute_left_right_map_index(edge_index, full_matrix=True)
+        self.full_left_right_idx, _ = lap.compute_left_right_map_index(edge_index,
+                                                                       full_matrix=True)
 
 
 class QuadraticFormSheafLearner(SheafLearner):
@@ -173,4 +181,3 @@ class QuadraticFormSheafLearner(SheafLearner):
             return torch.tanh(maps).view(-1, self.out_shape[0], self.out_shape[1])
         else:
             return torch.tanh(maps).view(-1, self.out_shape[0])
-

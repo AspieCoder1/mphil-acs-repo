@@ -167,3 +167,4 @@ outputs/
 **/.DS_Store
 logs/
 results/
+artifacts/
