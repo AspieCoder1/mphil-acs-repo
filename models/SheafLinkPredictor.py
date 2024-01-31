@@ -65,7 +65,14 @@ class SheafLinkPredictor(L.LightningModule):
 
         outputs = self.train_metrics(y_hat, y)
 
-        self.log_dict(outputs)
+        self.log_dict(
+            outputs,
+            prog_bar=True,
+            on_step=True,
+            on_epoch=True,
+            batch_size=self.batch_size,
+            sync_dist=True
+        )
         self.log("train/loss", loss)
 
         return loss
@@ -75,7 +82,14 @@ class SheafLinkPredictor(L.LightningModule):
 
         outputs = self.valid_metrics(y_hat, y)
 
-        self.log_dict(outputs)
+        self.log_dict(
+            outputs,
+            prog_bar=True,
+            on_step=True,
+            on_epoch=True,
+            batch_size=1,
+            sync_dist=True
+        )
         self.log("valid/loss", loss)
         return loss
 
@@ -84,7 +98,14 @@ class SheafLinkPredictor(L.LightningModule):
 
         outputs = self.test_metrics(y_hat, y)
 
-        self.log_dict(outputs)
+        self.log_dict(
+            outputs,
+            prog_bar=False,
+            on_step=False,
+            on_epoch=True,
+            batch_size=1,
+            sync_dist=True
+        )
         self.log("test/loss", loss)
 
         return loss
