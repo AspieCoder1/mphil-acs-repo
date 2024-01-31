@@ -38,6 +38,8 @@ class LinkPredBase(L.LightningDataModule):
         self.rev_target = rev_target
         self.batch_size = 1
         self.is_homogeneous = is_homogeneous
+        self.num_classes = 1
+        self.graph_size = 0
 
     def download_data(self) -> HeteroData:
         ...
@@ -55,6 +57,8 @@ class LinkPredBase(L.LightningDataModule):
 
         if self.is_homogeneous:
             data = data.to_homogeneous()
+            self.graph_size = data.x.size(0)
+            self.in_channels = data.num_features
 
         split = T.RandomLinkSplit(
             edge_types=None if self.is_homogeneous else self.target,

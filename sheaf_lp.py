@@ -30,6 +30,11 @@ cs.store("base_config", Config)
 def main(cfg: Config):
     torch.set_float32_matmul_precision("high")
     dm = get_dataset_lp(LinkPredDatasets.LastFM, True)
+
+    cfg.model_args.graph_size = dm.graph_size
+    cfg.model_args.input_dim = dm.in_channels
+    cfg.model_args.output_dim = dm.num_classes
+
     model_cls = get_sheaf_model(cfg.model.type)
     model = model_cls(None, cfg.model_args)
 

@@ -40,7 +40,6 @@ def main(cfg: Config) -> None:
     cfg.model_args.graph_size = datamodule.graph_size
     cfg.model_args.input_dim = datamodule.in_channels
     cfg.model_args.output_dim = datamodule.num_classes
-    edge_index = datamodule.edge_index.to(cfg.model_args.device)
 
     # 3) Initialise models
     model_cls = get_sheaf_model(cfg.model.type)
@@ -69,7 +68,7 @@ def init_trainer(cfg) -> L.Trainer:
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name
     logger.experiment.tags = cfg.tags
-    
+
     trainer = L.Trainer(
         accelerator=cfg.trainer.accelerator,
         devices=cfg.trainer.devices,
