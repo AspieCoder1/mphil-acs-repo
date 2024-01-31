@@ -7,4 +7,4 @@
     gpus_per_task: 1
   callbacks:
     my_callback:
-      _target_: sheaf_nc.LogJobReturnCallback
+      _target_: core.callback.LogJobReturnCallback

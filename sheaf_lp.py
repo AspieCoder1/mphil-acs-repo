@@ -26,19 +26,25 @@ cs = ConfigStore.instance()
 cs.store("base_config", Config)
 
 
-@hydra.main(config_path="configs", config_name="sheaf_config_lp")
+@hydra.main(version_base="1.2", config_path="configs", config_name="sheaf_config_lp")
 def main(cfg: Config):
     torch.set_float32_matmul_precision("high")
     dm = get_dataset_lp(LinkPredDatasets.LastFM, True)
+    dm.prepare_data()
 
     cfg.model_args.graph_size = dm.graph_size
     cfg.model_args.input_dim = dm.in_channels
-    cfg.model_args.output_dim = dm.num_classes
+    cfg.model_args.output_dim = 64
 
     model_cls = get_sheaf_model(cfg.model.type)
     model = model_cls(None, cfg.model_args)
 
-    sheaf_lp = SheafLinkPredictor(model=model)
+    print(model.hidden_dim)
+
+    sheaf_lp = SheafLinkPredictor(
+        model=model, num_classes=1,
+        hidden_dim=model.hidden_dim
+    )
 
     trainer = init_trainer(cfg)
 

@@ -9,20 +9,24 @@ from torchmetrics.classification import Accuracy, F1Score, AUROC
 from models.NodeClassifier import CommonStepOutput
 
 
-class DotProductEdgeDecoder(nn.Module):
+class EdgeDecoder(nn.Module):
     def __init__(
             self,
             target: tuple[str, str, str],
+            hidden_dim: int = 64,
+            out_dim: int = 1,
     ):
         super().__init__()
 
         self.rel_src = target[0]
         self.rel_dst = target[-1]
+        self.lin(2 * hidden_dim, out_dim)
 
     def forward(self, x_dict, edge_label_index):
-        A = x_dict[self.rel_src][edge_label_index[0]]
-        B = x_dict[self.rel_dst][edge_label_index[1]]
-        return torch.bmm(A.unsqueeze(dim=1), B.unsqueeze(dim=2)).squeeze()
+        h_src = x_dict[self.rel_src][edge_label_index[0]]
+        h_dest = x_dict[self.rel_dst][edge_label_index[1]]
+        concat = torch.concat([h_src, h_dest], dim=1)
+        return self.lin(concat)
 
 
 class LinkPredictor(L.LightningModule):
@@ -32,7 +36,7 @@ class LinkPredictor(L.LightningModule):
                  batch_size: int = 1):
         super(LinkPredictor, self).__init__()
         self.encoder = model
-        self.decoder = DotProductEdgeDecoder(target=edge_target)
+        self.decoder = EdgeDecoder(target=edge_target, hidden_dim=256, out_dim=1)
         self.homogeneous = homogeneous
 
         self.train_acc = Accuracy(task="binary")

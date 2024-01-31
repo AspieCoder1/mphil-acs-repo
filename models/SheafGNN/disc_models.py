@@ -20,8 +20,6 @@ class DiscreteDiagSheafDiffusion(SheafDiffusion):
         super(DiscreteDiagSheafDiffusion, self).__init__(edge_index=None, args=args)
         assert args.d > 0
 
-        edge_index = None
-
         self.lin_right_weights = nn.ModuleList()
         self.lin_left_weights = nn.ModuleList()
 

@@ -16,7 +16,8 @@ DATA_DIR = "data"
 
 class LinkPredBase(L.LightningDataModule):
     def __init__(self, target: tuple[str, str, str], rev_target: tuple[str, str, str],
-                 data_dir: str = DATA_DIR, is_homogeneous: bool = False):
+                 data_dir: str = DATA_DIR, is_homogeneous: bool = False,
+                 num_classes: int = 1):
         super(LinkPredBase, self).__init__()
         self.target: tuple[str, str, str] = target
         self.data_dir = data_dir
@@ -38,7 +39,7 @@ class LinkPredBase(L.LightningDataModule):
         self.rev_target = rev_target
         self.batch_size = 1
         self.is_homogeneous = is_homogeneous
-        self.num_classes = 1
+        self.num_classes = num_classes
         self.graph_size = 0
 
     def download_data(self) -> HeteroData:

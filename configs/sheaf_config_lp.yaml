@@ -1,7 +1,7 @@
 defaults:
   - base_config
   - trainer: trainer
-  - model: bundle_sheaf
+  - model: diag_sheaf
   - dataset: last_fm
   - hydra: slurm_submit
   - override hydra/launcher: submitit_slurm

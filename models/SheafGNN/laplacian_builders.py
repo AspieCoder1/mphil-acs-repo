@@ -134,8 +134,9 @@ class DiagLaplacianBuilder(LaplacianBuilder):
         super(DiagLaplacianBuilder, self).__init__(
             size, edge_index, d, normalised, deg_normalised, add_hp, add_lp, augmented)
 
-        self.diag_indices, self.tril_indices = lap.compute_learnable_diag_laplacian_indices(
-            size, self.vertex_tril_idx, self.d, self.final_d)
+        if edge_index is not None:
+            self.diag_indices, self.tril_indices = lap.compute_learnable_diag_laplacian_indices(
+                size, self.vertex_tril_idx, self.d, self.final_d)
 
     def normalise(self, diag, tril, row, col):
         if self.normalised:
@@ -332,7 +333,7 @@ class GeneralLaplacianBuilder(LaplacianBuilder):
         elif self.deg_normalised:
             # These are general d x d maps so we need to divide by 1 / sqrt(deg * d), their maximum possible norm.
             deg_sqrt_inv = (self.deg * self.d + 1).pow(-1 / 2) if self.augmented else (
-                        self.deg * self.d + 1).pow(-1 / 2)
+                    self.deg * self.d + 1).pow(-1 / 2)
             deg_sqrt_inv = deg_sqrt_inv.view(-1, 1, 1)
             left_norm = deg_sqrt_inv[tril_row]
             right_norm = deg_sqrt_inv[tril_col]
