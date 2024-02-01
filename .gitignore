@@ -168,3 +168,6 @@ outputs/
 logs/
 results/
 artifacts/
+gnn_baselines/
+sheafnc_baselines/
+gnn_lp/
