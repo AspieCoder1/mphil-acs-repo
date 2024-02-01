@@ -20,6 +20,7 @@ class Config:
     dataset: SheafLinkPredDatasetCfg
     model: ModelConfig
     trainer: TrainerArgs
+    tags: list[str]
 
 
 cs = ConfigStore.instance()
@@ -41,7 +42,7 @@ def main(cfg: Config):
     logger = WandbLogger(project="gnn-baselines", log_model=True)
     logger.experiment.config["model"] = cfg.model
     logger.experiment.config["dataset"] = cfg.dataset
-    logger.experiment.tags = ['GNN', 'baseline', 'link_prediction']
+    logger.experiment.tags = cfg.tags
 
     trainer = L.Trainer(log_every_n_steps=cfg.trainer.log_every_n_steps,
                         num_nodes=cfg.trainer.num_nodes,
