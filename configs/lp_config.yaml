@@ -6,5 +6,3 @@ defaults:
   - hydra: slurm_submit
   - override hydra/launcher: submitit_slurm
   - _self_
-dataset: LastFM
-model: GCN
