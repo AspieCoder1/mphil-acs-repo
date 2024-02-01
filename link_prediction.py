@@ -40,8 +40,8 @@ def main(cfg: Config):
                                    batch_size=datamodule.batch_size)
 
     logger = WandbLogger(project="gnn-baselines", log_model=True)
-    logger.experiment.config["model"] = cfg.model
-    logger.experiment.config["dataset"] = cfg.dataset
+    logger.experiment.config["model"] = cfg.model.type
+    logger.experiment.config["dataset"] = cfg.dataset.name
     logger.experiment.tags = cfg.tags
 
     trainer = L.Trainer(log_every_n_steps=cfg.trainer.log_every_n_steps,
