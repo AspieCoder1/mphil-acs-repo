@@ -7,16 +7,18 @@ from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 
-from core.datasets import get_dataset_lp, LinkPredDatasets
-from core.models import Models, get_model
+from core.datasets import get_dataset_lp
+from core.models import get_model
+from core.sheaf_configs import SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
 from models import LinkPredictor
+from node_classification import ModelConfig
 
 
 @dataclass
 class Config:
-    dataset: LinkPredDatasets
-    model: Models
+    dataset: SheafLinkPredDatasetCfg
+    model: ModelConfig
     trainer: TrainerArgs
 
 
@@ -27,10 +29,10 @@ cs.store("config", Config)
 @hydra.main(version_base=None, config_path="configs", config_name="lp_config")
 def main(cfg: Config):
     torch.set_float32_matmul_precision("high")
-    datamodule = get_dataset_lp(cfg.dataset)
+    datamodule = get_dataset_lp(cfg.dataset.name)
     datamodule.prepare_data()
 
-    model, is_homogeneous = get_model(cfg.model, datamodule)
+    model, is_homogeneous = get_model(cfg.model.type, datamodule)
 
     link_predictor = LinkPredictor(model, edge_target=datamodule.target,
                                    homogeneous=is_homogeneous,

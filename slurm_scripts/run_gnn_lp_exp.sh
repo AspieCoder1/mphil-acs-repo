@@ -11,8 +11,8 @@
 #SBATCH --gpu-bind=none
 #SBATCH --mail-type=ALL
 
-MODEL_PARAMS=( GAT GCN HAN HGCN HGT RGCN )
-DATASETS=( LastFM AmazonBooks )
+MODEL_PARAMS=( gat gcn han hgcn hgt rgcn )
+DATASETS=( last_fm amazon_books )
 
 N_TRIALS=10
 N_DATASETS=${#DATASETS[@]}
