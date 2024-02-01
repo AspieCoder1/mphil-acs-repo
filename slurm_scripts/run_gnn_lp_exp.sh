@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J gnn_baselines
-#SBATCH --output=gnn_baselines/out/%A_%a.out
-#SBATCH --error=gnn_baselines/err/%A_%a.err
+#SBATCH --output=gnn_lp/out/%A_%a.out
+#SBATCH --error=gnn_lp/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=1:00:00
 #SBATCH -a 0-119%10
