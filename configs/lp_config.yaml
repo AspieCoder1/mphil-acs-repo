@@ -1,6 +1,8 @@
 defaults:
   - config
   - trainer: trainer
+  - model: gcn
+  - dataset: last_fm
   - hydra: slurm_submit
   - override hydra/launcher: submitit_slurm
   - _self_
