@@ -4,5 +4,5 @@ defaults:
   - hydra: slurm_submit
   - override hydra/launcher: submitit_slurm
   - _self_
-dataset: AmazonBooks
-model: RGCN
+dataset: LastFM
+model: GCN

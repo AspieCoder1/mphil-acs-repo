@@ -52,7 +52,8 @@ def main(cfg: Config):
                         callbacks=[
                             EarlyStopping("valid/loss", patience=cfg.trainer.patience),
                             ModelCheckpoint(monitor="valid/accuracy",
-                                            mode="max", save_top_k=1)])
+                                            mode="max", save_top_k=1)
+                        ])
 
     trainer.fit(link_predictor, datamodule)
     trainer.test(link_predictor, datamodule)

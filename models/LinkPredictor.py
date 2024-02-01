@@ -20,7 +20,7 @@ class EdgeDecoder(nn.Module):
 
         self.rel_src = target[0]
         self.rel_dst = target[-1]
-        self.lin(2 * hidden_dim, out_dim)
+        self.lin = nn.Linear(2 * hidden_dim, out_dim)
 
     def forward(self, x_dict, edge_label_index):
         h_src = x_dict[self.rel_src][edge_label_index[0]]
@@ -54,11 +54,11 @@ class LinkPredictor(L.LightningModule):
             x_dict = self.encoder(batch)
 
         y_hat = self.decoder(x_dict,
-                             batch[self.target].edge_label_index)
+                             batch[self.target].edge_label_index).flatten()
         y = batch[self.target].edge_label
 
         loss = F.binary_cross_entropy_with_logits(y_hat, y)
-        y_hat = torch.round(torch.sigmoid(y_hat))
+        y_hat = F.sigmoid(y_hat)
         return CommonStepOutput(y, y_hat, loss)
 
     def training_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
