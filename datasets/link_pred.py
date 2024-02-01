@@ -7,7 +7,6 @@ from lightning.pytorch.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADER
 from torch_geometric.data import HeteroData, Data
 from torch_geometric.data.lightning import LightningLinkData
 from torch_geometric.datasets import MovieLens, LastFM, AmazonBook
-from torch_geometric.loader import LinkNeighborLoader
 
 from .utils import RemoveSelfLoops
 
@@ -41,6 +40,7 @@ class LinkPredBase(L.LightningDataModule):
         self.is_homogeneous = is_homogeneous
         self.num_classes = num_classes
         self.graph_size = 0
+        self.task = 'binary'
 
     def download_data(self) -> HeteroData:
         ...
@@ -110,43 +110,10 @@ class AmazonBooksDataModule(LinkPredBase):
             target=("user", "rates", "book"),
             rev_target=('book', 'rated_by', 'user'),
         )
-        self.batch_size = 64
 
     def download_data(self) -> HeteroData:
         data = AmazonBook(self.data_dir, transform=self.transform)[0]
         return data
-
-    def train_dataloader(self) -> TRAIN_DATALOADERS:
-        return LinkNeighborLoader(
-            self.train_data,
-            edge_label_index=(
-                self.target, self.train_data[self.target].edge_label_index),
-            edge_label=self.train_data[self.target].edge_label,
-            num_neighbors=[30] * 4,
-            batch_size=self.batch_size,
-            num_workers=7
-        )
-
-    def val_dataloader(self) -> EVAL_DATALOADERS:
-        return LinkNeighborLoader(
-            self.val_data,
-            edge_label_index=(self.target, self.val_data[self.target].edge_label_index),
-            edge_label=self.val_data[self.target].edge_label,
-            num_neighbors=[30] * 4,
-            batch_size=self.batch_size,
-            num_workers=7
-        )
-
-    def test_dataloader(self) -> EVAL_DATALOADERS:
-        return LinkNeighborLoader(
-            self.test_data,
-            edge_label_index=(
-                self.target, self.test_data[self.target].edge_label_index),
-            edge_label=self.test_data[self.target].edge_label,
-            num_neighbors=[30] * 4,
-            batch_size=self.batch_size,
-            num_workers=7
-        )
 
 
 class MovieLensDataset(L.LightningDataModule):
