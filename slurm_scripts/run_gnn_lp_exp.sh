@@ -1,13 +1,13 @@
 #!/bin/bash
-#SBATCH -J gnn_baselines
-#SBATCH --output=gnn_lp/out/%A_%a.out
-#SBATCH --error=gnn_lp/err/%A_%a.err
+#SBATCH -J gnnlp_baselines
+#SBATCH --output=gnnlp_baselines/out/%A_%a.out
+#SBATCH --error=gnnlp_baselines/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=1:00:00
 #SBATCH -a 0-119%10
 #SBATCH -p ampere
 #SBATCH --nodes 1
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:1
 #SBATCH --gpu-bind=none
 #SBATCH --mail-type=ALL
 
