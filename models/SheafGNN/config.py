@@ -55,7 +55,7 @@ class SheafModelArguments:
     second_linear: bool = False
     orth: OrthogonalMethod = OrthogonalMethod.householder
     sheaf_act: str = 'tanh'
-    edge_weights: bool = True
+    edge_weights: bool = False
     sparse_learner: bool = False
     input_dim: Optional[int] = None
     output_dim: Optional[int] = None
