@@ -7,13 +7,12 @@
 Add the top k eigenvectors to the node features of a pyg dataset
 """
 import os
+import torch
+import numpy as np
 import pickle
 
-import numpy as np
-import torch
 from scipy.sparse import linalg, diags
 from torch_geometric.utils import to_scipy_sparse_matrix
-
 from definitions import ROOT_DIR
 
 POS_ENC_PATH = os.path.join(ROOT_DIR, "datasets", "pos_encodings")
@@ -79,7 +78,6 @@ if __name__ == '__main__':
         def __init__(self, edge_index, x):
             self.edge_index = edge_index
             self.x = x
-
 
     edge_index = torch.tensor([[0, 2, 2, 1], [1, 0, 1, 2]])
     edge_weight = torch.ones(edge_index.size(0), dtype=int)

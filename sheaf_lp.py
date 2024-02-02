@@ -8,7 +8,7 @@ from core.datasets import get_dataset_lp, LinkPredDatasets
 from core.models import get_sheaf_model
 from core.sheaf_configs import SheafModelCfg, SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
-from models.SheafGNN.config import SheafModelArguments
+from models.SheafGNNInductive.config import SheafModelArguments
 from models.SheafLinkPredictor import SheafLinkPredictor
 from sheaf_nc import init_trainer
 

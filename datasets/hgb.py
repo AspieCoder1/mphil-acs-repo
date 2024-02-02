@@ -64,7 +64,7 @@ class HGBBaseDataModule(L.LightningDataModule):
             input_val_nodes=(self.target, input_nodes.val_mask),
             input_test_nodes=(self.target, input_nodes.test_mask),
             loader="full",
-            batch_size=128
+            batch_size=1
         )
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:

@@ -2,27 +2,27 @@ from typing import Literal
 
 import torch
 from lightning.pytorch.utilities.types import STEP_OUTPUT
+from torch import nn
 from torch_geometric.data import Data
+
 
 from core.models import get_sheaf_model
 from .NodeClassifier import NodeClassifier, CommonStepOutput
 
 
 class SheafNodeClassifier(NodeClassifier):
-    def __init__(self, cfg,
+    def __init__(self, model: nn.Module,
                  out_channels: int = 10,
                  target: str = "author", task: Literal[
                 "binary", "multiclass", "multilabel"] = "multilabel",
                  homogeneous_model: bool = False):
 
-        model_cls = get_sheaf_model(cfg.model.type)
-        model = model_cls(None, cfg.model_args)
         super().__init__(model=model,
                          hidden_channels=model.hidden_dim,
                          out_channels=out_channels, target=target,
                          task=task,
                          homogeneous_model=homogeneous_model)
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=['model'])
 
     def common_step(self, batch: Data, mask: torch.Tensor) -> CommonStepOutput:
         if self.task == "multilabel":
@@ -32,7 +32,7 @@ class SheafNodeClassifier(NodeClassifier):
 
         mask = torch.logical_and(target_mask, mask)
         y = batch.y[mask]
-        logits = self.encoder(batch.x, batch.edge_index)
+        logits = self.encoder(batch.x)
 
         y_hat = self.decoder(logits)[mask]
 
@@ -69,8 +69,8 @@ class SheafNodeClassifier(NodeClassifier):
 
         output = self.test_metrics(y_hat, y)
         self.log_dict(output, prog_bar=False, on_step=False,
-                      on_epoch=True, batch_size=1)
+                      on_epoch=True, batch_size=128)
         self.log('test/loss', loss, prog_bar=False, on_step=False,
-                 on_epoch=True, batch_size=1)
+                 on_epoch=True, batch_size=128)
 
         return loss

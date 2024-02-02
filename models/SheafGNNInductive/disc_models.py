@@ -17,7 +17,7 @@ from .sheaf_models import LocalConcatSheafLearner, EdgeWeightLearner, \
 class DiscreteDiagSheafDiffusion(SheafDiffusion):
 
     def __init__(self, edge_index, args):
-        super(DiscreteDiagSheafDiffusion, self).__init__(edge_index, args)
+        super(DiscreteDiagSheafDiffusion, self).__init__(edge_index=None, args=args)
         assert args.d > 0
 
         self.lin_right_weights = nn.ModuleList()
@@ -64,7 +64,8 @@ class DiscreteDiagSheafDiffusion(SheafDiffusion):
             self.lin12 = nn.Linear(self.hidden_dim, self.hidden_dim)
         self.lin2 = nn.Linear(self.hidden_dim, self.output_dim)
 
-    def forward(self, x):
+    def forward(self, x, edge_index):
+        self.update_edge_index(edge_index)
         x = F.dropout(x, p=self.input_dropout, training=self.training)
         x = self.lin1(x)
         if self.use_act:
@@ -111,9 +112,11 @@ class DiscreteDiagSheafDiffusion(SheafDiffusion):
 class DiscreteBundleSheafDiffusion(SheafDiffusion):
 
     def __init__(self, edge_index, args):
-        super(DiscreteBundleSheafDiffusion, self).__init__(edge_index, args)
+        super(DiscreteBundleSheafDiffusion, self).__init__(edge_index=None, args=args)
         assert args.d > 1
         assert not self.deg_normalised
+
+        edge_index = None
 
         self.lin_right_weights = nn.ModuleList()
         self.lin_left_weights = nn.ModuleList()
@@ -184,7 +187,8 @@ class DiscreteBundleSheafDiffusion(SheafDiffusion):
         for weight_learner in self.weight_learners:
             weight_learner.update_edge_index(edge_index)
 
-    def forward(self, x):
+    def forward(self, x, edge_index):
+        self.update_edge_index(edge_index)
         x = F.dropout(x, p=self.input_dropout, training=self.training)
         x = self.lin1(x)
         if self.use_act:
@@ -229,8 +233,10 @@ class DiscreteBundleSheafDiffusion(SheafDiffusion):
 class DiscreteGeneralSheafDiffusion(SheafDiffusion):
 
     def __init__(self, edge_index, args):
-        super(DiscreteGeneralSheafDiffusion, self).__init__(edge_index, args)
+        super(DiscreteGeneralSheafDiffusion, self).__init__(edge_index=None, args=args)
         assert args.d > 1
+
+        edge_index = None
 
         self.lin_right_weights = nn.ModuleList()
         self.lin_left_weights = nn.ModuleList()
@@ -287,7 +293,8 @@ class DiscreteGeneralSheafDiffusion(SheafDiffusion):
 
         return x
 
-    def forward(self, x):
+    def forward(self, x, edge_index):
+        self.update_edge_index(edge_index)
         x = F.dropout(x, p=self.input_dropout, training=self.training)
         x = self.lin1(x)
         if self.use_act:
