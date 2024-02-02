@@ -9,7 +9,7 @@ from .NodeClassifier import NodeClassifier, CommonStepOutput
 
 
 class SheafNodeClassifier(NodeClassifier):
-    def __init__(self, cfg, hidden_channels: int = 256,
+    def __init__(self, cfg,
                  out_channels: int = 10,
                  target: str = "author", task: Literal[
                 "binary", "multiclass", "multilabel"] = "multilabel",
@@ -18,7 +18,7 @@ class SheafNodeClassifier(NodeClassifier):
         model_cls = get_sheaf_model(cfg.model.type)
         model = model_cls(None, cfg.model_args)
         super().__init__(model=model,
-                         hidden_channels=hidden_channels,
+                         hidden_channels=model.hidden_channels,
                          out_channels=out_channels, target=target,
                          task=task,
                          homogeneous_model=homogeneous_model)

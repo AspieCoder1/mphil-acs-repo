@@ -8,7 +8,6 @@ from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 
 from core.datasets import get_dataset_nc
-from core.models import get_sheaf_model
 from core.sheaf_configs import SheafModelCfg, SheafNCDatasetCfg
 from core.trainer import TrainerArgs
 from models.SheafGNN.config import SheafModelArguments
@@ -45,7 +44,6 @@ def main(cfg: Config) -> None:
 
     sheaf_nc = SheafNodeClassifier(
         cfg,
-        hidden_channels=model.hidden_dim,
         out_channels=datamodule.num_classes,
         target=datamodule.target,
         task=datamodule.task
