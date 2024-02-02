@@ -35,12 +35,12 @@ class NodeClassifier(L.LightningModule):
             "num_classes": out_channels
         }
 
-        self.train_metrics = MetricCollection([
-            F1Score(average="micro", **metrics_params),
-            F1Score(average="macro", **metrics_params),
-            Accuracy(**metrics_params),
-            AUROC(**metrics_params)
-        ], prefix="train/")
+        self.train_metrics = MetricCollection({
+            'micro-f1': F1Score(average="micro", **metrics_params),
+            'macro-f1': F1Score(average="macro", **metrics_params),
+            'accuracy': Accuracy(**metrics_params),
+            'auroc': AUROC(**metrics_params)
+        }, prefix="train/")
         self.valid_metrics = self.train_metrics.clone(prefix="valid/")
         self.test_metrics = self.train_metrics.clone(prefix="test/")
 
