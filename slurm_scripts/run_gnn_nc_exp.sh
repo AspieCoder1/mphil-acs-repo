@@ -4,7 +4,7 @@
 #SBATCH --error=gnn_nc_baselines/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=1:00:00
-#SBATCH -a 0-9%10
+#SBATCH -a 0-179%10
 #SBATCH -p ampere
 #SBATCH --nodes 1
 #SBATCH --gres=gpu:1
