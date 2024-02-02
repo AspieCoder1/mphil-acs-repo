@@ -53,27 +53,21 @@ class SheafNodeClassifier(NodeClassifier):
     def validation_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
         y, y_hat, loss = self.common_step(batch, batch.val_mask)
 
-        self.val_acc(y_hat, y)
+        output = self.valid_metrics(y_hat, y)
 
-        self.log('valid/accuracy', self.val_acc, prog_bar=True, on_step=False,
-                 on_epoch=True)
+        self.log_dict(output, prog_bar=True, on_step=False,
+                      on_epoch=True)
         self.log('valid/loss', loss, prog_bar=False, on_step=False,
-                 on_epoch=True, batch_size=1)
+                 on_epoch=True, batch_size=64)
         return loss
 
     def test_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
         y, y_hat, loss = self.common_step(batch, batch.test_mask)
 
-        self.test_acc(y_hat, y)
-        self.test_f1(y_hat, y)
-        self.test_auroc(y_hat, y)
-
-        self.log('test/accuracy', self.test_acc, prog_bar=True, on_step=False,
-                 on_epoch=True)
-        self.log('test/f1-score', self.test_f1, prog_bar=False, on_step=False,
-                 on_epoch=True)
-        self.log('test/auroc', self.test_auroc, prog_bar=False, on_step=False,
-                 on_epoch=True)
+        output = self.test_metrics(y_hat, y)
+        self.log_dict(output, prog_bar=False, on_step=False,
+                      on_epoch=True, batch_size=1)
         self.log('test/loss', loss, prog_bar=False, on_step=False,
                  on_epoch=True, batch_size=1)
-        return None
+
+        return loss

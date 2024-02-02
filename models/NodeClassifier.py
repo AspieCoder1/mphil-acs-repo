@@ -1,3 +1,4 @@
+import functools
 from typing import Literal, NamedTuple, Callable
 
 import lightning.pytorch as L
@@ -7,8 +8,8 @@ import torch.nn.functional as F
 from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch_geometric.data import Batch
 from torch_geometric.nn import Linear
+from torchmetrics import MetricCollection
 from torchmetrics.classification import Accuracy, AUROC, F1Score
-import functools
 
 
 class CommonStepOutput(NamedTuple):
@@ -33,11 +34,16 @@ class NodeClassifier(L.LightningModule):
             "num_labels": out_channels,
             "num_classes": out_channels
         }
-        self.train_acc = Accuracy(**metrics_params)
-        self.val_acc = Accuracy(**metrics_params)
-        self.test_acc = Accuracy(**metrics_params)
-        self.test_f1 = F1Score(**metrics_params)
-        self.test_auroc = AUROC(**metrics_params)
+
+        self.train_metrics = MetricCollection([
+            F1Score(average="micro", **metrics_params),
+            F1Score(average="macro", **metrics_params),
+            Accuracy(**metrics_params),
+            AUROC(**metrics_params)
+        ], prefix="train/")
+        self.valid_metrics = self.train_metrics.clone(prefix="valid/")
+        self.test_metrics = self.train_metrics.clone(prefix="test/")
+
         self.target = target
         self.task = task
 
@@ -66,9 +72,9 @@ class NodeClassifier(L.LightningModule):
         mask = batch[self.target].train_mask
         y, y_hat, loss = self.common_step(batch, mask)
 
-        self.train_acc(y_hat, y)
-        self.log('train/accuracy', self.train_acc, prog_bar=True, on_step=False,
-                 on_epoch=True)
+        output = self.train_metrics(y_hat, y)
+        self.log_dict(output, prog_bar=True, on_step=False,
+                      on_epoch=True)
         self.log('train/loss', loss, prog_bar=True, on_step=True,
                  on_epoch=True, batch_size=64)
 
@@ -78,32 +84,25 @@ class NodeClassifier(L.LightningModule):
         mask = batch[self.target].val_mask
         y, y_hat, loss = self.common_step(batch, mask)
 
-        self.val_acc(y_hat, y)
+        output = self.valid_metrics(y_hat, y)
 
-        self.log('valid/accuracy', self.val_acc, prog_bar=True, on_step=False,
-                 on_epoch=True)
+        self.log_dict(output, prog_bar=True, on_step=False,
+                      on_epoch=True)
         self.log('valid/loss', loss, prog_bar=False, on_step=False,
                  on_epoch=True, batch_size=64)
-        return
+        return loss
 
     def test_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:
         mask = batch[self.target].test_mask
         y, y_hat, loss = self.common_step(batch, mask)
 
-        self.test_acc(y_hat, y)
-        self.test_f1(y_hat, y)
-        self.test_auroc(y_hat, y)
-
-        self.log('test/accuracy', self.test_acc, prog_bar=True, on_step=False,
-                 on_epoch=True)
-        self.log('test/f1-score', self.test_f1, prog_bar=False, on_step=False,
-                 on_epoch=True)
-        self.log('test/auroc', self.test_auroc, prog_bar=False, on_step=False,
-                 on_epoch=True)
+        output = self.test_metrics(y_hat, y)
+        self.log_dict(output, prog_bar=False, on_step=False,
+                      on_epoch=True, batch_size=1)
         self.log('test/loss', loss, prog_bar=False, on_step=False,
                  on_epoch=True, batch_size=1)
 
-        return None
+        return loss
 
     def configure_optimizers(self) -> OptimizerLRScheduler:
         optimiser = torch.optim.AdamW(self.parameters())

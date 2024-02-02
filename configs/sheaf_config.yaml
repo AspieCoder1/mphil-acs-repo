@@ -1,8 +1,8 @@
 defaults:
   - base_config
-  - trainer: trainer
   - model: bundle_sheaf
   - dataset: dblp
+  - trainer: ${model}_${dataset}
   - model_args: ${model}_${dataset}
   - hydra: slurm_submit
   - override hydra/launcher: submitit_slurm
