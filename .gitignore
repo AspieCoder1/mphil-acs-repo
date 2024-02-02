@@ -171,3 +171,5 @@ artifacts/
 gnn_baselines/
 sheafnc_baselines/
 gnn_lp/
+sheafnc_checkpoints/
+gnn_nc_checkpoints/

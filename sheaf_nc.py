@@ -64,7 +64,7 @@ def main(cfg: Config) -> None:
 
 def init_trainer(cfg) -> L.Trainer:
     logger = WandbLogger(project="gnn-baselines", log_model=True,
-                         save_dir="~/rds/hpc-work/gnn-baselines/")
+                         save_dir="/sheafnc_checkpoints/.wandb/")
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name
     logger.experiment.tags = cfg.tags
@@ -81,7 +81,7 @@ def init_trainer(cfg) -> L.Trainer:
         callbacks=[
             EarlyStopping("valid/loss",
                           patience=cfg.trainer.patience),
-            ModelCheckpoint(dirpath=f"~/rds/hpc-work/gnn-baselines/{logger.version}",
+            ModelCheckpoint(dirpath=f"/sheafnc_checkpoints/{logger.version}",
                             monitor="valid/accuracy",
                             mode="max", save_top_k=1)
         ]
