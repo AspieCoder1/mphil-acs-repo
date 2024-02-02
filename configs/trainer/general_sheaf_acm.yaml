@@ -1,4 +1,3 @@
 defaults:
   - trainer
-trainer:
-  patience: 50
+patience: 50
