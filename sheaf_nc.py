@@ -60,8 +60,7 @@ def main(cfg: Config) -> None:
 
 
 def init_trainer(cfg) -> L.Trainer:
-    logger = WandbLogger(project="gnn-baselines", log_model=False,
-                         save_dir="~/rds/hpc-work/.wandb/")
+    logger = WandbLogger(project="gnn-baselines", log_model=False)
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name
     logger.experiment.tags = cfg.tags
