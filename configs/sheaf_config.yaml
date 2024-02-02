@@ -1,6 +1,6 @@
 defaults:
   - base_config
-  - model: bundle_sheaf
+  - model: diag_sheaf
   - dataset: dblp
   - trainer: ${model}_${dataset}
   - model_args: ${model}_${dataset}

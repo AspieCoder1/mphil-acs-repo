@@ -73,6 +73,7 @@ def init_trainer(cfg) -> L.Trainer:
         strategy=cfg.trainer.strategy,
         fast_dev_run=cfg.trainer.fast_dev_run,
         logger=logger,
+        precision="bf16-mixed",
         max_epochs=200,
         log_every_n_steps=1,
         callbacks=[
