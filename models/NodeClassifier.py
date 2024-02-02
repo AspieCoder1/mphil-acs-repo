@@ -74,9 +74,9 @@ class NodeClassifier(L.LightningModule):
 
         output = self.train_metrics(y_hat, y)
         self.log_dict(output, prog_bar=True, on_step=False,
-                      on_epoch=True)
+                      on_epoch=True, batch_size=1)
         self.log('train/loss', loss, prog_bar=True, on_step=True,
-                 on_epoch=True, batch_size=64)
+                 on_epoch=True, batch_size=1)
 
         return loss
 
@@ -87,9 +87,9 @@ class NodeClassifier(L.LightningModule):
         output = self.valid_metrics(y_hat, y)
 
         self.log_dict(output, prog_bar=True, on_step=False,
-                      on_epoch=True)
+                      on_epoch=True, batch_size=1)
         self.log('valid/loss', loss, prog_bar=False, on_step=False,
-                 on_epoch=True, batch_size=64)
+                 on_epoch=True, batch_size=1)
         return loss
 
     def test_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:
