@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J gnn_nc_baselines
-#SBATCH --output=gnnnc_baselines/out/%A_%a.out
-#SBATCH --error=gnnnc_baselines/err/%A_%a.err
+#SBATCH --output=gnn_nc_baselines/out/%A_%a.out
+#SBATCH --error=gnn_nc_baselines/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=1:00:00
 #SBATCH -a 0-9%10
@@ -11,8 +11,8 @@
 #SBATCH --gpu-bind=none
 #SBATCH --mail-type=ALL
 
-MODEL_PARAMS=( gat )
-DATASETS=( acm )
+MODEL_PARAMS=( gat gcn han hgcn hgt rgcn )
+DATASETS=( dblp acm imdb )
 
 N_TRIALS=10
 N_DATASETS=${#DATASETS[@]}
