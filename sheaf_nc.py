@@ -81,7 +81,7 @@ def init_trainer(cfg) -> L.Trainer:
         callbacks=[
             EarlyStopping("valid/loss",
                           patience=cfg.trainer.patience),
-            ModelCheckpoint(dirpath=f"/sheafnc_checkpoints/{logger.version}",
+            ModelCheckpoint(dirpath=f"sheafnc_checkpoints/{logger.version}",
                             monitor="valid/accuracy",
                             mode="max", save_top_k=1)
         ]
