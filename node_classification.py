@@ -56,7 +56,7 @@ def main(cfg: Config):
                                 homogeneous_model=is_homogeneous)
 
     logger = WandbLogger(project="gnn-baselines", log_model=False,
-                         save_dir="~/rds/hpc-work/wandb")
+                         save_dir="~/rds/hpc-work/.wandb")
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name
     logger.experiment.tags = cfg.tags
