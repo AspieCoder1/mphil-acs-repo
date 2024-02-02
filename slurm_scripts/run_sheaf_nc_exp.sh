@@ -3,7 +3,7 @@
 #SBATCH --output=sheafnc_baselines/out/%A_%a.out
 #SBATCH --error=sheafnc_baselines/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
-#SBATCH --time=1:00:00
+#SBATCH --time=3:00:00
 #SBATCH -a 0-89%10
 #SBATCH -p ampere
 #SBATCH --nodes 1
