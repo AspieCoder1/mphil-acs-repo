@@ -42,10 +42,9 @@ def main(cfg: Config) -> None:
     cfg.model_args.output_dim = datamodule.num_classes
 
     # 3) Initialise models
-    model_cls = get_sheaf_model(cfg.model.type)
-    model = model_cls(None, cfg.model_args)
+
     sheaf_nc = SheafNodeClassifier(
-        model=model,
+        cfg,
         hidden_channels=model.hidden_dim,
         out_channels=datamodule.num_classes,
         target=datamodule.target,

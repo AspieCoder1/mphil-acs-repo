@@ -1,19 +1,22 @@
 from typing import Literal
 
 import torch
-import torch.nn as nn
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 from torch_geometric.data import Data
 
+from core.models import get_sheaf_model
 from .NodeClassifier import NodeClassifier, CommonStepOutput
 
 
 class SheafNodeClassifier(NodeClassifier):
-    def __init__(self, model: nn.Module, hidden_channels: int = 256,
+    def __init__(self, cfg, hidden_channels: int = 256,
                  out_channels: int = 10,
                  target: str = "author", task: Literal[
                 "binary", "multiclass", "multilabel"] = "multilabel",
                  homogeneous_model: bool = False):
+
+        model_cls = get_sheaf_model(cfg.model.type)
+        model = model_cls(None, cfg.model_args)
         super().__init__(model=model,
                          hidden_channels=hidden_channels,
                          out_channels=out_channels, target=target,
