@@ -18,7 +18,7 @@ class SheafNodeClassifier(NodeClassifier):
         model_cls = get_sheaf_model(cfg.model.type)
         model = model_cls(None, cfg.model_args)
         super().__init__(model=model,
-                         hidden_channels=model.hidden_channels,
+                         hidden_channels=model.hidden_dim,
                          out_channels=out_channels, target=target,
                          task=task,
                          homogeneous_model=homogeneous_model)
