@@ -4,7 +4,6 @@
 #SBATCH --error=sheaf_lp_profile/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=3:00:00
-#SBATCH -a 0-89%10
 #SBATCH -p ampere
 #SBATCH --nodes 1
 #SBATCH --gres=gpu:1
