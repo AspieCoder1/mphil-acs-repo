@@ -15,10 +15,11 @@ from .sheaf_models import LocalConcatSheafLearner, EdgeWeightLearner, \
     LocalConcatSheafLearnerVariant
 
 
-class DiscreteDiagSheafDiffusion(SheafDiffusion):
+class InductiveDiscreteDiagSheafDiffusion(SheafDiffusion):
 
     def __init__(self, edge_index, args):
-        super(DiscreteDiagSheafDiffusion, self).__init__(edge_index=None, args=args)
+        super(InductiveDiscreteDiagSheafDiffusion, self).__init__(edge_index=None,
+                                                                  args=args)
         assert args.d > 0
 
         self.lin_right_weights = nn.ModuleList()
@@ -110,10 +111,11 @@ class DiscreteDiagSheafDiffusion(SheafDiffusion):
         return x
 
 
-class DiscreteBundleSheafDiffusion(SheafDiffusion):
+class InductiveDiscreteBundleSheafDiffusion(SheafDiffusion):
 
     def __init__(self, edge_index, args):
-        super(DiscreteBundleSheafDiffusion, self).__init__(edge_index=None, args=args)
+        super(InductiveDiscreteBundleSheafDiffusion, self).__init__(edge_index=None,
+                                                                    args=args)
         assert args.d > 1
         assert not self.deg_normalised
 
@@ -189,8 +191,8 @@ class DiscreteBundleSheafDiffusion(SheafDiffusion):
             weight_learner.update_edge_index(edge_index)
 
     def forward(self, x, edge_index):
-        sheaf_update_time_ns = 0
-        start = time.perf_counter_ns()
+        sheaf_update_time = 0
+        start = time.perf_counter()
         self.update_edge_index(edge_index)
         x = F.dropout(x, p=self.input_dropout, training=self.training)
         x = self.lin1(x)
@@ -204,7 +206,7 @@ class DiscreteBundleSheafDiffusion(SheafDiffusion):
         x0, L = x, None
         for layer in range(self.layers):
             if layer == 0 or self.nonlinear:
-                start_sheaf_update = time.perf_counter_ns()
+                start_sheaf_update = time.perf_counter()
                 x_maps = F.dropout(x, p=self.dropout if layer > 0 else 0.,
                                    training=self.training)
                 x_maps = x_maps.reshape(self.graph_size, -1)
@@ -213,8 +215,8 @@ class DiscreteBundleSheafDiffusion(SheafDiffusion):
                                                            self.edge_index) if self.use_edge_weights else None
                 L, trans_maps = self.laplacian_builder(maps, edge_weights)
                 self.sheaf_learners[layer].set_L(trans_maps)
-                end_sheaf_update = time.perf_counter_ns()
-                sheaf_update_time_ns = end_sheaf_update - start_sheaf_update
+                end_sheaf_update = time.perf_counter()
+                sheaf_update_time = end_sheaf_update - start_sheaf_update
 
             x = F.dropout(x, p=self.dropout, training=self.training)
 
@@ -233,17 +235,18 @@ class DiscreteBundleSheafDiffusion(SheafDiffusion):
 
         x = x.reshape(self.graph_size, -1)
         # x = self.lin2(x)
-        end = time.perf_counter_ns()
+        end = time.perf_counter()
         print(
-            f"forward pass (ns): {end - start}; sheaf prediction (ns): {sheaf_update_time_ns}"
+            f"forward pass (s): {end - start}; sheaf prediction (s): {sheaf_update_time}"
         )
         return x
 
 
-class DiscreteGeneralSheafDiffusion(SheafDiffusion):
+class InductiveDiscreteGeneralSheafDiffusion(SheafDiffusion):
 
     def __init__(self, edge_index, args):
-        super(DiscreteGeneralSheafDiffusion, self).__init__(edge_index=None, args=args)
+        super(InductiveDiscreteGeneralSheafDiffusion, self).__init__(edge_index=None,
+                                                                     args=args)
         assert args.d > 1
 
         edge_index = None

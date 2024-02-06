@@ -9,8 +9,8 @@ from .cont_models import (
 )
 
 from .disc_models import (
-    DiscreteDiagSheafDiffusion,
-    DiscreteBundleSheafDiffusion,
-    DiscreteGeneralSheafDiffusion
+    InductiveDiscreteDiagSheafDiffusion,
+    InductiveDiscreteBundleSheafDiffusion,
+    InductiveDiscreteGeneralSheafDiffusion
 )
 

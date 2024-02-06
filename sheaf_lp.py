@@ -5,7 +5,7 @@ import torch
 from hydra.core.config_store import ConfigStore
 
 from core.datasets import get_dataset_lp, LinkPredDatasets
-from core.models import get_sheaf_model
+from core.models import get_inductive_sheaf_model
 from core.sheaf_configs import SheafModelCfg, SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
 from models.SheafGNNInductive.config import SheafModelArguments
@@ -36,7 +36,7 @@ def main(cfg: Config):
     cfg.model_args.input_dim = dm.in_channels
     cfg.model_args.output_dim = 64
 
-    model_cls = get_sheaf_model(cfg.model.type)
+    model_cls = get_inductive_sheaf_model(cfg.model.type)
     model = model_cls(None, cfg.model_args)
 
     print(model.hidden_dim)

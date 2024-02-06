@@ -4,14 +4,18 @@ from typing import Union, Type
 from strenum import UppercaseStrEnum
 from torch_geometric.nn import to_hetero_with_bases
 
+from core.sheaf_configs import ModelTypes
 from datasets.hgb import HGBBaseDataModule
 from datasets.link_pred import LinkPredBase
 from models.SheafGNN import DiscreteDiagSheafDiffusion, DiscreteBundleSheafDiffusion, \
     DiscreteGeneralSheafDiffusion, DiagSheafDiffusion, BundleSheafDiffusion, \
     GeneralSheafDiffusion
 from models.SheafGNN.sheaf_base import SheafDiffusion
+from models.SheafGNNInductive import InductiveDiscreteDiagSheafDiffusion, \
+    InductiveDiscreteBundleSheafDiffusion, InductiveDiscreteGeneralSheafDiffusion
+from models.SheafGNNInductive.sheaf_base import \
+    SheafDiffusion as SheafDiffusionInductive
 from models.baselines import HAN, HGT, HeteroGNN, RGCN, GCN, GAT
-from core.sheaf_configs import ModelTypes
 
 
 class Models(UppercaseStrEnum):
@@ -78,3 +82,11 @@ def get_sheaf_model(model: ModelTypes) -> Type[SheafDiffusion]:
         return BundleSheafDiffusion
     if model == ModelTypes.GeneralSheafODE:
         return GeneralSheafDiffusion
+
+
+def get_inductive_sheaf_model(model: ModelTypes) -> Type[SheafDiffusionInductive]:
+    if model == ModelTypes.DiagSheaf:
+        return InductiveDiscreteDiagSheafDiffusion
+    if model == ModelTypes.BundleSheaf:
+        return InductiveDiscreteBundleSheafDiffusion
+    return InductiveDiscreteGeneralSheafDiffusion
