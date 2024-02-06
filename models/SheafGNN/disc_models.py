@@ -79,6 +79,8 @@ class DiscreteDiagSheafDiffusion(SheafDiffusion):
             if layer == 0 or self.nonlinear:
                 x_maps = F.dropout(x, p=self.dropout if layer > 0 else 0.,
                                    training=self.training)
+
+                # maps are the linear restriction maps
                 maps = self.sheaf_learners[layer](x_maps.reshape(self.graph_size, -1),
                                                   self.edge_index)
                 L, trans_maps = self.laplacian_builder(maps)
