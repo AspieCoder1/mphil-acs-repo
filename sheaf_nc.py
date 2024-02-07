@@ -81,7 +81,7 @@ def init_trainer(cfg) -> L.Trainer:
         fast_dev_run=cfg.trainer.fast_dev_run,
         logger=logger,
         precision="bf16-mixed",
-        max_epochs=200,
+        max_epochs=cfg.trainer.max_epochs,
         log_every_n_steps=1,
         callbacks=[
             EarlyStopping("valid/loss",

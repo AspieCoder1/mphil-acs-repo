@@ -1,8 +1,11 @@
 from dataclasses import field, dataclass
 
 import hydra
+import lightning as L
 import torch
 from hydra.core.config_store import ConfigStore
+from lightning.pytorch.loggers import WandbLogger
+from lightning.pytorch.profilers import PyTorchProfiler
 
 from core.datasets import get_dataset_lp, LinkPredDatasets
 from core.models import get_inductive_sheaf_model
@@ -10,7 +13,6 @@ from core.sheaf_configs import SheafModelCfg, SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
 from models.SheafGNNInductive.config import SheafModelArguments
 from models.SheafLinkPredictor import SheafLinkPredictor
-from sheaf_nc import init_trainer
 
 
 @dataclass
@@ -46,7 +48,33 @@ def main(cfg: Config):
         hidden_dim=model.hidden_dim
     )
 
-    trainer = init_trainer(cfg)
+    logger = WandbLogger(project="gnn-baselines", log_model=False)
+    logger.experiment.config["model"] = cfg.model.type
+    logger.experiment.config["dataset"] = cfg.dataset.name
+    logger.experiment.tags = cfg.tags
+
+    profiler = PyTorchProfiler(emit_nvtx=True, dirpath="sheaf_lp_profiler/")
+
+    trainer = L.Trainer(
+        accelerator=cfg.trainer.accelerator,
+        devices=cfg.trainer.devices,
+        num_nodes=cfg.trainer.num_nodes,
+        strategy=cfg.trainer.strategy,
+        fast_dev_run=cfg.trainer.fast_dev_run,
+        logger=logger,
+        profiler=profiler,
+        precision="bf16-mixed",
+        max_epochs=cfg.trainer.max_epochs,
+        log_every_n_steps=1,
+        # callbacks=[
+        #     EarlyStopping("valid/loss",
+        #                   patience=cfg.trainer.patience),
+        #     ModelCheckpoint(dirpath=f"sheafnc_checkpoints/{logger.version}",
+        #                     filename=cfg.model.type + '-' + cfg.dataset.name + '-{epoch}',
+        #                     monitor="valid/accuracy",
+        #                     mode="max", save_top_k=1)
+        # ]
+    )
 
     trainer.fit(sheaf_lp, dm)
     trainer.test(sheaf_lp, dm)
