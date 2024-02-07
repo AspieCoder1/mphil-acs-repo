@@ -4,8 +4,9 @@ import hydra
 import lightning as L
 import torch
 from hydra.core.config_store import ConfigStore
+from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
-from lightning.pytorch.profilers import PyTorchProfiler, AdvancedProfiler
+from lightning.pytorch.profilers import AdvancedProfiler
 
 from core.datasets import get_dataset_lp, LinkPredDatasets
 from core.models import get_inductive_sheaf_model
@@ -46,10 +47,10 @@ def main(cfg: Config):
         hidden_dim=model.hidden_dim
     )
 
-    # logger = WandbLogger(project="gnn-baselines", log_model=False)
-    # logger.experiment.config["model"] = cfg.model.type
-    # logger.experiment.config["dataset"] = cfg.dataset.name
-    # logger.experiment.tags = cfg.tags
+    logger = WandbLogger(project="gnn-baselines", log_model=False)
+    logger.experiment.config["model"] = cfg.model.type
+    logger.experiment.config["dataset"] = cfg.dataset.name
+    logger.experiment.tags = cfg.tags
 
     profiler = AdvancedProfiler(dirpath="sheaf_lp_profile", filename="perf_logs")
     trainer = L.Trainer(
@@ -58,19 +59,19 @@ def main(cfg: Config):
         num_nodes=cfg.trainer.num_nodes,
         strategy=cfg.trainer.strategy,
         fast_dev_run=cfg.trainer.fast_dev_run,
-        # logger=logger,
+        logger=logger,
         profiler=profiler,
         precision="bf16-mixed",
         max_epochs=cfg.trainer.max_epochs,
         log_every_n_steps=1,
-        # callbacks=[
-        #     EarlyStopping("valid/loss",
-        #                   patience=cfg.trainer.patience),
-        #     ModelCheckpoint(dirpath=f"sheafnc_checkpoints/{logger.version}",
-        #                     filename=cfg.model.type + '-' + cfg.dataset.name + '-{epoch}',
-        #                     monitor="valid/accuracy",
-        #                     mode="max", save_top_k=1)
-        # ]
+        callbacks=[
+            EarlyStopping("valid/loss",
+                          patience=cfg.trainer.patience),
+            ModelCheckpoint(dirpath=f"sheaflp_checkpoints/{logger.version}",
+                            filename=cfg.model.type + '-' + cfg.dataset.name + '-{epoch}',
+                            monitor="valid/accuracy",
+                            mode="max", save_top_k=1)
+        ]
     )
 
     trainer.fit(sheaf_lp, dm)
