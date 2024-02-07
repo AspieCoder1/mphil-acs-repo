@@ -13,4 +13,4 @@
 export WANDB_CACHE_DIR="~/rds/hpc-work/.wandb"
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
 source ~/venv/bin/activate
-srun python sheaf_lp.py trainer.max_epochs=4
+srun  nvprof --profile-from-start off -o trace_name.prof -- python sheaf_lp.py trainer.max_epochs=4
