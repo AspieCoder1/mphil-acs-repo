@@ -48,10 +48,10 @@ def main(cfg: Config):
         hidden_dim=model.hidden_dim
     )
 
-    logger = WandbLogger(project="gnn-baselines", log_model=False)
-    logger.experiment.config["model"] = cfg.model.type
-    logger.experiment.config["dataset"] = cfg.dataset.name
-    logger.experiment.tags = cfg.tags
+    # logger = WandbLogger(project="gnn-baselines", log_model=False)
+    # logger.experiment.config["model"] = cfg.model.type
+    # logger.experiment.config["dataset"] = cfg.dataset.name
+    # logger.experiment.tags = cfg.tags
 
     profiler = PyTorchProfiler(emit_nvtx=True, dirpath="sheaf_lp_profiler/")
 
@@ -61,7 +61,7 @@ def main(cfg: Config):
         num_nodes=cfg.trainer.num_nodes,
         strategy=cfg.trainer.strategy,
         fast_dev_run=cfg.trainer.fast_dev_run,
-        logger=logger,
+        # logger=logger,
         profiler=profiler,
         precision="bf16-mixed",
         max_epochs=cfg.trainer.max_epochs,
