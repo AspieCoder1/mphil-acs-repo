@@ -5,7 +5,7 @@ import lightning as L
 import torch
 from hydra.core.config_store import ConfigStore
 from lightning.pytorch.loggers import WandbLogger
-from lightning.pytorch.profilers import PyTorchProfiler
+from lightning.pytorch.profilers import PyTorchProfiler, AdvancedProfiler
 
 from core.datasets import get_dataset_lp, LinkPredDatasets
 from core.models import get_inductive_sheaf_model
@@ -51,6 +51,7 @@ def main(cfg: Config):
     # logger.experiment.config["dataset"] = cfg.dataset.name
     # logger.experiment.tags = cfg.tags
 
+    profiler = AdvancedProfiler(dirpath="sheaf_lp_profile", filename="perf_logs")
     trainer = L.Trainer(
         accelerator=cfg.trainer.accelerator,
         devices=cfg.trainer.devices,
@@ -58,7 +59,7 @@ def main(cfg: Config):
         strategy=cfg.trainer.strategy,
         fast_dev_run=cfg.trainer.fast_dev_run,
         # logger=logger,
-        profiler='advanced',
+        profiler=profiler,
         precision="bf16-mixed",
         max_epochs=cfg.trainer.max_epochs,
         log_every_n_steps=1,
