@@ -41,8 +41,6 @@ def main(cfg: Config):
     model_cls = get_inductive_sheaf_model(cfg.model.type)
     model = model_cls(None, cfg.model_args)
 
-    print(model.hidden_dim)
-
     sheaf_lp = SheafLinkPredictor(
         model=model, num_classes=1,
         hidden_dim=model.hidden_dim
@@ -53,8 +51,6 @@ def main(cfg: Config):
     # logger.experiment.config["dataset"] = cfg.dataset.name
     # logger.experiment.tags = cfg.tags
 
-    profiler = PyTorchProfiler(emit_nvtx=True, dirpath="sheaf_lp_profiler/")
-
     trainer = L.Trainer(
         accelerator=cfg.trainer.accelerator,
         devices=cfg.trainer.devices,
@@ -62,7 +58,7 @@ def main(cfg: Config):
         strategy=cfg.trainer.strategy,
         fast_dev_run=cfg.trainer.fast_dev_run,
         # logger=logger,
-        profiler=profiler,
+        profiler='advanced',
         precision="bf16-mixed",
         max_epochs=cfg.trainer.max_epochs,
         log_every_n_steps=1,
