@@ -43,7 +43,7 @@ def main(cfg: Config) -> None:
     # 3) calculate the singular values
     x_maps = F.dropout(data.x, 0, training=False)
     maps = model.encoder.sheaf_learners[0](x_maps.reshape(model.encoder.graph_size, -1),
-                                           data.edge_index)
+                                           edge_index)
     sdvals = torch.linalg.svdvals(maps).cpu().detach().numpy()
     print(sdvals.shape)
     tsne_outputs = TSNE(n_components=2).fit_transform(maps)
