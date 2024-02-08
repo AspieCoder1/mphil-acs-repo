@@ -74,5 +74,3 @@ class SheafNodeClassifier(NodeClassifier):
                  on_epoch=True, batch_size=128)
 
         return loss
-
-    def on_load_checkpoint(self, checkpoint: Dict[str, Any]) -> None:

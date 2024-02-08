@@ -16,11 +16,12 @@ def main() -> None:
     datamodule.prepare_data()
     data: Data = datamodule.pyg_datamodule.data
 
+    # 2) load checkpoint
     checkpoint = torch.load(
         "sheafnc_checkpoints/kj4z929k/DiagSheaf-DBLP-epoch=191.ckpt")
-    encoder = checkpoint["encoder"].to("cuda")
+    encoder = checkpoint["model"].to("cuda")
 
-    # 6) calculate the singular values
+    # 3) calculate the singular values
     x_maps = F.dropout(data.x, 0, training=False)
     maps = encoder.sheaf_learners[0](x_maps.reshape(encoder.graph_size, -1),
                                      data.edge_index)
@@ -28,7 +29,7 @@ def main() -> None:
     print(sdvals.shape)
     tsne_outputs = TSNE(n_components=2).fit_transform(maps)
 
-    # 7) Plotting the stuff
+    # 4) Plotting the stuff
     sns.set_style('whitegrid')
     sns.set_context('paper')
     fig = plt.figure(figsize=(8, 8))
