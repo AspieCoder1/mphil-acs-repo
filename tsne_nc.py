@@ -4,7 +4,7 @@ import seaborn as sns
 import torch
 import torch.nn.functional as F
 from hydra.core.config_store import ConfigStore
-from sklearn.manifold import TSNE
+from tsnecuda import TSNE
 from torch_geometric.data import Data
 
 from core.sheaf_configs import ModelTypes
@@ -57,7 +57,6 @@ def main(cfg: Config) -> None:
     maps = encoder.sheaf_learners[0](x_maps.reshape(encoder.graph_size, -1),
                                      edge_index)
 
-    # as diagonal must embed them into appropriate space
 
     # 4) calculate the singular values (only if not diagonal)
     if cfg.model.type != ModelTypes.DiagSheaf:
