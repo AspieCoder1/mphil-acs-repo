@@ -41,7 +41,8 @@ def main(cfg: Config) -> None:
     )
 
     # 3) calculate the singular values
-    x_maps = F.dropout(data.x, 0, training=False)
+    x = data.x.to(cfg.model_args.device)
+    x_maps = F.dropout(x, 0, training=False)
     maps = model.encoder.sheaf_learners[0](x_maps.reshape(model.encoder.graph_size, -1),
                                            edge_index)
     sdvals = torch.linalg.svdvals(maps).cpu().detach().numpy()
