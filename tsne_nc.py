@@ -1,39 +1,18 @@
-from dataclasses import dataclass, field
-
-import hydra
 import matplotlib.pyplot as plt
 import seaborn as sns
 import torch
 import torch.nn.functional as F
-from hydra.core.config_store import ConfigStore
 from sklearn.manifold import TSNE
 from torch_geometric.data import Data
 
-from core.datasets import get_dataset_nc
-from core.sheaf_configs import SheafModelCfg, SheafNCDatasetCfg
-from core.trainer import TrainerArgs
-from models.SheafGNN.config import SheafModelArguments
+from datasets.hgb import DBLPDataModule
 
 
-@dataclass
-class Config:
-    trainer: TrainerArgs = field(default_factory=TrainerArgs)
-    tags: list[str] = field(default_factory=list)
-    model: SheafModelCfg = field(default_factory=SheafModelCfg)
-    dataset: SheafNCDatasetCfg = field(default_factory=SheafNCDatasetCfg)
-    model_args: SheafModelArguments = field(default_factory=SheafModelArguments)
-
-
-cs = ConfigStore.instance()
-cs.store("base_config", Config)
-
-
-@hydra.main(version_base="1.2", config_path="configs", config_name="sheaf_config")
-def main(cfg: Config) -> None:
+def main() -> None:
     torch.set_float32_matmul_precision("high")
 
     # 1) get the datamodule
-    datamodule = get_dataset_nc(cfg.dataset.name, True)
+    datamodule = DBLPDataModule(homogeneous=True)
     datamodule.prepare_data()
     data: Data = datamodule.pyg_datamodule.data
 
