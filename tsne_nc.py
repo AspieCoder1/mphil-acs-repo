@@ -54,9 +54,10 @@ def main(cfg: Config) -> None:
     x_maps = F.dropout(x, 0, training=False)
     maps = encoder.sheaf_learners[0](x_maps.reshape(encoder.graph_size, -1),
                                      edge_index)
+    print(maps.shape)
     sdvals = torch.linalg.svdvals(maps).cpu().detach().numpy()
     print(sdvals.shape)
-    tsne_outputs = TSNE(n_components=2).fit_transform(maps)
+    tsne_outputs = TSNE(n_components=2).fit_transform(sdvals)
 
     # 4) Plotting the stuff
     sns.set_style('whitegrid')
