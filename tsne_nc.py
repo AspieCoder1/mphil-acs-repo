@@ -56,10 +56,8 @@ def main(cfg: Config) -> None:
     maps = encoder.sheaf_learners[0](x_maps.reshape(encoder.graph_size, -1),
                                      edge_index)
 
-    _, trans_maps = encoder.laplacian_builder(maps)
-
     # as diagonal must embed them into appropriate space
-    restriction_maps = torch.diag_embed(trans_maps)
+    restriction_maps = torch.diag_embed(maps)
     print(restriction_maps.shape)
 
     # 4) calculate the singular values
