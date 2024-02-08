@@ -40,7 +40,7 @@ def main(cfg: Config) -> None:
         model=encoder
     )
 
-    # 3) calculate the singular values
+    # 3) calculate the restriction maps
     encoder = model.encoder
     x = data.x.to(cfg.model_args.device)
     x = F.dropout(x, p=encoder.input_dropout, training=encoder.training)
@@ -54,12 +54,15 @@ def main(cfg: Config) -> None:
     x_maps = F.dropout(x, 0, training=False)
     maps = encoder.sheaf_learners[0](x_maps.reshape(encoder.graph_size, -1),
                                      edge_index)
-    print(maps.shape)
-    sdvals = torch.linalg.svdvals(maps).cpu().detach().numpy()
+    L, trans_maps = encoder.laplacian_builder(maps)
+    print(L[1].shape)
+
+    # 4) calculate the singular values
+    sdvals = torch.linalg.svdvals(L[1]).cpu().detach().numpy()
     print(sdvals.shape)
     tsne_outputs = TSNE(n_components=2).fit_transform(sdvals)
 
-    # 4) Plotting the stuff
+    # 5) Plotting the stuff
     sns.set_style('whitegrid')
     sns.set_context('paper')
     fig = plt.figure(figsize=(8, 8))
