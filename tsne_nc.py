@@ -4,8 +4,8 @@ import seaborn as sns
 import torch
 import torch.nn.functional as F
 from hydra.core.config_store import ConfigStore
+from sklearn.manifold import TSNE
 from torch_geometric.data import Data
-from tsnecuda import TSNE
 
 from datasets.hgb import DBLPDataModule
 from models.SheafGNN import DiscreteDiagSheafDiffusion
