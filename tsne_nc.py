@@ -4,7 +4,7 @@ import seaborn as sns
 import torch
 import torch.nn.functional as F
 from hydra.core.config_store import ConfigStore
-from tsnecuda import TSNE
+from cuml import TSNE
 from torch_geometric.data import Data
 
 from core.sheaf_configs import ModelTypes
