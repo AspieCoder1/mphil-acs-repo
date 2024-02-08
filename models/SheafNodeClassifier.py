@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Dict, Any
 
 import torch
 from lightning.pytorch.utilities.types import STEP_OUTPUT
@@ -22,7 +22,7 @@ class SheafNodeClassifier(NodeClassifier):
                          out_channels=out_channels, target=target,
                          task=task,
                          homogeneous_model=homogeneous_model)
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=["model"])
 
     def common_step(self, batch: Data, mask: torch.Tensor) -> CommonStepOutput:
         if self.task == "multilabel":
@@ -74,3 +74,5 @@ class SheafNodeClassifier(NodeClassifier):
                  on_epoch=True, batch_size=128)
 
         return loss
+
+    def on_load_checkpoint(self, checkpoint: Dict[str, Any]) -> None:
