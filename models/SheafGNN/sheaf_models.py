@@ -49,10 +49,10 @@ class LocalConcatSheafLearner(SheafLearner):
             raise ValueError(f"Unsupported act {sheaf_act}")
 
     def forward(self, x, edge_index):
-        row, col = edge_index
-        x_row = torch.index_select(x, dim=0, index=row)
-        x_col = torch.index_select(x, dim=0, index=col)
-        maps = self.linear1(torch.cat([x_row, x_col], dim=1))
+        src, dst = edge_index
+        x_src = torch.index_select(x, dim=0, index=src)
+        x_dst = torch.index_select(x, dim=0, index=dst)
+        maps = self.linear1(torch.cat([x_src, x_dst], dim=1))
         maps = self.act(maps)
 
         # sign = maps.sign()
@@ -94,11 +94,11 @@ class LocalConcatSheafLearnerVariant(SheafLearner):
             raise ValueError(f"Unsupported act {sheaf_act}")
 
     def forward(self, x, edge_index):
-        row, col = edge_index
+        src, dst = edge_index
 
-        x_row = torch.index_select(x, dim=0, index=row)
-        x_col = torch.index_select(x, dim=0, index=col)
-        x_cat = torch.cat([x_row, x_col], dim=-1)
+        x_src = torch.index_select(x, dim=0, index=src)  # this is really x_src
+        x_dst = torch.index_select(x, dim=0, index=dst)  # this is really x_dst
+        x_cat = torch.cat([x_src, x_dst], dim=-1)
         x_cat = x_cat.reshape(-1, self.d, self.hidden_channels * 2).sum(dim=1)
 
         x_cat = self.linear1(x_cat)
@@ -123,10 +123,10 @@ class AttentionSheafLearner(SheafLearner):
         self.linear1 = torch.nn.Linear(in_channels * 2, d ** 2, bias=False)
 
     def forward(self, x, edge_index):
-        row, col = edge_index
-        x_row = torch.index_select(x, dim=0, index=row)
-        x_col = torch.index_select(x, dim=0, index=col)
-        maps = self.linear1(torch.cat([x_row, x_col], dim=1)).view(-1, self.d, self.d)
+        src, dst = edge_index
+        x_src = torch.index_select(x, dim=0, index=src)
+        x_dst = torch.index_select(x, dim=0, index=dst)
+        maps = self.linear1(torch.cat([x_src, x_dst], dim=1)).view(-1, self.d, self.d)
 
         id = torch.eye(self.d, device=edge_index.device, dtype=maps.dtype).unsqueeze(0)
         return id - torch.softmax(maps, dim=-1)
@@ -146,9 +146,9 @@ class EdgeWeightLearner(SheafLearner):
         _, full_right_idx = self.full_left_right_idx
 
         row, col = edge_index
-        x_row = torch.index_select(x, dim=0, index=row)
-        x_col = torch.index_select(x, dim=0, index=col)
-        weights = self.linear1(torch.cat([x_row, x_col], dim=1))
+        x_src = torch.index_select(x, dim=0, index=row)
+        x_dst = torch.index_select(x, dim=0, index=col)
+        weights = self.linear1(torch.cat([x_src, x_dst], dim=1))
         weights = torch.sigmoid(weights)
 
         edge_weights = weights * torch.index_select(weights, index=full_right_idx,
@@ -172,10 +172,10 @@ class QuadraticFormSheafLearner(SheafLearner):
         self.tensor = nn.Parameter(tensor)
 
     def forward(self, x, edge_index):
-        row, col = edge_index
-        x_row = torch.index_select(x, dim=0, index=row)
-        x_col = torch.index_select(x, dim=0, index=col)
-        maps = self.map_builder(torch.cat([x_row, x_col], dim=1))
+        src, dst = edge_index
+        x_src = torch.index_select(x, dim=0, index=src)
+        x_dst = torch.index_select(x, dim=0, index=dst)
+        maps = self.map_builder(torch.cat([x_src, x_dst], dim=1))
 
         if len(self.out_shape) == 2:
             return torch.tanh(maps).view(-1, self.out_shape[0], self.out_shape[1])

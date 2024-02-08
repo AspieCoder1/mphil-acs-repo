@@ -7,6 +7,7 @@ from hydra.core.config_store import ConfigStore
 from sklearn.manifold import TSNE
 from torch_geometric.data import Data
 
+from core.sheaf_configs import ModelTypes
 from datasets.hgb import DBLPDataModule
 from models.SheafGNN import DiscreteDiagSheafDiffusion
 from models.SheafGNN.sheaf_base import SheafDiffusion
@@ -57,20 +58,27 @@ def main(cfg: Config) -> None:
                                      edge_index)
 
     # as diagonal must embed them into appropriate space
-    restriction_maps = torch.diag_embed(maps)
-    print(restriction_maps.shape)
 
-    # 4) calculate the singular values
-    sdvals = torch.linalg.svdvals(restriction_maps).cpu().detach().numpy()
+    # 4) calculate the singular values (only if not diagonal)
+    if cfg.model.type != ModelTypes.DiagSheaf:
+        singular_values = torch.linalg.svdvals(maps).cpu().detach().numpy()
+    else:
+        diag_sort, _ = torch.sort(torch.square(maps), dim=1, descending=True)
+        singular_values = diag_sort.cpu().detach().numpy()
+
     tsne_outputs = TSNE(n_components=2, perplexity=15, learning_rate=10).fit_transform(
-        sdvals)
+        singular_values)
+
+    edge_types = torch.cat([data.edge_index, data.edge_type],
+                           dim=-1).cpu().detach().numpy()
 
     # 5) Plotting the stuff
     sns.set_style('whitegrid')
     sns.set_context('paper')
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(111)
-    ax.scatter(tsne_outputs[:, 0], tsne_outputs[:, 1], c=data.edge_types)
+    ax.scatter(tsne_outputs[:, 0], tsne_outputs[:, 1], c=edge_types)
+    ax.legend(name="Edge type")
     fig.savefig("tsne_diag_dblp.pdf", bbox_inches='tight')
     fig.savefig("tsne_diag_dblp.png", bbox_inches='tight')
 
