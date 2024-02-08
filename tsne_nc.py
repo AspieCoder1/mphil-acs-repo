@@ -52,14 +52,12 @@ def main(cfg: Config) -> None:
         x = encoder.lin12(x)
     x = x.view(encoder.graph_size * encoder.final_d, -1)
     x_maps = F.dropout(x, 0, training=False)
-    maps = encoder.sheaf_learners[0](x_maps.reshape(encoder.graph_size, -1),
+    restriction_maps = encoder.sheaf_learners[0](x_maps.reshape(encoder.graph_size, -1),
                                      edge_index)
-    L, trans_maps = encoder.laplacian_builder(maps)
-    print(L[1].shape)
-    print(trans_maps.shape)
+
 
     # 4) calculate the singular values
-    sdvals = torch.linalg.svdvals(trans_maps).cpu().detach().numpy()
+    sdvals = torch.linalg.svdvals(restriction_maps).cpu().detach().numpy()
     print(sdvals.shape)
     tsne_outputs = TSNE(n_components=2).fit_transform(sdvals)
 
