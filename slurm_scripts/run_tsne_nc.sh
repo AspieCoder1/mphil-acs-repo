@@ -11,4 +11,4 @@
 #SBATCH --mail-type=ALL
 
 source ~/venv/bin/activate
-srun python tsne_nc.py model="diag_sheaf" dataset="dblp"
+srun python tsne_nc.py model="diag_sheaf" dataset="dblp" trainer.accelerator="gpu"
