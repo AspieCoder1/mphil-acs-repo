@@ -81,3 +81,5 @@ urllib3==2.1.0
 virtualenv==16.7.6
 wandb==0.16.1
 yarl==1.9.4
+matplotlib
+seaborn

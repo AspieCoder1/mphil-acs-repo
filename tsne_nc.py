@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import seaborn as sns
 import torch
 import torch.nn.functional as F
 from sklearn.manifold import TSNE
@@ -22,6 +23,8 @@ def main():
     tsne_outputs = TSNE(n_components=2).fit_transform(maps)
 
     # Plotting the stuff
+    sns.set_style('whitegrid')
+    sns.set_context('paper')
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(111)
     ax.scatter(tsne_outputs[:, 0], tsne_outputs[:, 1], c=data.edge_types)
