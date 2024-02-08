@@ -19,6 +19,7 @@ def main() -> None:
     # 2) load checkpoint
     checkpoint = torch.load(
         "sheafnc_checkpoints/kj4z929k/DiagSheaf-DBLP-epoch=191.ckpt")
+    print(checkpoint.keys())
     encoder = checkpoint["model"].to("cuda")
 
     # 3) calculate the singular values
