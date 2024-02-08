@@ -10,4 +10,4 @@
 #SBATCH --gpu-bind=none
 
 source ~/venv/bin/activate
-srun python tsne_nc.py model="diag_sheag" dataset="dblp"
+srun python tsne_nc.py model="diag_sheaf" dataset="dblp"
