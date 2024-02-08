@@ -21,10 +21,12 @@ def main():
     print(sdvals.shape)
     tsne_outputs = TSNE(n_components=2).fit_transform(maps)
 
+    # Plotting the stuff
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(111)
     ax.scatter(tsne_outputs[:, 0], tsne_outputs[:, 1], c=data.edge_types)
-    fig.savefig("tsne_diag_dblp.pdf")
+    fig.savefig("tsne_diag_dblp.pdf", bbox_inches='tight')
+    fig.savefig("tsne_diag_dblp.png", bbox_inches='tight')
 
 
 if __name__ == '__main__':
