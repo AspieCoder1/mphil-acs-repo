@@ -52,9 +52,11 @@ def main(cfg: Config) -> None:
         x = encoder.lin12(x)
     x = x.view(encoder.graph_size * encoder.final_d, -1)
     x_maps = F.dropout(x, 0, training=False)
-    restriction_maps = encoder.sheaf_learners[0](x_maps.reshape(encoder.graph_size, -1),
+    maps = encoder.sheaf_learners[0](x_maps.reshape(encoder.graph_size, -1),
                                      edge_index)
 
+    # as diagonal must embed them into appropriate space
+    restriction_maps = torch.diag_embed(maps)
 
     # 4) calculate the singular values
     sdvals = torch.linalg.svdvals(restriction_maps).cpu().detach().numpy()
