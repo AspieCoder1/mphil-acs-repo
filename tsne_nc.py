@@ -9,6 +9,7 @@ from sklearn.manifold import TSNE
 
 from datasets.hgb import DBLPDataModule
 from models.SheafGNN import DiscreteDiagSheafDiffusion
+from models.SheafGNN.sheaf_base import SheafDiffusion
 from models.SheafNodeClassifier import SheafNodeClassifier
 from sheaf_nc import Config
 
@@ -41,7 +42,7 @@ def main(cfg: Config) -> None:
     )
 
     # 3) calculate the restriction maps
-    encoder = model.encoder
+    encoder: SheafDiffusion = model.encoder
     x = data.x.to(cfg.model_args.device)
     x = F.dropout(x, p=encoder.input_dropout, training=encoder.training)
     x = encoder.lin1(x)
@@ -55,7 +56,7 @@ def main(cfg: Config) -> None:
     maps = encoder.sheaf_learners[0](x_maps.reshape(encoder.graph_size, -1),
                                      edge_index)
 
-    _, trans_maps = encoder.lapalacian_builder(maps)
+    _, trans_maps = encoder.laplacian_builder(maps)
 
     # as diagonal must embed them into appropriate space
     restriction_maps = torch.diag_embed(trans_maps)
