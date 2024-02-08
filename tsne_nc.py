@@ -4,8 +4,8 @@ import seaborn as sns
 import torch
 import torch.nn.functional as F
 from hydra.core.config_store import ConfigStore
-from sklearn.manifold import TSNE
 from torch_geometric.data import Data
+from tsnecuda import TSNE
 
 from datasets.hgb import DBLPDataModule
 from models.SheafGNN import DiscreteDiagSheafDiffusion
@@ -57,11 +57,13 @@ def main(cfg: Config) -> None:
 
     # as diagonal must embed them into appropriate space
     restriction_maps = torch.diag_embed(maps)
+    print(restriction_maps.shape)
 
     # 4) calculate the singular values
     sdvals = torch.linalg.svdvals(restriction_maps).cpu().detach().numpy()
     print(sdvals.shape)
-    tsne_outputs = TSNE(n_components=2).fit_transform(sdvals)
+    tsne_outputs = TSNE(n_components=2, perplexity=15, learning_rate=10).fit_transform(
+        sdvals)
 
     # 5) Plotting the stuff
     sns.set_style('whitegrid')
