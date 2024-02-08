@@ -21,7 +21,7 @@ def main() -> None:
         "sheafnc_checkpoints/kj4z929k/DiagSheaf-DBLP-epoch=191.ckpt")
     print(checkpoint.keys())
     print(checkpoint['state_dict'])
-    print(checkpoint['hparams'])
+    print(checkpoint['hparams_name'])
     # encoder = checkpoint["model"].to("cuda")
     #
     # # 3) calculate the singular values
