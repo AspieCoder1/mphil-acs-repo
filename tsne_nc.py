@@ -56,9 +56,10 @@ def main(cfg: Config) -> None:
                                      edge_index)
     L, trans_maps = encoder.laplacian_builder(maps)
     print(L[1].shape)
+    print(trans_maps.shape)
 
     # 4) calculate the singular values
-    sdvals = torch.linalg.svdvals(L[1]).cpu().detach().numpy()
+    sdvals = torch.linalg.svdvals(trans_maps).cpu().detach().numpy()
     print(sdvals.shape)
     tsne_outputs = TSNE(n_components=2).fit_transform(sdvals)
 
