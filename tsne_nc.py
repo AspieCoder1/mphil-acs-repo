@@ -41,10 +41,19 @@ def main(cfg: Config) -> None:
     )
 
     # 3) calculate the singular values
+    encoder = model.encoder
     x = data.x.to(cfg.model_args.device)
+    x = F.dropout(x, p=encoder.input_dropout, training=encoder.training)
+    x = encoder.lin1(x)
+    if encoder.use_act:
+        x = F.elu(x)
+    x = F.dropout(x, p=encoder.dropout, training=encoder.training)
+    if encoder.second_linear:
+        x = encoder.lin12(x)
+    x = x.view(encoder.graph_size * encoder.final_d, -1)
     x_maps = F.dropout(x, 0, training=False)
-    maps = model.encoder.sheaf_learners[0](x_maps.reshape(model.encoder.graph_size, -1),
-                                           edge_index)
+    maps = encoder.sheaf_learners[0](x_maps.reshape(encoder.graph_size, -1),
+                                     edge_index)
     sdvals = torch.linalg.svdvals(maps).cpu().detach().numpy()
     print(sdvals.shape)
     tsne_outputs = TSNE(n_components=2).fit_transform(maps)
