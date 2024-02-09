@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J process_tsne
-#SBATCH --output=sheafnc_tsne/out/%A.out
-#SBATCH --error=sheafnc_tsne/err/%A.err
+#SBATCH --output=process_tsne/out/%A.out
+#SBATCH --error=process_tsne/err/%A.err
 #SBATCH -A COMPUTERLAB-SL2-CPU
 #SBATCH --time=10:00:00
 #SBATCH -p cclake-himem
