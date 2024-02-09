@@ -1,12 +1,10 @@
 import hydra
-import matplotlib.pyplot as plt
-import seaborn as sns
+import numpy as np
 import torch
 import torch.nn.functional as F
 from hydra.core.config_store import ConfigStore
 # from cuml import TSNE
 from torch_geometric.data import Data
-import numpy as np
 
 from core.sheaf_configs import ModelTypes
 from datasets.hgb import DBLPDataModule
@@ -58,7 +56,6 @@ def main(cfg: Config) -> None:
     maps = encoder.sheaf_learners[0](x_maps.reshape(encoder.graph_size, -1),
                                      edge_index)
 
-
     # 4) calculate the singular values (only if not diagonal)
     if cfg.model.type != ModelTypes.DiagSheaf:
         singular_values = torch.linalg.svdvals(maps).cpu().detach().numpy()
@@ -71,21 +68,6 @@ def main(cfg: Config) -> None:
 
     np.save("tsne-input/diag-dblp.npy", singular_values)
     np.save("tsne-input/diag-dblp-labels.npy", edge_types)
-
-    # tsne_outputs = TSNE(n_components=2, perplexity=15, learning_rate=10).fit_transform(
-    #     singular_values)
-    #
-
-    #
-    # # 5) Plotting the stuff
-    # sns.set_style('whitegrid')
-    # sns.set_context('paper')
-    # fig = plt.figure(figsize=(8, 8))
-    # ax = fig.add_subplot(111)
-    # ax.scatter(tsne_outputs[:, 0], tsne_outputs[:, 1], c=edge_types)
-    # ax.legend(name="Edge type")
-    # fig.savefig("tsne_diag_dblp.pdf", bbox_inches='tight')
-    # fig.savefig("tsne_diag_dblp.png", bbox_inches='tight')
 
 
 if __name__ == '__main__':
