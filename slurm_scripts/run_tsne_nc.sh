@@ -9,9 +9,6 @@
 #SBATCH --gres=gpu:1
 #SBATCH --gpu-bind=none
 
-module load gcc
-export I_MPI_CC=gcc
-export I_MPI_CXX=g++
-export I_MPI_F90=gfortran
+module load gcc/12
 source ~/venv/bin/activate
 srun python tsne_nc.py model="diag_sheaf" dataset="dblp"
