@@ -4,8 +4,9 @@ import seaborn as sns
 import torch
 import torch.nn.functional as F
 from hydra.core.config_store import ConfigStore
-from cuml import TSNE
+# from cuml import TSNE
 from torch_geometric.data import Data
+import numpy as np
 
 from core.sheaf_configs import ModelTypes
 from datasets.hgb import DBLPDataModule
@@ -65,21 +66,23 @@ def main(cfg: Config) -> None:
         diag_sort, _ = torch.sort(torch.square(maps), dim=1, descending=True)
         singular_values = diag_sort.cpu().detach().numpy()
 
-    tsne_outputs = TSNE(n_components=2, perplexity=15, learning_rate=10).fit_transform(
-        singular_values)
+    np.save("tsne-input/diag-dblp.npy", singular_values)
 
-    edge_types = torch.cat([data.edge_index, data.edge_type],
-                           dim=-1).cpu().detach().numpy()
-
-    # 5) Plotting the stuff
-    sns.set_style('whitegrid')
-    sns.set_context('paper')
-    fig = plt.figure(figsize=(8, 8))
-    ax = fig.add_subplot(111)
-    ax.scatter(tsne_outputs[:, 0], tsne_outputs[:, 1], c=edge_types)
-    ax.legend(name="Edge type")
-    fig.savefig("tsne_diag_dblp.pdf", bbox_inches='tight')
-    fig.savefig("tsne_diag_dblp.png", bbox_inches='tight')
+    # tsne_outputs = TSNE(n_components=2, perplexity=15, learning_rate=10).fit_transform(
+    #     singular_values)
+    #
+    # edge_types = torch.cat([data.edge_index, data.edge_type],
+    #                        dim=-1).cpu().detach().numpy()
+    #
+    # # 5) Plotting the stuff
+    # sns.set_style('whitegrid')
+    # sns.set_context('paper')
+    # fig = plt.figure(figsize=(8, 8))
+    # ax = fig.add_subplot(111)
+    # ax.scatter(tsne_outputs[:, 0], tsne_outputs[:, 1], c=edge_types)
+    # ax.legend(name="Edge type")
+    # fig.savefig("tsne_diag_dblp.pdf", bbox_inches='tight')
+    # fig.savefig("tsne_diag_dblp.png", bbox_inches='tight')
 
 
 if __name__ == '__main__':
