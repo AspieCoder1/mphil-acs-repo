@@ -66,13 +66,16 @@ def main(cfg: Config) -> None:
         diag_sort, _ = torch.sort(torch.square(maps), dim=1, descending=True)
         singular_values = diag_sort.cpu().detach().numpy()
 
+    edge_types = torch.cat([data.edge_index, data.edge_type],
+                           dim=-1).cpu().detach().numpy()
+
     np.save("tsne-input/diag-dblp.npy", singular_values)
+    np.save("tsne-input/diag-dblp-labels.npy", edge_types)
 
     # tsne_outputs = TSNE(n_components=2, perplexity=15, learning_rate=10).fit_transform(
     #     singular_values)
     #
-    # edge_types = torch.cat([data.edge_index, data.edge_type],
-    #                        dim=-1).cpu().detach().numpy()
+
     #
     # # 5) Plotting the stuff
     # sns.set_style('whitegrid')
