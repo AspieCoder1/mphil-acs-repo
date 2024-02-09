@@ -9,6 +9,6 @@
 #SBATCH --gres=gpu:1
 #SBATCH --gpu-bind=none
 
-module load gcc/12
+module load gcc/11
 source ~/venv/bin/activate
 srun python tsne_nc.py model="diag_sheaf" dataset="dblp"
