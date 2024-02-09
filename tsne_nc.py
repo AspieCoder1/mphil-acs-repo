@@ -66,7 +66,7 @@ def main(cfg: Config) -> None:
         diag_sort, _ = torch.sort(torch.square(maps), dim=1, descending=True)
         singular_values = diag_sort.cpu().detach().numpy()
 
-    edge_types = torch.cat([data.edge_index, data.edge_type],
+    edge_types = torch.cat([data.edge_type, data.edge_type],
                            dim=-1).cpu().detach().numpy()
 
     np.save("tsne-input/diag-dblp.npy", singular_values)
