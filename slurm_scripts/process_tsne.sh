@@ -6,7 +6,7 @@
 #SBATCH --time=10:00:00
 #SBATCH -p cclake-himem
 #SBATCH --nodes 1
-#SBATCH --ntasks=56
+#SBATCH --ntasks=10
 
 module load gcc/11
 source ~/venv/bin/activate
