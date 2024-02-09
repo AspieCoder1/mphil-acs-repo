@@ -7,8 +7,7 @@
 #SBATCH -p icelake-himem
 #SBATCH --nodes 1
 #SBATCH --mem=32000
-#SBATCH
 
-module load gcc/11
+
 source ~/venv/bin/activate
 srun python process_tsne.py
