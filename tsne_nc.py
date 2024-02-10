@@ -59,7 +59,7 @@ def main(cfg: Config) -> None:
     if cfg.model.type != ModelTypes.DiagSheaf:
         singular_values = torch.linalg.svdvals(maps).detach().cpu().numpy()
     else:
-        diag_sort, _ = torch.sort(torch.square(maps), dim=1, descending=True)
+        diag_sort, _ = torch.sort(torch.square(maps), descending=True)
         singular_values = diag_sort.cpu().detach().numpy()
 
     print(singular_values.shape)
