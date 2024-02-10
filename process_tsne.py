@@ -8,6 +8,8 @@ def main():
     singular_values = np.load("tsne-input/diag-dblp.npy")
     edge_types = np.load("tsne-input/diag-dblp-labels.npy")
 
+    print("Loaded arrays")
+
     tsne_outputs = TSNE(n_components=2, perplexity=15, learning_rate=10).fit_transform(
         singular_values)
 

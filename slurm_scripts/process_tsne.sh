@@ -7,7 +7,7 @@
 #SBATCH -p cclake-himem
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --mem=64000
+#SBATCH --mem=128000
 
 source ~/venv/bin/activate
 srun python process_tsne.py
