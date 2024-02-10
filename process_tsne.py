@@ -16,8 +16,8 @@ def main():
 
     shuffled_idx = rng.permutation(np.arange(len(edge_types)))
 
-    singular_values = singular_values[shuffled_idx][:10_000]
-    edge_types = edge_types[shuffled_idx][:10_000]
+    singular_values = singular_values[shuffled_idx][:20_000]
+    edge_types = edge_types[shuffled_idx][:20_000]
 
     tsne_outputs = TSNE(n_components=2).fit_transform(
         singular_values, edge_types)
