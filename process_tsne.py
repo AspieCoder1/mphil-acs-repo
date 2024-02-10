@@ -16,8 +16,8 @@ def main():
 
     shuffled_idx = rng.permutation(np.arange(len(edge_types)))
 
-    singular_values = singular_values[shuffled_idx][:1_000]
-    edge_types = edge_types[shuffled_idx][:1_000]
+    singular_values = singular_values[shuffled_idx][:10_000]
+    edge_types = edge_types[shuffled_idx][:10_000]
 
     tsne_outputs = TSNE(n_components=2).fit_transform(
         singular_values, edge_types)
@@ -28,8 +28,8 @@ def main():
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(111)
     ax.scatter(tsne_outputs[:, 0], tsne_outputs[:, 1], c=edge_types)
-    fig.savefig("tsne-plots/tsne_diag_dblp.pdf", bbox_inches='tight')
-    fig.savefig("tsne-plots/tsne_diag_dblp.png", bbox_inches='tight')
+    fig.savefig("tsne-plots/tsne_diag_dblp.pdf", bbox_inches='tight', dpi=300)
+    fig.savefig("tsne-plots/tsne_diag_dblp.png", bbox_inches='tight', dpi=300)
 
 
 if __name__ == '__main__':
