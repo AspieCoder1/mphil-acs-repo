@@ -64,6 +64,8 @@ def main(cfg: Config) -> None:
 
     print(singular_values.shape)
     print(data.edge_type.shape)
+    print(maps[0])
+    print(singular_values[0])
 
     np.save("tsne-input/diag-dblp.npy", singular_values)
     np.save("tsne-input/diag-dblp-labels.npy", data.edge_type.cpu().detach().numpy())
