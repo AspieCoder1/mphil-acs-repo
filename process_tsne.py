@@ -14,7 +14,7 @@ def main():
     print("Loaded arrays")
 
     singular_values, _, edge_types, _ = train_test_split(singular_values, edge_types,
-                                                         train_size=None,
+                                                         train_size=0.1,
                                                          stratify=edge_types,
                                                          random_state=42)
 
