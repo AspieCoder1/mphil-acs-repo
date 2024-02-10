@@ -5,8 +5,10 @@ from sklearn.manifold import TSNE
 
 
 def main():
-    singular_values = np.load("tsne-input/diag-dblp.npy")
-    edge_types = np.load("tsne-input/diag-dblp-labels.npy")
+    singular_values = np.load("tsne-input/diag-dblp.npy", allow_pickle=True,
+                              mmap_mode='r')
+    edge_types = np.load("tsne-input/diag-dblp-labels.npy", allow_pickle=True,
+                         mmap_mode='r')
 
     print("Loaded arrays")
 
