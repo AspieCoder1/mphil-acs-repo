@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-from sklearn.manifold import TSNE
+from sklearn.decomposition import PCA
 
 
 def main():
@@ -12,7 +12,7 @@ def main():
 
     print("Loaded arrays")
 
-    tsne_outputs = TSNE(n_components=2, perplexity=15, learning_rate=10).fit_transform(
+    tsne_outputs = PCA(n_components=2).fit_transform(
         singular_values)
 
     # 5) Plotting the stuff
@@ -22,8 +22,8 @@ def main():
     ax = fig.add_subplot(111)
     ax.scatter(tsne_outputs[:, 0], tsne_outputs[:, 1], c=edge_types)
     ax.legend(name="Edge type")
-    fig.savefig("tsne-plots/tsne_diag_dblp.pdf", bbox_inches='tight')
-    fig.savefig("tsne-plots/tsne_diag_dblp.png", bbox_inches='tight')
+    fig.savefig("tsne-plots/pca_diag_dblp.pdf", bbox_inches='tight')
+    fig.savefig("tsne-plots/pca_diag_dblp.png", bbox_inches='tight')
 
 
 if __name__ == '__main__':
