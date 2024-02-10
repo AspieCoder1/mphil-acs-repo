@@ -58,13 +58,16 @@ def main(cfg: Config) -> None:
 
     # 4) calculate the singular values (only if not diagonal)
     if cfg.model.type != ModelTypes.DiagSheaf:
-        singular_values = torch.linalg.svdvals(maps).cpu().detach().numpy()
+        singular_values = torch.linalg.svdvals(maps).detach().cpu().numpy()
     else:
         diag_sort, _ = torch.sort(torch.square(maps), dim=1, descending=True)
         singular_values = diag_sort.cpu().detach().numpy()
 
     edge_types = torch.cat([data.edge_type, data.edge_type],
                            dim=-1).cpu().detach().numpy()
+
+    print(singular_values.shape)
+    print(edge_types.shape)
 
     np.save("tsne-input/diag-dblp.npy", singular_values)
     np.save("tsne-input/diag-dblp-labels.npy", edge_types)
