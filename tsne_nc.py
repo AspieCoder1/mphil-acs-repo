@@ -63,10 +63,10 @@ def main(cfg: Config) -> None:
         singular_values = diag_sort.cpu().detach().numpy()
 
     print(singular_values.shape)
-    print(data.edge_types.shape)
+    print(data.edge_type.shape)
 
     np.save("tsne-input/diag-dblp.npy", singular_values)
-    np.save("tsne-input/diag-dblp-labels.npy", data.edge_types.cpu().detach().numpy())
+    np.save("tsne-input/diag-dblp-labels.npy", data.edge_type.cpu().detach().numpy())
 
 
 if __name__ == '__main__':
