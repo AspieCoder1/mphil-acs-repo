@@ -26,7 +26,7 @@ def main():
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(111)
     ax.scatter(tsne_outputs[:, 0], tsne_outputs[:, 1], c=edge_types)
-    ax.legend(name="Edge type")
+    ax.legend(title="Edge type")
     fig.savefig("tsne-plots/pca_diag_dblp.pdf", bbox_inches='tight')
     fig.savefig("tsne-plots/pca_diag_dblp.png", bbox_inches='tight')
 
