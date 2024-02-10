@@ -12,7 +12,7 @@ def main():
 
     print("Loaded arrays")
 
-    tsne_outputs = TSNE(n_components=2, perplexity=15, learning_rate=10, n_jobs=-1).fit_transform(
+    tsne_outputs = TSNE(n_components=2, perplexity=15, learning_rate=10).fit_transform(
         singular_values)
 
     # 5) Plotting the stuff
