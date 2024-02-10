@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from sklearn.decomposition import PCA
+from sklearn.model_selection import train_test_split
 
 
 def main():
@@ -11,6 +12,11 @@ def main():
     edge_types = np.load("tsne-input/diag-dblp-labels.npy")
 
     print("Loaded arrays")
+
+    singular_values, _, edge_types, _ = train_test_split(singular_values, edge_types,
+                                                         train_size=None,
+                                                         stratify=edge_types,
+                                                         random_state=42)
 
     tsne_outputs = PCA(n_components=2).fit_transform(
         singular_values)
