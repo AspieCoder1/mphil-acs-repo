@@ -67,7 +67,7 @@ def main(cfg: Config) -> None:
     print(torch.square(maps)[0])
     print(singular_values[0])
 
-    np.save("tsne-input/diag-dblp.npy", singular_values)
+    np.save("tsne-input/diag-dblp.npy", maps)
     np.save("tsne-input/diag-dblp-labels.npy", data.edge_type.cpu().detach().numpy())
 
 
