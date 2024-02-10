@@ -6,11 +6,9 @@ from sklearn.manifold import TSNE
 
 def main():
     print("loading singular values")
-    singular_values = np.load("tsne-input/diag-dblp.npy", allow_pickle=True,
-                              mmap_mode='r')
+    singular_values = np.load("tsne-input/diag-dblp.npy")
     print("loading edge types")
-    edge_types = np.load("tsne-input/diag-dblp-labels.npy", allow_pickle=True,
-                         mmap_mode='r')
+    edge_types = np.load("tsne-input/diag-dblp-labels.npy")
 
     print("Loaded arrays")
 
