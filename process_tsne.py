@@ -20,7 +20,7 @@ def main():
     edge_types = edge_types[shuffled_idx][:1_000]
 
     tsne_outputs = TSNE(n_components=2).fit_transform(
-        singular_values)
+        singular_values, edge_types)
 
     # 5) Plotting the stuff
     sns.set_style('whitegrid')
