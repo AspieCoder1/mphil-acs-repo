@@ -5,9 +5,9 @@
 #SBATCH -A COMPUTERLAB-SL2-CPU
 #SBATCH --time=10:00:00
 #SBATCH -p cclake-himem
-#SBATCH --nodes=1
+#SBATCH --nodes=2
 #SBATCH --ntasks=1
-#SBATCH --mem=128000
+#SBATCH --mem=512000
 
 source ~/venv/bin/activate
 srun python process_tsne.py
