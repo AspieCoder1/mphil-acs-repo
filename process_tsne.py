@@ -19,7 +19,7 @@ def main():
     singular_values = singular_values[shuffled_idx][:25_000]
     edge_types = edge_types[shuffled_idx][:25_000]
 
-    tsne_outputs = TSNE(n_components=2).fit_transform(
+    tsne_outputs = TSNE(n_components=2, perplexity=50, n_iter=10_000).fit_transform(
         singular_values, edge_types)
 
     # 5) Plotting the stuff
