@@ -4,7 +4,7 @@ import hydra
 import lightning as L
 import torch
 from hydra.core.config_store import ConfigStore
-from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint, Timer
 from lightning.pytorch.loggers import WandbLogger
 
 from core.datasets import NCDatasets, get_dataset_nc, get_dataset_hgt
@@ -79,7 +79,8 @@ def main(cfg: Config):
                             ModelCheckpoint(
                                 dirpath=f"gnn_nc_checkpoints/{logger.version}",
                                 monitor="valid/accuracy",
-                                mode="max", save_top_k=1)
+                                mode="max", save_top_k=1),
+                            Timer()
                         ])
     trainer.fit(classifier, datamodule)
     trainer.test(classifier, datamodule)
