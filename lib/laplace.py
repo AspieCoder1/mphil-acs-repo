@@ -352,15 +352,13 @@ def compute_left_right_map_index(edge_index, full_matrix=False):
     edge_idx_matrix = torch_sparse.SparseTensor(
         row=edge_index[0],
         col=edge_index[1],
-        value=torch.arange(edge_index.size(1)),
+        value=torch.arange(edge_index.size(1), device=edge_index.device),
     ).to_dense()
 
     if not full_matrix:
         idx = edge_index[0] < edge_index[1]
         edge_index = edge_index[:, idx]
-        print(edge_index)
 
-    print(edge_idx_matrix.shape)
     left_index = edge_idx_matrix[edge_index[0], edge_index[1]].flatten()
     right_index = edge_idx_matrix[edge_index[1], edge_index[0]].flatten()
 
