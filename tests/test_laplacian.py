@@ -1,6 +1,6 @@
 import torch
 
-from .laplace import compute_left_right_map_index, compute_left_right_map_index_old
+from lib.laplace import compute_left_right_map_index, compute_left_right_map_index_old
 
 
 def test_new_compute_left_right_map_index_full_matrix():
