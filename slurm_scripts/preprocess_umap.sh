@@ -4,11 +4,12 @@
 #SBATCH --error=preprocess_umap/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=1:00:00
-#SBATCH -a 0:2%3
+#SBATCH -a 0-2
 #SBATCH -p ampere
 #SBATCH --nodes 1
 #SBATCH --gres=gpu:1
 #SBATCH --gpu-bind=none
+#SBATCH --mail-type=ALL
 
 DATASETS=( dblp acm imdb )
 
