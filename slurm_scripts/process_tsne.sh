@@ -9,5 +9,6 @@
 #SBATCH --ntasks=1
 #SBATCH --mem=256000
 
+export NUMBA_DISABLE_JIT=1
 source ~/venv/bin/activate
 srun python process_tsne.py
