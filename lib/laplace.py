@@ -8,7 +8,6 @@ import math
 
 import torch
 import torch_sparse
-
 from torch_geometric.utils import degree
 
 
@@ -311,7 +310,7 @@ def append_diag_maps_to_existent_laplacian(size, learnable_d, L, edge_index, val
     return new_L, total_d
 
 
-def compute_left_right_map_index(edge_index, full_matrix=False):
+def compute_left_right_map_index_old(edge_index, full_matrix=False):
     """Computes indices for lower triangular matrix or full matrix"""
     edge_to_idx = dict()
     for e in range(edge_index.size(1)):
@@ -345,6 +344,32 @@ def compute_left_right_map_index(edge_index, full_matrix=False):
         assert len(left_index) == edge_index.size(1) // 2
 
     return left_right_index, new_edge_index
+
+
+def compute_left_right_map_index(edge_index, full_matrix=False):
+    edge_index = edge_index
+    # Create adjacency matrix as sparse tensor
+    edge_idx_matrix = torch_sparse.SparseTensor(
+        row=edge_index[0],
+        col=edge_index[1],
+        value=torch.arange(edge_index.size(1)),
+    ).to_dense()
+
+    if not full_matrix:
+        idx = edge_index[0] < edge_index[1]
+        edge_index = edge_index[:, idx]
+        print(edge_index)
+
+    print(edge_idx_matrix.shape)
+    left_index = edge_idx_matrix[edge_index[0], edge_index[1]].flatten()
+    right_index = edge_idx_matrix[edge_index[1], edge_index[0]].flatten()
+
+    left_right_index = torch.vstack([left_index, right_index])
+    new_edge_index = torch.vstack([edge_index[0], edge_index[1]])
+    return left_right_index, new_edge_index
+
+    # new_edge_idx is the tril indices or index of the sparse matrix
+    # left index is values in matrix and right index is flipped tril indices
 
 
 def compute_learnable_laplacian_indices(size, edge_index, learned_d, total_d):
