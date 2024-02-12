@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-from sklearn.manifold import TSNE
 from umap import UMAP
 
 
@@ -21,7 +20,7 @@ def main():
     edge_types = edge_types[shuffled_idx][:25_000]
 
     umap_reducer = UMAP(random_state=42)
-    embedding = umap_reducer.fit(singular_values)
+    embedding = umap_reducer.fit_transform(singular_values, edge_types)
 
     sns.set_style('whitegrid')
     sns.set_context('paper')
