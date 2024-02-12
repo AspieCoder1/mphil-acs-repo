@@ -1,12 +1,12 @@
 #!/bin/bash
 #SBATCH -J preprocess_umap
-#SBATCH --output=preprocess_umap/out/%A.out
-#SBATCH --error=preprocess_umap/err/%A.err
+#SBATCH --output=preprocess_umap/out/%A_%a.out
+#SBATCH --error=preprocess_umap/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
-#SBATCH --time=3:00:00
+#SBATCH --time=1:00:00
+#SBATCH -a 0:2
 #SBATCH -p ampere
 #SBATCH --nodes 1
-#SBATCH -a 0:2
 #SBATCH --gres=gpu:1
 #SBATCH --gpu-bind=none
 
