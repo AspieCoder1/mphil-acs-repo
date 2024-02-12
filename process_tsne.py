@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from sklearn.manifold import TSNE
+from umap import UMAP
 
 
 def main():
@@ -19,17 +20,18 @@ def main():
     singular_values = singular_values[shuffled_idx][:25_000]
     edge_types = edge_types[shuffled_idx][:25_000]
 
-    tsne_outputs = TSNE(n_components=2, perplexity=50, n_iter=10_000).fit_transform(
-        singular_values, edge_types)
+    umap_reducer = UMAP(random_state=42)
+    embedding = umap_reducer.fit(singular_values)
 
-    # 5) Plotting the stuff
     sns.set_style('whitegrid')
     sns.set_context('paper')
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(111)
-    ax.scatter(tsne_outputs[:, 0], tsne_outputs[:, 1], c=edge_types)
-    fig.savefig("tsne-plots/tsne_diag_dblp.pdf", bbox_inches='tight', dpi=300)
-    fig.savefig("tsne-plots/tsne_diag_dblp.png", bbox_inches='tight', dpi=300)
+
+    ax.scatter(embedding[:, 0], embedding[:, 1], c=edge_types, cmap='Spectral', s=5)
+    ax.gca().set_aspect('equal', 'datalim')
+    fig.savefig("tsne-plots/umap_diag_dblp.pdf", bbox_inches='tight', dpi=300)
+    fig.savefig("tsne-plots/umap_diag_dblp.png", bbox_inches='tight', dpi=300)
 
 
 if __name__ == '__main__':
