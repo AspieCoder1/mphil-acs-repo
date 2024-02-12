@@ -8,6 +8,7 @@ from torch_geometric.data import Data
 from core.datasets import get_dataset_nc
 from core.models import get_sheaf_model
 from core.sheaf_configs import ModelTypes
+from models.SheafGNN.orthogonal import Orthogonal
 from models.SheafGNN.sheaf_base import SheafDiffusion
 from models.SheafNodeClassifier import SheafNodeClassifier
 from sheaf_nc import Config
@@ -63,6 +64,7 @@ def main(cfg: Config) -> None:
                                      edge_index)
 
     # 4) calculate the singular values (only if not diagonal)
+
     if cfg.model.type != ModelTypes.DiagSheaf:
         singular_values = torch.linalg.svdvals(maps).detach().cpu().numpy()
     else:
@@ -74,11 +76,16 @@ def main(cfg: Config) -> None:
     print(torch.square(maps)[0])
     print(singular_values[0])
 
-    np.save(f"tsne-input/{cfg.model.type}-{cfg.dataset.name}.npy",
-            maps.detach().cpu().numpy())
+    np.save(f"tsne-input/{cfg.model.type}-{cfg.dataset.name}.npy", singular_values)
     np.save(f"tsne-input/{cfg.model.type}-{cfg.dataset.name}-labels.npy",
             data.edge_type.cpu().detach().numpy())
 
+    def generate_maps(model: ModelTypes, maps: torch.Tensor, d: int,
+                      orthogonal_maps: str = 'householder') -> torch.Tensor:
+        if model == ModelTypes.BundleSheaf:
+            transform = Orthogonal(d, orthogonal_maps)
+            return transform(maps)
+        return maps
 
 if __name__ == '__main__':
     main()
