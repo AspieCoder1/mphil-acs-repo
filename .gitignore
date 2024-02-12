@@ -173,3 +173,5 @@ sheafnc_baselines/
 gnn_lp/
 sheafnc_checkpoints/
 gnn_nc_checkpoints/
+tsne-input/
+tsne-plots/

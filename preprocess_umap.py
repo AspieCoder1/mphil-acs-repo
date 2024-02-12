@@ -5,9 +5,9 @@ import torch.nn.functional as F
 from hydra.core.config_store import ConfigStore
 from torch_geometric.data import Data
 
+from core.datasets import get_dataset_nc
+from core.models import get_sheaf_model
 from core.sheaf_configs import ModelTypes
-from datasets.hgb import DBLPDataModule
-from models.SheafGNN import DiscreteDiagSheafDiffusion
 from models.SheafGNN.sheaf_base import SheafDiffusion
 from models.SheafNodeClassifier import SheafNodeClassifier
 from sheaf_nc import Config
@@ -15,13 +15,19 @@ from sheaf_nc import Config
 cs = ConfigStore.instance()
 cs.store("base_config", Config)
 
+checkpoint_paths = {
+    "DiagSheaf-DBLP": "sheafnc_checkpoints/kj4z929k/DiagSheaf-DBLP-epoch=191.ckpt",
+    "DiagSheaf-ACM": "sheafnc_checkpoints/6qed03f2/DiagSheaf-ACM-epoch=139.ckpt",
+    "DiagSheaf-IMDB": "sheafnc_checkpoints/sxg6vny7/DiagSheaf-IMDB-epoch=50.ckpt"
+}
+
 
 @hydra.main(version_base="1.2", config_path="configs", config_name="sheaf_config")
 def main(cfg: Config) -> None:
     torch.set_float32_matmul_precision("high")
 
     # 1) get the datamodule
-    datamodule = DBLPDataModule(homogeneous=True)
+    datamodule = get_dataset_nc(cfg.dataset.name, homogeneous=True)
     datamodule.prepare_data()
     data: Data = datamodule.pyg_datamodule.data
 
@@ -33,10 +39,11 @@ def main(cfg: Config) -> None:
     cfg.model_args.output_dim = datamodule.num_classes
     edge_index = datamodule.edge_index.to(cfg.model_args.device)
 
-    encoder = DiscreteDiagSheafDiffusion(edge_index, cfg.model_args)
+    model_cls = get_sheaf_model(cfg.model.type)
+    encoder = model_cls(edge_index, cfg.model_args)
 
     model = SheafNodeClassifier.load_from_checkpoint(
-        "sheafnc_checkpoints/kj4z929k/DiagSheaf-DBLP-epoch=191.ckpt",
+        checkpoint_path=checkpoint_paths[f"{cfg.model.type}-{cfg.dataset.name}"],
         model=encoder
     )
 
@@ -67,8 +74,10 @@ def main(cfg: Config) -> None:
     print(torch.square(maps)[0])
     print(singular_values[0])
 
-    np.save("tsne-input/diag-dblp.npy", maps.detach().cpu().numpy())
-    np.save("tsne-input/diag-dblp-labels.npy", data.edge_type.cpu().detach().numpy())
+    np.save(f"tsne-input/{cfg.model.type}-{cfg.dataset.name}.npy",
+            maps.detach().cpu().numpy())
+    np.save(f"tsne-input/{cfg.model.type}-{cfg.dataset.name}-labels.npy",
+            data.edge_type.cpu().detach().numpy())
 
 
 if __name__ == '__main__':

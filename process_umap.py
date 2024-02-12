@@ -16,10 +16,10 @@ def main():
 
     shuffled_idx = rng.permutation(np.arange(len(edge_types)))
 
-    singular_values = singular_values[shuffled_idx][:5_000]
-    edge_types = edge_types[shuffled_idx][:5_000]
+    singular_values = singular_values[shuffled_idx][:25_000]
+    edge_types = edge_types[shuffled_idx][:25_000]
 
-    umap_reducer = UMAP(random_state=42)
+    umap_reducer = UMAP(random_state=42, min_dist=0.0, n_neighbors=10_000)
     embedding = umap_reducer.fit_transform(singular_values, edge_types)
     print("UMAP finished")
 
