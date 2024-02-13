@@ -6,9 +6,9 @@ from umap import UMAP
 
 def main():
     print("loading singular values")
-    singular_values = np.load("tsne-input/DiagSheaf-IMDB.npy")
+    singular_values = np.load("tsne-input/GeneralSheaf-DBLP.npy")
     print("loading edge types")
-    edge_types = np.load("tsne-input/DiagSheaf-IMDB-labels.npy")
+    edge_types = np.load("tsne-input/GeneralSheaf-DBLP-labels.npy")
 
     print("Loaded arrays")
 
@@ -31,8 +31,8 @@ def main():
     ax.scatter(embedding[:, 0], embedding[:, 1], c=edge_types, cmap='Spectral', s=5)
     ax.set_xlabel("UMAP Component 1")
     ax.set_ylabel("UMAP Component 2")
-    fig.savefig("tsne-plots/umap_diag_imdb.pdf", bbox_inches='tight', dpi=300)
-    fig.savefig("tsne-plots/umap_diag_imdb.png", bbox_inches='tight', dpi=300)
+    fig.savefig("tsne-plots/umap_general_dblp.pdf", bbox_inches='tight', dpi=300)
+    fig.savefig("tsne-plots/umap_general_dblp.png", bbox_inches='tight', dpi=300)
     print("Plotting finished")
 
 

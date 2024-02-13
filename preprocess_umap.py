@@ -71,7 +71,7 @@ def main(cfg: Config) -> None:
 
     # 4) calculate the singular values (only if not diagonal)
     if cfg.model.type == ModelTypes.BundleSheaf:
-        transform = Orthogonal(encoder.get_param_size(), cfg.model_args.orth)
+        transform = Orthogonal(encoder.d, cfg.model_args.orth)
         maps = transform(maps)
 
     if cfg.model.type != ModelTypes.DiagSheaf:
