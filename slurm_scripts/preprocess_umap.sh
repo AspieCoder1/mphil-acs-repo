@@ -3,19 +3,25 @@
 #SBATCH --output=preprocess_umap/out/%A_%a.out
 #SBATCH --error=preprocess_umap/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
-#SBATCH --time=1:00:00
-#SBATCH -a 0-2
+#SBATCH --time=3:00:00
+#SBATCH -a 0-8
 #SBATCH -p ampere
 #SBATCH --nodes 1
 #SBATCH --gres=gpu:1
 #SBATCH --gpu-bind=none
 #SBATCH --mail-type=ALL
 
+MODELS=( diag_sheag bundle_sheaf general_sheaf)
 DATASETS=( dblp acm imdb )
 
 IDX=${SLURM_ARRAY_TASK_ID}
-DATASET=${DATASETS[IDX]}
+
+N_MODELS=${#MODELS[@]}
+MODEL_IDX=$(( IDX / N_MODELS ))
+DATA_IDX=$(( IDX % N_MODELS ))
+DATASET=${DATASETS[DATA_IDX]}
+MODEL=${MODELS[MODEL_IDX]}
 
 module load gcc/11
 source ~/venv/bin/activate
-srun python preprocess_umap.py model="diag_sheaf" dataset="$DATASET"
+srun python preprocess_umap.py model="$MODEL" dataset="$DATASET"
