@@ -175,3 +175,10 @@ sheafnc_checkpoints/
 gnn_nc_checkpoints/
 tsne-input/
 tsne-plots/
+.wandb/
+gnn_nc_baselines/
+preprocess_umap/
+process_tsne/
+sheaf_lp_profile/
+sheaflp_checkpoints/
+sheafnc_tsne/
