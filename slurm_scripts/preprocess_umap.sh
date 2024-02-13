@@ -11,7 +11,7 @@
 #SBATCH --gpu-bind=none
 #SBATCH --mail-type=ALL
 
-MODELS=( diag_sheag bundle_sheaf general_sheaf)
+MODELS=( diag_sheaf bundle_sheaf general_sheaf)
 DATASETS=( dblp acm imdb )
 
 IDX=${SLURM_ARRAY_TASK_ID}
