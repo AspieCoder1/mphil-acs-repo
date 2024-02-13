@@ -19,7 +19,13 @@ cs.store("base_config", Config)
 checkpoint_paths = {
     "DiagSheaf-DBLP": "sheafnc_checkpoints/kj4z929k/DiagSheaf-DBLP-epoch=191.ckpt",
     "DiagSheaf-ACM": "sheafnc_checkpoints/6qed03f2/DiagSheaf-ACM-epoch=139.ckpt",
-    "DiagSheaf-IMDB": "sheafnc_checkpoints/sxg6vny7/DiagSheaf-IMDB-epoch=50.ckpt"
+    "DiagSheaf-IMDB": "sheafnc_checkpoints/sxg6vny7/DiagSheaf-IMDB-epoch=50.ckpt",
+    "BundleSheaf-IMDB": "sheafnc_checkpoints/6q2u4tre/BundleSheaf-IMDB-epoch=37.ckpt",
+    "BundleSheaf-ACM": "sheafnc_checkpoints/650bmz3e/BundleSheaf-ACM-epoch=173.ckpt",
+    "BundleSheaf-DBLP": "sheafnc_checkpoints/e40uef9h/BundleSheaf-DBLP-epoch=96.ckpt",
+    "GeneralSheaf-IMDB": "sheafnc_checkpoints/xep1bpuf/GeneralSheaf-IMDB-epoch=52.ckpt",
+    "GeneralSheaf-ACM": "sheafnc_checkpoints/m48c6j5w/GeneralSheaf-ACM-epoch=126.ckpt",
+    "GeneralSheaf-DBLP": "sheafnc_checkpoints/92avtmkt/GeneralSheaf-DBLP-epoch=153.ckpt"
 }
 
 
@@ -64,6 +70,9 @@ def main(cfg: Config) -> None:
                                      edge_index)
 
     # 4) calculate the singular values (only if not diagonal)
+    if cfg.model.type == ModelTypes.BundleSheaf:
+        transform = Orthogonal(encoder.get_param_size(), cfg.model_args.orth)
+        maps = transform(maps)
 
     if cfg.model.type != ModelTypes.DiagSheaf:
         singular_values = torch.linalg.svdvals(maps).detach().cpu().numpy()
@@ -80,12 +89,6 @@ def main(cfg: Config) -> None:
     np.save(f"tsne-input/{cfg.model.type}-{cfg.dataset.name}-labels.npy",
             data.edge_type.cpu().detach().numpy())
 
-    def generate_maps(model: ModelTypes, maps: torch.Tensor, d: int,
-                      orthogonal_maps: str = 'householder') -> torch.Tensor:
-        if model == ModelTypes.BundleSheaf:
-            transform = Orthogonal(d, orthogonal_maps)
-            return transform(maps)
-        return maps
 
 if __name__ == '__main__':
     main()
