@@ -46,12 +46,12 @@ def main(cfg: Config):
 
     timer = Timer()
 
-    trainer = L.Trainer(log_every_n_steps=cfg.trainer.log_every_n_steps,
-                        num_nodes=cfg.trainer.num_nodes,
+    trainer = L.Trainer(num_nodes=cfg.trainer.num_nodes,
                         accelerator=cfg.trainer.accelerator,
                         devices=cfg.trainer.devices,
                         strategy=cfg.trainer.strategy,
                         fast_dev_run=cfg.trainer.fast_dev_run,
+                        log_every_n_steps=1,
                         max_epochs=200,
                         logger=logger,
                         callbacks=[
