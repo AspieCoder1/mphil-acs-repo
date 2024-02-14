@@ -64,7 +64,8 @@ class LinkPredBase(L.LightningDataModule):
         split = T.RandomLinkSplit(
             edge_types=None if self.is_homogeneous else self.target,
             is_undirected=True,
-            rev_edge_types=self.rev_target
+            rev_edge_types=self.rev_target,
+            neg_sampling_ratio=2.0,
         )
 
         self.train_data, self.val_data, self.test_data = split(data)

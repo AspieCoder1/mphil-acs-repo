@@ -72,8 +72,7 @@ class LinkPredictor(L.LightningModule):
 
         loss = self.loss_fn(y_hat, y)
         y_hat = F.sigmoid(y_hat)
-        return RecSysStepOutput(y, y_hat, loss,
-                                torch.zeros(y.shape[0]).to(y).to(torch.long))
+        return RecSysStepOutput(y, y_hat, loss, batch[self.target].edge_label_index[0])
 
     def training_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
         y, y_hat, loss, index = self.common_step(batch)
