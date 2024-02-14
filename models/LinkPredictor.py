@@ -70,7 +70,7 @@ class LinkPredictor(L.LightningModule):
                              batch[self.target].edge_label_index).flatten()
         y = batch[self.target].edge_label
 
-        loss = self.loss_fn(y_hat, y)
+        loss = F.binary_cross_entropy_with_logits(y, y_hat)
         y_hat = F.sigmoid(y_hat)
         return RecSysStepOutput(y, y_hat, loss, batch[self.target].edge_label_index[0])
 
