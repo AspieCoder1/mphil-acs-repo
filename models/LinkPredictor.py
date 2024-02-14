@@ -84,7 +84,7 @@ class LinkPredictor(L.LightningModule):
             batch_size=self.batch_size,
             sync_dist=True
         )
-        self.log("train/loss", loss)
+        self.log("train/loss", loss, batch_size=1)
 
         return loss
 
@@ -99,7 +99,7 @@ class LinkPredictor(L.LightningModule):
             batch_size=1,
             sync_dist=True
         )
-        self.log("valid/loss", loss)
+        self.log("valid/loss", loss, batch_size=1)
 
         return loss
 
@@ -114,7 +114,7 @@ class LinkPredictor(L.LightningModule):
             batch_size=1,
             sync_dist=True
         )
-        self.log('test/loss', loss)
+        self.log('test/loss', loss, batch_size=1)
 
         return loss
 
