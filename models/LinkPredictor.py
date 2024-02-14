@@ -84,6 +84,15 @@ class LinkPredictor(L.LightningModule):
             batch_size=self.batch_size,
             sync_dist=True
         )
+        self.log(
+            "train/loss",
+            loss,
+            prog_bar=True,
+            on_step=True,
+            on_epoch=True,
+            batch_size=self.batch_size,
+            sync_dist=True
+        )
 
         return loss
 
@@ -99,6 +108,16 @@ class LinkPredictor(L.LightningModule):
             sync_dist=True
         )
 
+        self.log(
+            'valid/loss',
+            loss,
+            prog_bar=False,
+            on_step=False,
+            on_epoch=True,
+            batch_size=1,
+            sync_dist=True
+        )
+
         return loss
 
     def test_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
@@ -106,6 +125,16 @@ class LinkPredictor(L.LightningModule):
 
         self.log_dict(
             self.test_metrics(y_hat, y, index),
+            prog_bar=False,
+            on_step=False,
+            on_epoch=True,
+            batch_size=1,
+            sync_dist=True
+        )
+
+        self.log(
+            'test/loss',
+            loss,
             prog_bar=False,
             on_step=False,
             on_epoch=True,

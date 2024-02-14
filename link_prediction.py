@@ -53,7 +53,7 @@ def main(cfg: Config):
                         strategy=cfg.trainer.strategy,
                         fast_dev_run=cfg.trainer.fast_dev_run,
                         max_epochs=200,
-                        # logger=logger,
+                        logger=logger,
                         callbacks=[
                             EarlyStopping("valid/loss", patience=cfg.trainer.patience),
                             ModelCheckpoint(monitor="valid/HR@20",
