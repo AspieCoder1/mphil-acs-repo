@@ -46,10 +46,12 @@ def main(cfg: Config):
         hidden_dim=model.hidden_dim
     )
 
-    logger = WandbLogger(project="gnn-baselines", log_model=False)
+    logger = WandbLogger(project="gnn-baselines", log_model=True)
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name
     logger.experiment.tags = cfg.tags
+
+    timer = Timer()
 
     trainer = L.Trainer(
         accelerator=cfg.trainer.accelerator,
@@ -68,12 +70,20 @@ def main(cfg: Config):
                             filename=cfg.model.type + '-' + cfg.dataset.name + '-{epoch}',
                             monitor="valid/accuracy",
                             mode="max", save_top_k=1),
-            Timer()
+            timer
         ]
     )
 
     trainer.fit(sheaf_lp, dm)
     trainer.test(sheaf_lp, dm)
+
+    runtime = {
+        "train/runtime": timer.time_elapsed("train"),
+        "valid/runtime": timer.time_elapsed("validate"),
+        "test/runtime": timer.time_elapsed("test"),
+    }
+
+    logger.log_metrics(runtime)
 
 
 if __name__ == "__main__":

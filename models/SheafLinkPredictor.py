@@ -1,13 +1,27 @@
+from typing import NamedTuple
+
 import lightning as L
 import torch
 from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
-from torch import nn
+from torch import nn, Tensor
 from torch.nn import functional as F
+from torch.nn.modules.loss import _Loss
 from torch_geometric.data import Data
-from torchmetrics.classification import Accuracy, AUROC, F1Score
 from torchmetrics.collections import MetricCollection
+from torchmetrics.retrieval import (
+    RetrievalMRR,
+    RetrievalPrecision,
+    RetrievalRecall,
+    RetrievalNormalizedDCG
+)
 
-from models.NodeClassifier import CommonStepOutput
+
+class RecSysStepOutput(NamedTuple):
+    y: Tensor
+    y_hat: Tensor
+    loss: Tensor
+    index: Tensor
+
 
 
 class EdgeDecoder(nn.Module):
@@ -32,17 +46,19 @@ class SheafLinkPredictor(L.LightningModule):
         self.decoder = EdgeDecoder(hidden_dim, num_classes)
 
         self.train_metrics = MetricCollection({
-            "accuracy": Accuracy(task="binary"),
-            "auroc": AUROC(task="binary"),
-            "f1": F1Score(task="binary")
+            "nDCG@20": RetrievalNormalizedDCG(top_k=20),
+            "recall@20": RetrievalRecall(top_k=20),
+            "precision@20": RetrievalPrecision(top_k=20),
+            "MRR": RetrievalMRR(top_k=20)
         }, prefix="train/")
 
         self.valid_metrics = self.train_metrics.clone(prefix="valid/")
         self.test_metrics = self.train_metrics.clone(prefix="test/")
+        self.loss_fn = BPRLoss()
 
         self.save_hyperparameters()
 
-    def common_step(self, batch: Data) -> CommonStepOutput:
+    def common_step(self, batch: Data) -> RecSysStepOutput:
         # (1) Remove NaNs from edge_labels
         label_idx = ~batch.edge_label.isnan()
         y = batch.edge_label[label_idx]
@@ -55,22 +71,24 @@ class SheafLinkPredictor(L.LightningModule):
 
         # (4) Calculate dot product h[i].h[j] for i, j in edge_index
         y_hat = self.decoder(h, edge_index).flatten()
-        loss = F.binary_cross_entropy_with_logits(y_hat, y)
+        pos_examples = y_hat[batch.edge_label == 1]
+        neg_examples = y_hat[batch.edge_label == 0]
+        loss = self.loss_fn(pos_examples, neg_examples)
         y_hat = F.sigmoid(y_hat)
 
-        return CommonStepOutput(loss=loss, y=y, y_hat=y_hat)
+        return RecSysStepOutput(loss=loss, y=y, y_hat=y_hat, index=edge_index[0])
 
     def training_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss = self.common_step(batch)
+        y, y_hat, loss, index = self.common_step(batch)
 
-        outputs = self.train_metrics(y_hat, y)
+        metrics = self.train_metrics(y_hat, y, index)
 
         self.log_dict(
-            outputs,
+            metrics,
             prog_bar=True,
             on_step=True,
             on_epoch=True,
-            batch_size=self.batch_size,
+            batch_size=1,
             sync_dist=True
         )
         self.log("train/loss", loss)
@@ -78,12 +96,12 @@ class SheafLinkPredictor(L.LightningModule):
         return loss
 
     def validation_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss = self.common_step(batch)
+        y, y_hat, loss, index = self.common_step(batch)
 
-        outputs = self.valid_metrics(y_hat, y)
+        metrics = self.valid_metrics(y_hat, y, index)
 
         self.log_dict(
-            outputs,
+            metrics,
             prog_bar=True,
             on_step=True,
             on_epoch=True,
@@ -94,12 +112,12 @@ class SheafLinkPredictor(L.LightningModule):
         return loss
 
     def test_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss = self.common_step(batch)
+        y, y_hat, loss, index = self.common_step(batch)
 
-        outputs = self.test_metrics(y_hat, y)
+        metrics = self.test_metrics(y_hat, y, index)
 
         self.log_dict(
-            outputs,
+            metrics,
             prog_bar=False,
             on_step=False,
             on_epoch=True,
@@ -122,3 +140,51 @@ class SheafLinkPredictor(L.LightningModule):
                 "monitor": "valid/loss",
             }
         }
+
+
+class BPRLoss(_Loss):
+    r"""The Bayesian Personalized Ranking (BPR) loss.
+
+    The BPR loss is a pairwise loss that encourages the prediction of an
+    observed entry to be higher than its unobserved counterparts
+    (see `here <https://arxiv.org/abs/2002.02126>`__).
+
+    .. math::
+        L_{\text{BPR}} = - \sum_{u=1}^{M} \sum_{i \in \mathcal{N}_u}
+        \sum_{j \not\in \mathcal{N}_u} \ln \sigma(\hat{y}_{ui} - \hat{y}_{uj})
+        + \lambda \vert\vert \textbf{x}^{(0)} \vert\vert^2
+
+    where :math:`lambda` controls the :math:`L_2` regularization strength.
+    We compute the mean BPR loss for simplicity.
+
+    Args:
+        lambda_reg (float, optional): The :math:`L_2` regularization strength
+            (default: 0).
+        **kwargs (optional): Additional arguments of the underlying
+            :class:`torch.nn.modules.loss._Loss` class.
+    """
+    __constants__ = ['lambda_reg']
+    lambda_reg: float
+
+    def __init__(self, lambda_reg: float = 0, **kwargs):
+        super().__init__(None, None, "sum", **kwargs)
+        self.lambda_reg = lambda_reg
+
+    def forward(self, positives: Tensor, negatives: Tensor) -> Tensor:
+        r"""Compute the mean Bayesian Personalized Ranking (BPR) loss.
+
+        .. note::
+
+            The i-th entry in the :obj:`positives` vector and i-th entry
+            in the :obj:`negatives` entry should correspond to the same
+            entity (*.e.g*, user), as the BPR is a personalized ranking loss.
+
+        Args:
+            positives (Tensor): The vector of positive-pair rankings.
+            negatives (Tensor): The vector of negative-pair rankings.
+            parameters (Tensor, optional): The tensor of parameters which
+                should be used for :math:`L_2` regularization
+                (default: :obj:`None`).
+        """
+        log_prob = F.logsigmoid(positives - negatives).mean()
+        return -log_prob

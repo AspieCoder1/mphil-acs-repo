@@ -366,9 +366,6 @@ def compute_left_right_map_index(edge_index, full_matrix=False):
     new_edge_index = torch.vstack([edge_index[0], edge_index[1]])
     return left_right_index, new_edge_index
 
-    # new_edge_idx is the tril indices or index of the sparse matrix
-    # left index is values in matrix and right index is flipped tril indices
-
 
 def compute_learnable_laplacian_indices(size, edge_index, learned_d, total_d):
     assert torch.all(edge_index[0] < edge_index[1])

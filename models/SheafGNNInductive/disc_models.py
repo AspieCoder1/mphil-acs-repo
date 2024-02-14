@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # https://github.com/twitter-research/neural-sheaf-diffusion
 # Bodnar et al. (NeurIPS 2022)
-import time
 
 import torch
 import torch.nn.functional as F
@@ -191,8 +190,6 @@ class InductiveDiscreteBundleSheafDiffusion(SheafDiffusion):
             weight_learner.update_edge_index(edge_index)
 
     def forward(self, x, edge_index):
-        sheaf_update_time = 0
-        start = time.perf_counter()
         self.update_edge_index(edge_index)
         x = F.dropout(x, p=self.input_dropout, training=self.training)
         x = self.lin1(x)
@@ -204,9 +201,9 @@ class InductiveDiscreteBundleSheafDiffusion(SheafDiffusion):
         x = x.view(self.graph_size * self.final_d, -1)
 
         x0, L = x, None
+
         for layer in range(self.layers):
             if layer == 0 or self.nonlinear:
-                start_sheaf_update = time.perf_counter()
                 x_maps = F.dropout(x, p=self.dropout if layer > 0 else 0.,
                                    training=self.training)
                 x_maps = x_maps.reshape(self.graph_size, -1)
@@ -215,8 +212,6 @@ class InductiveDiscreteBundleSheafDiffusion(SheafDiffusion):
                                                            self.edge_index) if self.use_edge_weights else None
                 L, trans_maps = self.laplacian_builder(maps, edge_weights)
                 self.sheaf_learners[layer].set_L(trans_maps)
-                end_sheaf_update = time.perf_counter()
-                sheaf_update_time = end_sheaf_update - start_sheaf_update
 
             x = F.dropout(x, p=self.dropout, training=self.training)
 
@@ -235,10 +230,7 @@ class InductiveDiscreteBundleSheafDiffusion(SheafDiffusion):
 
         x = x.reshape(self.graph_size, -1)
         # x = self.lin2(x)
-        end = time.perf_counter()
-        print(
-            f"forward pass (s): {end - start}; sheaf prediction (s): {sheaf_update_time}"
-        )
+
         return x
 
 

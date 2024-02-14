@@ -4,9 +4,15 @@ import torch.nn.functional as F
 from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn
 from torch_geometric.data import HeteroData
-from torchmetrics.classification import Accuracy, F1Score, AUROC
+from torchmetrics import MetricCollection
+from torchmetrics.retrieval import (
+    RetrievalNormalizedDCG,
+    RetrievalRecall,
+    RetrievalPrecision,
+    RetrievalMRR
+)
 
-from models.NodeClassifier import CommonStepOutput
+from models.SheafLinkPredictor import BPRLoss, RecSysStepOutput
 
 
 class EdgeDecoder(nn.Module):
@@ -38,16 +44,21 @@ class LinkPredictor(L.LightningModule):
         self.encoder = model
         self.decoder = EdgeDecoder(target=edge_target, hidden_dim=256, out_dim=1)
         self.homogeneous = homogeneous
-
-        self.train_acc = Accuracy(task="binary")
-        self.val_acc = Accuracy(task="binary")
-        self.test_acc = Accuracy(task="binary")
-        self.test_f1 = F1Score(task="binary")
-        self.test_auroc = AUROC(task="binary")
         self.target = edge_target
-        self.batch_size = batch_size
 
-    def common_step(self, batch: HeteroData) -> CommonStepOutput:
+        self.train_metrics = MetricCollection({
+            "nDCG@20": RetrievalNormalizedDCG(top_k=20),
+            "recall@20": RetrievalRecall(top_k=20),
+            "precision@20": RetrievalPrecision(top_k=20),
+            "MRR": RetrievalMRR(top_k=20)
+        }, prefix="train/")
+
+        self.valid_metrics = self.train_metrics.clone(prefix="valid/")
+        self.test_metrics = self.train_metrics.clone(prefix="test/")
+        self.batch_size = batch_size
+        self.loss_fn = BPRLoss()
+
+    def common_step(self, batch: HeteroData) -> RecSysStepOutput:
         if self.homogeneous:
             x_dict = self.encoder(batch.x_dict, batch.edge_index_dict)
         else:
@@ -57,20 +68,15 @@ class LinkPredictor(L.LightningModule):
                              batch[self.target].edge_label_index).flatten()
         y = batch[self.target].edge_label
 
-        loss = F.binary_cross_entropy_with_logits(y_hat, y)
+        loss = self.loss_fn(y_hat, y)
         y_hat = F.sigmoid(y_hat)
-        return CommonStepOutput(y, y_hat, loss)
+        return RecSysStepOutput(y, y_hat, loss, batch[self.target].edge_label_index[0])
 
     def training_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss = self.common_step(batch)
-
-        self.train_acc(y_hat, y)
+        y, y_hat, loss, index = self.common_step(batch)
 
         self.log_dict(
-            {
-                "train/accuracy": self.train_acc,
-                "train/loss": loss,
-            },
+            self.train_metrics(y_hat, y, index),
             prog_bar=True,
             on_step=True,
             on_epoch=True,
@@ -81,16 +87,11 @@ class LinkPredictor(L.LightningModule):
         return loss
 
     def validation_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss = self.common_step(batch)
-
-        self.val_acc(y_hat, y)
+        y, y_hat, loss, index = self.common_step(batch)
 
         self.log_dict(
-            {
-                "valid/accuracy": self.val_acc,
-                "valid/loss": loss
-            },
-            prog_bar=True,
+            self.valid_metrics(y_hat, y, index),
+            prog_bar=False,
             on_step=False,
             on_epoch=True,
             batch_size=1,
@@ -100,19 +101,10 @@ class LinkPredictor(L.LightningModule):
         return loss
 
     def test_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss = self.common_step(batch)
-
-        self.test_acc(y_hat, y)
-        self.test_f1(y_hat, y)
-        self.test_auroc(y_hat, y)
+        y, y_hat, loss, index = self.common_step(batch)
 
         self.log_dict(
-            {
-                "test/accuracy": self.test_acc,
-                "test/f1-score": self.test_f1,
-                "test/auroc": self.test_auroc,
-                "test/loss": loss
-            },
+            self.test_metrics(y_hat, y, index),
             prog_bar=False,
             on_step=False,
             on_epoch=True,

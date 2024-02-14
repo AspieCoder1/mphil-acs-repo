@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import hydra
 import lightning as L
@@ -20,7 +20,7 @@ class Config:
     dataset: SheafLinkPredDatasetCfg
     model: ModelConfig
     trainer: TrainerArgs
-    tags: list[str]
+    tags: list[str] = field(default_factory=list)
 
 
 cs = ConfigStore.instance()
@@ -44,6 +44,8 @@ def main(cfg: Config):
     logger.experiment.config["dataset"] = cfg.dataset.name
     logger.experiment.tags = cfg.tags
 
+    timer = Timer()
+
     trainer = L.Trainer(log_every_n_steps=cfg.trainer.log_every_n_steps,
                         num_nodes=cfg.trainer.num_nodes,
                         accelerator=cfg.trainer.accelerator,
@@ -51,16 +53,24 @@ def main(cfg: Config):
                         strategy=cfg.trainer.strategy,
                         fast_dev_run=cfg.trainer.fast_dev_run,
                         max_epochs=200,
-                        logger=logger,
+                        # logger=logger,
                         callbacks=[
                             EarlyStopping("valid/loss", patience=cfg.trainer.patience),
                             ModelCheckpoint(monitor="valid/accuracy",
                                             mode="max", save_top_k=1),
-                            Timer()
+                            timer
                         ])
 
     trainer.fit(link_predictor, datamodule)
     trainer.test(link_predictor, datamodule)
+
+    runtime = {
+        "train/runtime": timer.time_elapsed("train"),
+        "valid/runtime": timer.time_elapsed("validate"),
+        "test/runtime": timer.time_elapsed("test"),
+    }
+    print(runtime)
+    logger.log_metrics(runtime)
 
 
 if __name__ == '__main__':
