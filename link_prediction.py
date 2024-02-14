@@ -56,7 +56,7 @@ def main(cfg: Config):
                         # logger=logger,
                         callbacks=[
                             EarlyStopping("valid/loss", patience=cfg.trainer.patience),
-                            ModelCheckpoint(monitor="valid/accuracy",
+                            ModelCheckpoint(monitor="valid/HR@20",
                                             mode="max", save_top_k=1),
                             timer
                         ])

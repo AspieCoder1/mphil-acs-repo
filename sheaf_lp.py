@@ -68,7 +68,7 @@ def main(cfg: Config):
                           patience=cfg.trainer.patience),
             ModelCheckpoint(dirpath=f"sheaflp_checkpoints/{logger.version}",
                             filename=cfg.model.type + '-' + cfg.dataset.name + '-{epoch}',
-                            monitor="valid/accuracy",
+                            monitor="valid/HR@20",
                             mode="max", save_top_k=1),
             timer
         ]

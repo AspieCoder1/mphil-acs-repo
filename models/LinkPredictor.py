@@ -9,7 +9,7 @@ from torchmetrics.retrieval import (
     RetrievalNormalizedDCG,
     RetrievalRecall,
     RetrievalPrecision,
-    RetrievalMRR
+    RetrievalMRR, RetrievalHitRate
 )
 
 from models.SheafLinkPredictor import BPRLoss, RecSysStepOutput
@@ -50,6 +50,7 @@ class LinkPredictor(L.LightningModule):
             "nDCG@20": RetrievalNormalizedDCG(top_k=20),
             "recall@20": RetrievalRecall(top_k=20),
             "precision@20": RetrievalPrecision(top_k=20),
+            "HR@20": RetrievalHitRate(top_k=20),
             "MRR": RetrievalMRR(top_k=20)
         }, prefix="train/")
 
