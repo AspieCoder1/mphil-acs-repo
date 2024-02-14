@@ -99,7 +99,7 @@ class LinkPredictor(L.LightningModule):
             batch_size=1,
             sync_dist=True
         )
-        self.log("valid/loss", loss, batch_size=1)
+        self.log("valid/loss", loss, batch_size=1, on_epoch=True)
 
         return loss
 
