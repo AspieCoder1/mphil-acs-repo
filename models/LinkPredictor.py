@@ -12,7 +12,7 @@ from torchmetrics.retrieval import (
     RetrievalMRR, RetrievalHitRate
 )
 
-from models.SheafLinkPredictor import BPRLoss, RecSysStepOutput
+from models.SheafLinkPredictor import RecSysStepOutput
 
 
 class EdgeDecoder(nn.Module):
@@ -57,7 +57,6 @@ class LinkPredictor(L.LightningModule):
         self.valid_metrics = self.train_metrics.clone(prefix="valid/")
         self.test_metrics = self.train_metrics.clone(prefix="test/")
         self.batch_size = batch_size
-        self.loss_fn = BPRLoss()
         self.save_hyperparameters(ignore='model')
 
     def common_step(self, batch: HeteroData) -> RecSysStepOutput:
