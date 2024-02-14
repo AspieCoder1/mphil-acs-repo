@@ -43,10 +43,11 @@ def main(cfg: Config):
 
     sns.set_style('whitegrid')
     sns.set_context('paper')
-    fig = plt.figure(figsize=(6, 6))
+    cm = 1 / 2.54
+    fig = plt.figure(figsize=(4,4))
     ax = fig.add_subplot(111)
 
-    ax.scatter(embedding[:, 0], embedding[:, 1], c=edge_types, cmap='Spectral', s=5)
+    ax.scatter(embedding[:, 0], embedding[:, 1], c=edge_types, cmap='Spectral', s=3)
     ax.set_xlabel("UMAP Component 1")
     ax.set_ylabel("UMAP Component 2")
     fig.savefig(f"umap-plots/{cfg.model.type}-{cfg.dataset.name}.pdf",
