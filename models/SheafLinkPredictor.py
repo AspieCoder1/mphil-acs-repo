@@ -56,7 +56,7 @@ class SheafLinkPredictor(L.LightningModule):
         self.test_metrics = self.train_metrics.clone(prefix="test/")
         self.loss_fn = BPRLoss()
 
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore="model")
 
     def common_step(self, batch: Data) -> RecSysStepOutput:
         # (1) Remove NaNs from edge_labels
