@@ -1,0 +1,9 @@
+defaults:
+  - model: diag_sheaf
+  - dataset: dblp
+
+hydra:
+  sweeper:
+    params:
+      model: diag_sheaf, general_sheaf, bundle_sheaf
+      dataset: dblp, acm, imdb

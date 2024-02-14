@@ -182,3 +182,6 @@ process_tsne/
 sheaf_lp_profile/
 sheaflp_checkpoints/
 sheafnc_tsne/
+umap-input/
+umap-plots/
+multirun/
