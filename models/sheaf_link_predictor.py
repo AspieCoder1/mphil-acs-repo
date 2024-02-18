@@ -12,7 +12,8 @@ from torchmetrics.retrieval import (
     RetrievalMRR,
     RetrievalPrecision,
     RetrievalRecall,
-    RetrievalNormalizedDCG, RetrievalHitRate
+    RetrievalNormalizedDCG,
+    RetrievalHitRate,
 )
 
 
@@ -21,7 +22,6 @@ class RecSysStepOutput(NamedTuple):
     y_hat: Tensor
     loss: Tensor
     index: Tensor
-
 
 
 class EdgeDecoder(nn.Module):
@@ -38,20 +38,28 @@ class EdgeDecoder(nn.Module):
 
 
 class SheafLinkPredictor(L.LightningModule):
-    def __init__(self, model: nn.Module, batch_size: int = 1,
-                 hidden_dim: int = 64, num_classes: int = 1):
+    def __init__(
+        self,
+        model: nn.Module,
+        batch_size: int = 1,
+        hidden_dim: int = 64,
+        num_classes: int = 1,
+    ):
         super(SheafLinkPredictor, self).__init__()
         self.encoder = model
         self.batch_size = batch_size
         self.decoder = EdgeDecoder(hidden_dim, num_classes)
 
-        self.train_metrics = MetricCollection({
-            "nDCG@20": RetrievalNormalizedDCG(top_k=20),
-            "recall@20": RetrievalRecall(top_k=20),
-            "precision@20": RetrievalPrecision(top_k=20),
-            "HR@20": RetrievalHitRate(top_k=20),
-            "MRR": RetrievalMRR(top_k=20)
-        }, prefix="train/")
+        self.train_metrics = MetricCollection(
+            {
+                "nDCG@20": RetrievalNormalizedDCG(top_k=20),
+                "recall@20": RetrievalRecall(top_k=20),
+                "precision@20": RetrievalPrecision(top_k=20),
+                "HR@20": RetrievalHitRate(top_k=20),
+                "MRR": RetrievalMRR(top_k=20),
+            },
+            prefix="train/",
+        )
 
         self.valid_metrics = self.train_metrics.clone(prefix="valid/")
         self.test_metrics = self.train_metrics.clone(prefix="test/")
@@ -90,7 +98,7 @@ class SheafLinkPredictor(L.LightningModule):
             on_step=True,
             on_epoch=True,
             batch_size=1,
-            sync_dist=True
+            sync_dist=True,
         )
         self.log("train/loss", loss)
 
@@ -107,7 +115,7 @@ class SheafLinkPredictor(L.LightningModule):
             on_step=True,
             on_epoch=True,
             batch_size=1,
-            sync_dist=True
+            sync_dist=True,
         )
         self.log("valid/loss", loss)
         return loss
@@ -123,7 +131,7 @@ class SheafLinkPredictor(L.LightningModule):
             on_step=False,
             on_epoch=True,
             batch_size=1,
-            sync_dist=True
+            sync_dist=True,
         )
         self.log("test/loss", loss)
 
@@ -131,15 +139,16 @@ class SheafLinkPredictor(L.LightningModule):
 
     def configure_optimizers(self) -> OptimizerLRScheduler:
         optimiser = torch.optim.AdamW(self.parameters())
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimiser, T_max=1_000,
-                                                               eta_min=1e-6)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimiser, T_max=1_000, eta_min=1e-6
+        )
 
         return {
             "optimizer": optimiser,
             "lr_scheduler": {
                 "scheduler": scheduler,
                 "monitor": "valid/loss",
-            }
+            },
         }
 
 
@@ -164,7 +173,8 @@ class BPRLoss(_Loss):
         **kwargs (optional): Additional arguments of the underlying
             :class:`torch.nn.modules.loss._Loss` class.
     """
-    __constants__ = ['lambda_reg']
+
+    __constants__ = ["lambda_reg"]
     lambda_reg: float
 
     def __init__(self, lambda_reg: float = 0, **kwargs):

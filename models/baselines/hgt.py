@@ -6,21 +6,40 @@ from torch_geometric.nn import HGTConv
 
 
 class HGT(nn.Module):
-    def __init__(self, metadata: tuple[list[str], list[tuple[str, str, str]]],
-                 hidden_channels: int = 256,
-                 in_channels: Optional[dict[str, int]] = None):
+    def __init__(
+        self,
+        metadata: tuple[list[str], list[tuple[str, str, str]]],
+        hidden_channels: int = 256,
+        in_channels: Optional[dict[str, int]] = None,
+    ):
         super().__init__()
         if in_channels is None:
             in_channels = -1
 
-        self.conv = nn.ModuleList([
-            HGTConv(in_channels, hidden_channels, heads=8, dropout=0.6,
-                    metadata=metadata),
-            HGTConv(hidden_channels, hidden_channels, heads=8, dropout=0.6,
-                    metadata=metadata),
-            HGTConv(hidden_channels, hidden_channels, heads=8, dropout=0.6,
-                    metadata=metadata)
-        ]
+        self.conv = nn.ModuleList(
+            [
+                HGTConv(
+                    in_channels,
+                    hidden_channels,
+                    heads=8,
+                    dropout=0.6,
+                    metadata=metadata,
+                ),
+                HGTConv(
+                    hidden_channels,
+                    hidden_channels,
+                    heads=8,
+                    dropout=0.6,
+                    metadata=metadata,
+                ),
+                HGTConv(
+                    hidden_channels,
+                    hidden_channels,
+                    heads=8,
+                    dropout=0.6,
+                    metadata=metadata,
+                ),
+            ]
         )
 
     def forward(self, data: HeteroData):

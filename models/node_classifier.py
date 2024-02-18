@@ -19,11 +19,15 @@ class CommonStepOutput(NamedTuple):
 
 
 class NodeClassifier(L.LightningModule):
-    def __init__(self, model: nn.Module, hidden_channels: int = 256,
-                 out_channels: int = 10,
-                 target: str = "author", task: Literal[
-                "binary", "multiclass", "multilabel"] = "multilabel",
-                 homogeneous_model: bool = False):
+    def __init__(
+        self,
+        model: nn.Module,
+        hidden_channels: int = 256,
+        out_channels: int = 10,
+        target: str = "author",
+        task: Literal["binary", "multiclass", "multilabel"] = "multilabel",
+        homogeneous_model: bool = False,
+    ):
         super().__init__()
         self.encoder = model
         self.decoder = Linear(hidden_channels, out_channels)
@@ -32,15 +36,18 @@ class NodeClassifier(L.LightningModule):
         metrics_params = {
             "task": task,
             "num_labels": out_channels,
-            "num_classes": out_channels
+            "num_classes": out_channels,
         }
 
-        self.train_metrics = MetricCollection({
-            'micro-f1': F1Score(average="micro", **metrics_params),
-            'macro-f1': F1Score(average="macro", **metrics_params),
-            'accuracy': Accuracy(**metrics_params),
-            'auroc': AUROC(**metrics_params)
-        }, prefix="train/")
+        self.train_metrics = MetricCollection(
+            {
+                "micro-f1": F1Score(average="micro", **metrics_params),
+                "macro-f1": F1Score(average="macro", **metrics_params),
+                "accuracy": Accuracy(**metrics_params),
+                "auroc": AUROC(**metrics_params),
+            },
+            prefix="train/",
+        )
         self.valid_metrics = self.train_metrics.clone(prefix="valid/")
         self.test_metrics = self.train_metrics.clone(prefix="test/")
 
@@ -73,10 +80,10 @@ class NodeClassifier(L.LightningModule):
         y, y_hat, loss = self.common_step(batch, mask)
 
         output = self.train_metrics(y_hat, y)
-        self.log_dict(output, prog_bar=True, on_step=False,
-                      on_epoch=True, batch_size=1)
-        self.log('train/loss', loss, prog_bar=True, on_step=True,
-                 on_epoch=True, batch_size=1)
+        self.log_dict(output, prog_bar=True, on_step=False, on_epoch=True, batch_size=1)
+        self.log(
+            "train/loss", loss, prog_bar=True, on_step=True, on_epoch=True, batch_size=1
+        )
 
         return loss
 
@@ -86,10 +93,15 @@ class NodeClassifier(L.LightningModule):
 
         output = self.valid_metrics(y_hat, y)
 
-        self.log_dict(output, prog_bar=True, on_step=False,
-                      on_epoch=True, batch_size=1)
-        self.log('valid/loss', loss, prog_bar=False, on_step=False,
-                 on_epoch=True, batch_size=1)
+        self.log_dict(output, prog_bar=True, on_step=False, on_epoch=True, batch_size=1)
+        self.log(
+            "valid/loss",
+            loss,
+            prog_bar=False,
+            on_step=False,
+            on_epoch=True,
+            batch_size=1,
+        )
         return loss
 
     def test_step(self, batch: Batch, batch_idx: int) -> STEP_OUTPUT:
@@ -97,22 +109,30 @@ class NodeClassifier(L.LightningModule):
         y, y_hat, loss = self.common_step(batch, mask)
 
         output = self.test_metrics(y_hat, y)
-        self.log_dict(output, prog_bar=False, on_step=False,
-                      on_epoch=True, batch_size=1)
-        self.log('test/loss', loss, prog_bar=False, on_step=False,
-                 on_epoch=True, batch_size=1)
+        self.log_dict(
+            output, prog_bar=False, on_step=False, on_epoch=True, batch_size=1
+        )
+        self.log(
+            "test/loss",
+            loss,
+            prog_bar=False,
+            on_step=False,
+            on_epoch=True,
+            batch_size=1,
+        )
 
         return loss
 
     def configure_optimizers(self) -> OptimizerLRScheduler:
         optimiser = torch.optim.AdamW(self.parameters())
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimiser, T_max=1_000,
-                                                               eta_min=1e-6)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimiser, T_max=1_000, eta_min=1e-6
+        )
 
         return {
             "optimizer": optimiser,
             "lr_scheduler": {
                 "scheduler": scheduler,
                 "monitor": "valid/loss",
-            }
+            },
         }

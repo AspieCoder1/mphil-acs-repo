@@ -56,7 +56,8 @@ class SheafDiffusion(nn.Module):
         assert edge_index.max() <= self.graph_size
         self.edge_index = edge_index
         self.laplacian_builder = self.laplacian_builder.create_with_new_edge_index(
-            edge_index)
+            edge_index
+        )
 
     def grouped_parameters(self):
         sheaf_learners, others = [], []

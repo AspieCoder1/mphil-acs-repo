@@ -2,14 +2,10 @@
 # https://github.com/twitter-research/neural-sheaf-diffusion
 # Bodnar et al. (NeurIPS 2022)
 
-from .cont_models import (
-    BundleSheafDiffusion,
-    DiagSheafDiffusion,
-    GeneralSheafDiffusion
-)
+from .cont_models import BundleSheafDiffusion, DiagSheafDiffusion, GeneralSheafDiffusion
 
 from .disc_models import (
     DiscreteDiagSheafDiffusion,
     DiscreteBundleSheafDiffusion,
-    DiscreteGeneralSheafDiffusion
+    DiscreteGeneralSheafDiffusion,
 )

@@ -4,6 +4,7 @@ from typing import Optional
 
 from strenum import LowercaseStrEnum
 
+
 class IntMethod(LowercaseStrEnum):
     dopri5 = auto()
     euler = auto()
@@ -24,7 +25,7 @@ class ODEArguments:
     max_t: float = 1.0
     step_size: float = 1.0
     max_iters: int = 100
-    adjoint_method: str = 'adaptive_heun'
+    adjoint_method: str = "adaptive_heun"
     adjoint: bool = False
     adjoint_step_size: float = 1.0
     tol_scale: float = 1.0
@@ -53,7 +54,7 @@ class SheafModelArguments:
     use_act: bool = True
     second_linear: bool = False
     orth: OrthogonalMethod = OrthogonalMethod.householder
-    sheaf_act: str = 'tanh'
+    sheaf_act: str = "tanh"
     edge_weights: bool = True
     sparse_learner: bool = False
     input_dim: Optional[int] = None
@@ -82,7 +83,7 @@ class IndSheafModelArguments:
     use_act: bool = True
     second_linear: bool = False
     orth: OrthogonalMethod = OrthogonalMethod.householder
-    sheaf_act: str = 'tanh'
+    sheaf_act: str = "tanh"
     edge_weights: bool = False
     sparse_learner: bool = False
     input_dim: Optional[int] = None

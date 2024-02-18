@@ -9,7 +9,8 @@ from torchmetrics.retrieval import (
     RetrievalNormalizedDCG,
     RetrievalRecall,
     RetrievalPrecision,
-    RetrievalMRR, RetrievalHitRate
+    RetrievalMRR,
+    RetrievalHitRate,
 )
 
 from models.sheaf_link_predictor import RecSysStepOutput
@@ -17,10 +18,10 @@ from models.sheaf_link_predictor import RecSysStepOutput
 
 class EdgeDecoder(nn.Module):
     def __init__(
-            self,
-            target: tuple[str, str, str],
-            hidden_dim: int = 64,
-            out_dim: int = 1,
+        self,
+        target: tuple[str, str, str],
+        hidden_dim: int = 64,
+        out_dim: int = 1,
     ):
         super().__init__()
 
@@ -36,28 +37,34 @@ class EdgeDecoder(nn.Module):
 
 
 class LinkPredictor(L.LightningModule):
-    def __init__(self, model: nn.Module,
-                 edge_target: tuple[str, str, str] = ("user", "rates", "movie"),
-                 homogeneous: bool = False,
-                 batch_size: int = 1):
+    def __init__(
+        self,
+        model: nn.Module,
+        edge_target: tuple[str, str, str] = ("user", "rates", "movie"),
+        homogeneous: bool = False,
+        batch_size: int = 1,
+    ):
         super(LinkPredictor, self).__init__()
         self.encoder = model
         self.decoder = EdgeDecoder(target=edge_target, hidden_dim=256, out_dim=1)
         self.homogeneous = homogeneous
         self.target = edge_target
 
-        self.train_metrics = MetricCollection({
-            "nDCG@20": RetrievalNormalizedDCG(top_k=20),
-            "recall@20": RetrievalRecall(top_k=20),
-            "precision@20": RetrievalPrecision(top_k=20),
-            "HR@20": RetrievalHitRate(top_k=20),
-            "MRR": RetrievalMRR(top_k=20)
-        }, prefix="train/")
+        self.train_metrics = MetricCollection(
+            {
+                "nDCG@20": RetrievalNormalizedDCG(top_k=20),
+                "recall@20": RetrievalRecall(top_k=20),
+                "precision@20": RetrievalPrecision(top_k=20),
+                "HR@20": RetrievalHitRate(top_k=20),
+                "MRR": RetrievalMRR(top_k=20),
+            },
+            prefix="train/",
+        )
 
         self.valid_metrics = self.train_metrics.clone(prefix="valid/")
         self.test_metrics = self.train_metrics.clone(prefix="test/")
         self.batch_size = batch_size
-        self.save_hyperparameters(ignore='model')
+        self.save_hyperparameters(ignore="model")
 
     def common_step(self, batch: HeteroData) -> RecSysStepOutput:
         if self.homogeneous:
@@ -65,8 +72,7 @@ class LinkPredictor(L.LightningModule):
         else:
             x_dict = self.encoder(batch)
 
-        y_hat = self.decoder(x_dict,
-                             batch[self.target].edge_label_index).flatten()
+        y_hat = self.decoder(x_dict, batch[self.target].edge_label_index).flatten()
         y = batch[self.target].edge_label
 
         loss = F.binary_cross_entropy_with_logits(y, y_hat)
@@ -82,7 +88,7 @@ class LinkPredictor(L.LightningModule):
             on_step=True,
             on_epoch=True,
             batch_size=self.batch_size,
-            sync_dist=True
+            sync_dist=True,
         )
         self.log("train/loss", loss, batch_size=1)
 
@@ -97,7 +103,7 @@ class LinkPredictor(L.LightningModule):
             on_step=False,
             on_epoch=True,
             batch_size=1,
-            sync_dist=True
+            sync_dist=True,
         )
         self.log("valid/loss", loss, batch_size=1, on_epoch=True)
 
@@ -112,21 +118,22 @@ class LinkPredictor(L.LightningModule):
             on_step=False,
             on_epoch=True,
             batch_size=1,
-            sync_dist=True
+            sync_dist=True,
         )
-        self.log('test/loss', loss, batch_size=1)
+        self.log("test/loss", loss, batch_size=1)
 
         return loss
 
     def configure_optimizers(self) -> OptimizerLRScheduler:
         optimiser = torch.optim.AdamW(self.parameters())
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimiser, T_max=1_000,
-                                                               eta_min=1e-6)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimiser, T_max=1_000, eta_min=1e-6
+        )
 
         return {
             "optimizer": optimiser,
             "lr_scheduler": {
                 "scheduler": scheduler,
                 "monitor": "valid/loss",
-            }
+            },
         }

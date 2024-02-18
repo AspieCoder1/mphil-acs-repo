@@ -5,12 +5,11 @@
 from models.sheaf_gnn.transductive.cont_models import (
     BundleSheafDiffusion,
     DiagSheafDiffusion,
-    GeneralSheafDiffusion
+    GeneralSheafDiffusion,
 )
 
 from models.sheaf_gnn.transductive.disc_models import (
     DiscreteDiagSheafDiffusion,
     DiscreteBundleSheafDiffusion,
-    DiscreteGeneralSheafDiffusion
+    DiscreteGeneralSheafDiffusion,
 )
-
