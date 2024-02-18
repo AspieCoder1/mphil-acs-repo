@@ -123,7 +123,7 @@ class DiscreteDiagSheafDiffusion(SheafDiffusion):
 
         x = x.reshape(self.graph_size, -1)
         # x = self.lin2(x)
-        return x
+        return x, maps
 
 
 class DiscreteBundleSheafDiffusion(SheafDiffusion):
@@ -262,7 +262,7 @@ class DiscreteBundleSheafDiffusion(SheafDiffusion):
 
         x = x.reshape(self.graph_size, -1)
         # x = self.lin2(x)
-        return x
+        return x, maps
 
 
 class DiscreteGeneralSheafDiffusion(SheafDiffusion):
@@ -384,4 +384,4 @@ class DiscreteGeneralSheafDiffusion(SheafDiffusion):
 
         x = x.reshape(self.graph_size, -1)
         # x = self.lin2(x)
-        return x
+        return x, maps
