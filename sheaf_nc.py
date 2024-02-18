@@ -12,7 +12,7 @@ from core.models import get_sheaf_model
 from core.sheaf_configs import SheafModelCfg, SheafNCDatasetCfg
 from core.trainer import TrainerArgs
 from models import SheafNodeClassifier
-from models.sheaf_gnn import SheafModelArguments
+from models.sheaf_gnn.config import SheafModelArguments
 
 
 @dataclass
