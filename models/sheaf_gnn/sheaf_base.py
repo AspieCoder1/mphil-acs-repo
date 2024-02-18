@@ -6,13 +6,13 @@
 import torch
 from torch import nn
 
-from models.sheaf_gnn.config import SheafModelArguments
+from models.sheaf_gnn.config import IndSheafModelArguments
 
 
 class SheafDiffusion(nn.Module):
     """Base class for sheaf diffusion models."""
 
-    def __init__(self, edge_index, args: SheafModelArguments):
+    def __init__(self, edge_index, args: IndSheafModelArguments):
         super(SheafDiffusion, self).__init__()
 
         assert args.d > 0

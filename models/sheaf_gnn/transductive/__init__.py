@@ -2,15 +2,14 @@
 # https://github.com/twitter-research/neural-sheaf-diffusion
 # Bodnar et al. (NeurIPS 2022)
 
-from models.sheaf_gnn.transductive.cont_models import (
+from .cont_models import (
     BundleSheafDiffusion,
     DiagSheafDiffusion,
     GeneralSheafDiffusion
 )
 
-from models.sheaf_gnn.transductive.disc_models import (
+from .disc_models import (
     DiscreteDiagSheafDiffusion,
     DiscreteBundleSheafDiffusion,
     DiscreteGeneralSheafDiffusion
 )
-

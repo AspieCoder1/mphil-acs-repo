@@ -11,7 +11,7 @@ from core.datasets import get_dataset_lp, LinkPredDatasets
 from core.models import get_inductive_sheaf_model
 from core.sheaf_configs import SheafModelCfg, SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
-from models.sheaf_gnn_inductive.config import SheafModelArguments
+from models.sheaf_gnn.config import IndSheafModelArguments
 from models import SheafLinkPredictor
 
 
@@ -21,7 +21,7 @@ class Config:
     tags: list[str] = field(default_factory=list)
     model: SheafModelCfg = field(default_factory=SheafModelCfg)
     dataset: SheafLinkPredDatasetCfg = field(default_factory=SheafLinkPredDatasetCfg)
-    model_args: SheafModelArguments = field(default_factory=SheafModelArguments)
+    model_args: IndSheafModelArguments = field(default_factory=IndSheafModelArguments)
 
 
 cs = ConfigStore.instance()

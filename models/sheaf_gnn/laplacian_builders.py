@@ -27,24 +27,25 @@ class LaplacianBuilder(nn.Module):
         if add_lp:
             self.final_d += 1
         self.size = size
-        self.edges = edge_index.size(1) // 2
-        self.edge_index = edge_index
         self.normalised = normalised
         self.deg_normalised = deg_normalised
-        self.device = edge_index.device
         self.add_hp = add_hp
         self.add_lp = add_lp
         self.augmented = augmented
+        self.edge_index = edge_index
 
         # Preprocess the sparse indices required to compute the Sheaf Laplacian.
-        self.full_left_right_idx, _ = lap.compute_left_right_map_index(edge_index,
-                                                                       full_matrix=True)
-        self.left_right_idx, self.vertex_tril_idx = lap.compute_left_right_map_index(
-            edge_index)
-        if self.add_lp or self.add_hp:
-            self.fixed_diag_indices, self.fixed_tril_indices = lap.compute_fixed_diag_laplacian_indices(
-                size, self.vertex_tril_idx, self.d, self.final_d)
-        self.deg = degree(self.edge_index[0], num_nodes=self.size)
+        if edge_index is not None:
+            self.edges = edge_index.size(1) // 2
+            self.device = edge_index.device
+            self.full_left_right_idx, _ = lap.compute_left_right_map_index(edge_index,
+                                                                           full_matrix=True)
+            self.left_right_idx, self.vertex_tril_idx = lap.compute_left_right_map_index(
+                edge_index)
+            if self.add_lp or self.add_hp:
+                self.fixed_diag_indices, self.fixed_tril_indices = lap.compute_fixed_diag_laplacian_indices(
+                    size, self.vertex_tril_idx, self.d, self.final_d)
+            self.deg = degree(edge_index[0], num_nodes=self.size)
 
     def get_fixed_maps(self, size, dtype):
         assert self.add_lp or self.add_hp
@@ -133,8 +134,9 @@ class DiagLaplacianBuilder(LaplacianBuilder):
         super(DiagLaplacianBuilder, self).__init__(
             size, edge_index, d, normalised, deg_normalised, add_hp, add_lp, augmented)
 
-        self.diag_indices, self.tril_indices = lap.compute_learnable_diag_laplacian_indices(
-            size, self.vertex_tril_idx, self.d, self.final_d)
+        if edge_index is not None:
+            self.diag_indices, self.tril_indices = lap.compute_learnable_diag_laplacian_indices(
+                size, self.vertex_tril_idx, self.d, self.final_d)
 
     def normalise(self, diag, tril, row, col):
         if self.normalised:
@@ -199,10 +201,11 @@ class NormConnectionLaplacianBuilder(LaplacianBuilder):
         self.orth_transform = Orthogonal(d=self.d, orthogonal_map=orth_map)
         self.orth_map = orth_map
 
-        _, self.tril_indices = lap.compute_learnable_laplacian_indices(
-            size, self.vertex_tril_idx, self.d, self.final_d)
-        self.diag_indices, _ = lap.compute_learnable_diag_laplacian_indices(
-            size, self.vertex_tril_idx, self.d, self.final_d)
+        if edge_index is not None:
+            _, self.tril_indices = lap.compute_learnable_laplacian_indices(
+                size, self.vertex_tril_idx, self.d, self.final_d)
+            self.diag_indices, _ = lap.compute_learnable_diag_laplacian_indices(
+                size, self.vertex_tril_idx, self.d, self.final_d)
 
     def create_with_new_edge_index(self, edge_index):
         assert edge_index.max() <= self.size
@@ -330,7 +333,7 @@ class GeneralLaplacianBuilder(LaplacianBuilder):
         elif self.deg_normalised:
             # These are general d x d maps so we need to divide by 1 / sqrt(deg * d), their maximum possible norm.
             deg_sqrt_inv = (self.deg * self.d + 1).pow(-1 / 2) if self.augmented else (
-                        self.deg * self.d + 1).pow(-1 / 2)
+                    self.deg * self.d + 1).pow(-1 / 2)
             deg_sqrt_inv = deg_sqrt_inv.view(-1, 1, 1)
             left_norm = deg_sqrt_inv[tril_row]
             right_norm = deg_sqrt_inv[tril_col]

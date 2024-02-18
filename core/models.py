@@ -10,10 +10,10 @@ from datasets.link_pred import LinkPredBase
 from models.sheaf_gnn import DiscreteDiagSheafDiffusion, DiscreteBundleSheafDiffusion, \
     DiscreteGeneralSheafDiffusion, DiagSheafDiffusion, BundleSheafDiffusion, \
     GeneralSheafDiffusion
-from models.sheaf_gnn.sheaf_base import SheafDiffusion
+from models.sheaf_gnn import SheafDiffusion
 from models.sheaf_gnn_inductive import InductiveDiscreteDiagSheafDiffusion, \
     InductiveDiscreteBundleSheafDiffusion, InductiveDiscreteGeneralSheafDiffusion
-from models.sheaf_gnn_inductive.sheaf_base import \
+from models.sheaf_gnn.sheaf_base import \
     SheafDiffusion as SheafDiffusionInductive
 from models.baselines import HAN, HGT, HeteroGNN, RGCN, GCN, GAT
 
