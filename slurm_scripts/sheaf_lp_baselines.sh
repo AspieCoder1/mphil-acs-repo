@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# Copyright (c) 2024. Luke Braithwaite
+#
+
 #SBATCH -J sheaf_lp_profile
 #SBATCH --output=sheaf_lp_profile/out/%a.out
 #SBATCH --error=sheaf_lp_profile/err/%a.err

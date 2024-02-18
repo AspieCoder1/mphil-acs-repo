@@ -1,3 +1,5 @@
+#  Copyright (c) 2024. Luke Braithwaite
+
 import hydra
 import numpy as np
 import torch

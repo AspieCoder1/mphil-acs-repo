@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# Copyright (c) 2024. Luke Braithwaite
+#
+
 #SBATCH -J gnn_nc_baselines
 #SBATCH --output=gnn_nc_baselines/out/%A_%a.out
 #SBATCH --error=gnn_nc_baselines/err/%A_%a.err

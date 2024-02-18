@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# Copyright (c) 2024. Luke Braithwaite
+#
+
 #SBATCH -J sheafnc_baselines
 #SBATCH --output=sheafnc_baselines/out/%A_%a.out
 #SBATCH --error=sheafnc_baselines/err/%A_%a.err

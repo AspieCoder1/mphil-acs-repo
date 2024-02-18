@@ -1,3 +1,5 @@
+#  Copyright (c) 2024. Luke Braithwaite
+
 import torch.nn as nn
 from torch_geometric.data import HeteroData
 from torch_geometric.nn import HeteroConv, SAGEConv

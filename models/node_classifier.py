@@ -1,3 +1,5 @@
+#  Copyright (c) 2024. Luke Braithwaite
+
 import functools
 from typing import Literal, NamedTuple, Callable
 

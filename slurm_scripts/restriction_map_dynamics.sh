@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# Copyright (c) 2024. Luke Braithwaite
+#
+
 #SBATCH -J restriction_map_dynamics
 #SBATCH --output=slurm_output/restriction_map_dynamics/out/%A_%a.out
 #SBATCH --error=slurm_output/restriction_map_dynamics/err/%A_%a.err

@@ -1,3 +1,5 @@
+#  Copyright (c) 2024. Luke Braithwaite
+
 import lightning.pytorch as L
 import torch
 import torch.nn.functional as F

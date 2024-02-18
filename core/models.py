@@ -1,3 +1,5 @@
+#  Copyright (c) 2024. Luke Braithwaite
+
 from enum import auto
 from typing import Union, Type
 

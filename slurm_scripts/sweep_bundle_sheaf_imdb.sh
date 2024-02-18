@@ -1,4 +1,8 @@
 #!/bin/sh
+#
+# Copyright (c) 2024. Luke Braithwaite
+#
+
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=01:00:00
 #SBATCH -p ampere

@@ -1,3 +1,5 @@
+#  Copyright (c) 2024. Luke Braithwaite
+
 from typing import Optional, Union
 
 import lightning as L

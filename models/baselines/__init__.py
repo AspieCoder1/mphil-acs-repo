@@ -1,3 +1,5 @@
+#  Copyright (c) 2024. Luke Braithwaite
+
 from .gat import GAT
 from .gcn import GCN
 from .han import HAN

@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# Copyright (c) 2024. Luke Braithwaite
+#
+
 #SBATCH -J preprocess_umap
 #SBATCH --output=preprocess_umap/out/%A_%a.out
 #SBATCH --error=preprocess_umap/err/%A_%a.err

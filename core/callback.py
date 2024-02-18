@@ -1,3 +1,5 @@
+#  Copyright (c) 2024. Luke Braithwaite
+
 import logging
 from typing import Any
 

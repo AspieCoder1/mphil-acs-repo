@@ -1,3 +1,5 @@
+#  Copyright (c) 2024. Luke Braithwaite
+
 import torch
 
 from models.sheaf_gnn.lib.laplace import compute_left_right_map_index, compute_left_right_map_index_old

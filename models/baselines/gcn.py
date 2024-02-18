@@ -1,3 +1,5 @@
+#  Copyright (c) 2024. Luke Braithwaite
+
 import torch.nn.functional as F
 from torch import nn
 from torch_geometric.nn import SAGEConv

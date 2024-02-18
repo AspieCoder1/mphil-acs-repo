@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# Copyright (c) 2024. Luke Braithwaite
+#
+
 #SBATCH -J process_tsne
 #SBATCH --output=process_tsne/out/%A.out
 #SBATCH --error=process_tsne/err/%A.err

@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# Copyright (c) 2024. Luke Braithwaite
+#
+
 #SBATCH -J gnnlp_baselines
 #SBATCH --output=gnnlp_baselines/out/%A_%a.out
 #SBATCH --error=gnnlp_baselines/err/%A_%a.err

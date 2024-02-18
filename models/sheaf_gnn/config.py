@@ -1,3 +1,6 @@
+#  Copyright (c) 2024. Luke Braithwaite
+#  Adapted from: https://github.com/twitter-research/neural-sheaf-diffusion
+
 from dataclasses import dataclass, field
 from enum import auto
 from typing import Optional

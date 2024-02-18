@@ -1,3 +1,5 @@
+#  Copyright (c) 2024. Luke Braithwaite
+
 from enum import auto
 
 from strenum import UppercaseStrEnum, PascalCaseStrEnum
