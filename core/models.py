@@ -7,15 +7,24 @@ from torch_geometric.nn import to_hetero_with_bases
 from core.sheaf_configs import ModelTypes
 from datasets.hgb import HGBBaseDataModule
 from datasets.link_pred import LinkPredBase
-from models.sheaf_gnn import DiscreteDiagSheafDiffusion, DiscreteBundleSheafDiffusion, \
-    DiscreteGeneralSheafDiffusion, DiagSheafDiffusion, BundleSheafDiffusion, \
-    GeneralSheafDiffusion
-from models.sheaf_gnn import SheafDiffusion
-from models.sheaf_gnn_inductive import InductiveDiscreteDiagSheafDiffusion, \
-    InductiveDiscreteBundleSheafDiffusion, InductiveDiscreteGeneralSheafDiffusion
-from models.sheaf_gnn.sheaf_base import \
-    SheafDiffusion as SheafDiffusionInductive
 from models.baselines import HAN, HGT, HeteroGNN, RGCN, GCN, GAT
+from models.sheaf_gnn import (
+    DiscreteDiagSheafDiffusion,
+    DiscreteBundleSheafDiffusion,
+    DiscreteGeneralSheafDiffusion,
+    DiagSheafDiffusion,
+    BundleSheafDiffusion,
+    GeneralSheafDiffusion,
+)
+from models.sheaf_gnn.inductive import (
+    InductiveDiscreteDiagSheafDiffusion,
+    InductiveDiscreteBundleSheafDiffusion,
+    InductiveDiscreteGeneralSheafDiffusion,
+)
+from models.sheaf_gnn.sheaf_base import (
+    SheafDiffusion,
+    SheafDiffusion as SheafDiffusionInductive,
+)
 
 
 class Models(UppercaseStrEnum):

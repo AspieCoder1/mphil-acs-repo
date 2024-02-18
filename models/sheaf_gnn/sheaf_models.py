@@ -11,7 +11,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from lib import laplace as lap
+from .lib import laplace as lap
 
 
 class SheafLearner(nn.Module):

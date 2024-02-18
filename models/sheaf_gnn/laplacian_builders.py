@@ -8,7 +8,7 @@ from torch import nn
 from torch_geometric.utils import degree
 from torch_scatter import scatter_add
 
-from lib import laplace as lap
+from .lib import laplace as lap
 from .orthogonal import Orthogonal
 
 

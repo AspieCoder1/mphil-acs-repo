@@ -66,29 +66,5 @@ class SheafModelArguments:
 
 
 @dataclass
-class IndSheafModelArguments:
-    # ode args
-    ode_args: ODEArguments = field(default_factory=ODEArguments)
-    d: int = 2
-    layers: int = 2
-    normalised: bool = True
-    deg_normalised: bool = False
-    linear: bool = True
-    hidden_channels: int = 20
-    input_dropout: float = 0.0
-    left_weights: bool = True
-    right_weights: bool = True
-    add_lp: bool = True
-    add_hp: bool = True
-    use_act: bool = True
-    second_linear: bool = False
-    orth: OrthogonalMethod = OrthogonalMethod.householder
-    sheaf_act: str = "tanh"
+class IndSheafModelArguments(SheafModelArguments):
     edge_weights: bool = False
-    sparse_learner: bool = False
-    input_dim: Optional[int] = None
-    output_dim: Optional[int] = None
-    device: str = "cuda"
-    graph_size: Optional[int] = None
-    dropout: float = 0.0
-    initial_dropout: float = 0.0
