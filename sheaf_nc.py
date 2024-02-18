@@ -74,7 +74,7 @@ def init_trainer(cfg) -> L.Trainer:
     logger = WandbLogger(
         project="gnn-baselines",
         log_model=True,
-        checkpoint_name=f"{cfg.model_args.type}-{cfg.dataset.name}",
+        checkpoint_name=f"{cfg.model.type}-{cfg.dataset.name}",
     )
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name
