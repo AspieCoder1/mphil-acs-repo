@@ -68,7 +68,11 @@ def main(cfg: Config) -> None:
 
 
 def init_trainer(cfg) -> L.Trainer:
-    logger = WandbLogger(project="gnn-baselines", log_model=False)
+    logger = WandbLogger(
+        project="gnn-baselines",
+        log_model=True,
+        checkpoint_name=f"{cfg.model_args.type}-{cfg.dataset.name}",
+    )
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name
     logger.experiment.tags = cfg.tags
@@ -86,8 +90,8 @@ def init_trainer(cfg) -> L.Trainer:
         callbacks=[
             EarlyStopping("valid/loss",
                           patience=cfg.trainer.patience),
-            ModelCheckpoint(dirpath=f"sheafnc_checkpoints/{logger.version}",
-                            filename=cfg.model.type + '-' + cfg.dataset.name + '-{epoch}',
+            ModelCheckpoint(dirpath=f"checkpoints/sheafnc_checkpoints/{logger.version}",
+                            filename=f'{cfg.model.type}-{cfg.dataset.name}',
                             monitor="valid/accuracy",
                             mode="max", save_top_k=1),
             Timer()
