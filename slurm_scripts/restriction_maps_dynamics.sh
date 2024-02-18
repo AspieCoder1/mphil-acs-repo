@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J preprocess_umap
-#SBATCH --output=preprocess_umap/out/%A_%a.out
-#SBATCH --error=preprocess_umap/err/%A_%a.err
+#SBATCH --output=slurm_output/restricton_map_dynamics/out/%A_%a.out
+#SBATCH --error=slurm_output/restricton_map_dynamics/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=3:00:00
 #SBATCH -a 0-8
