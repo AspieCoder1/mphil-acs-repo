@@ -1,4 +1,5 @@
 #  Copyright (c) 2024. Luke Braithwaite
+#  License: MIT
 
 import functools
 from typing import Literal, NamedTuple, Callable

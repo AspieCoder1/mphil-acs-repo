@@ -1,6 +1,7 @@
 #!/bin/sh
 #
 # Copyright (c) 2024. Luke Braithwaite
+# License: MIT
 #
 
 #SBATCH -A COMPUTERLAB-SL2-GPU

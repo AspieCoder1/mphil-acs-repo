@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # Copyright (c) 2024. Luke Braithwaite
+# License: MIT
 #
 
 #SBATCH -J process_tsne

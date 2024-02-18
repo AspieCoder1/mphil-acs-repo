@@ -1,4 +1,5 @@
 #  Copyright (c) 2024. Luke Braithwaite
+#  License: MIT
 
 from .link_predictor import LinkPredictor
 from .node_classifier import NodeClassifier
