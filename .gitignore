@@ -186,4 +186,4 @@ umap-input/
 umap-plots/
 multirun/
 checkpoints/
-slurm_outputs/
+slurm_output/
