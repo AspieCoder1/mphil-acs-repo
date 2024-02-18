@@ -7,7 +7,7 @@ from torch_geometric.data import Data
 
 
 from core.models import get_sheaf_model
-from .NodeClassifier import NodeClassifier, CommonStepOutput
+from .node_classifier import NodeClassifier, CommonStepOutput
 
 
 class SheafNodeClassifier(NodeClassifier):

@@ -12,7 +12,7 @@ from torchmetrics.retrieval import (
     RetrievalMRR, RetrievalHitRate
 )
 
-from models.SheafLinkPredictor import RecSysStepOutput
+from models.sheaf_link_predictor import RecSysStepOutput
 
 
 class EdgeDecoder(nn.Module):

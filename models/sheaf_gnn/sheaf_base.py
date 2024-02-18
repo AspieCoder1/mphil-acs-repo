@@ -6,7 +6,7 @@
 import torch
 from torch import nn
 
-from models.SheafGNNInductive.config import SheafModelArguments
+from models.sheaf_gnn.config import SheafModelArguments
 
 
 class SheafDiffusion(nn.Module):

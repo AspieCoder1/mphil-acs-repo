@@ -8,9 +8,9 @@ from torch_geometric.data import Data
 from core.datasets import get_dataset_nc
 from core.models import get_sheaf_model
 from core.sheaf_configs import ModelTypes
-from models.SheafGNN.orthogonal import Orthogonal
-from models.SheafGNN.sheaf_base import SheafDiffusion
-from models.SheafNodeClassifier import SheafNodeClassifier
+from models.sheaf_gnn.orthogonal import Orthogonal
+from models.sheaf_gnn.sheaf_base import SheafDiffusion
+from models.sheaf_node_classifier import SheafNodeClassifier
 from sheaf_nc import Config
 
 cs = ConfigStore.instance()

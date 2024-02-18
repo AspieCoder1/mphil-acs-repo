@@ -11,8 +11,8 @@ from core.datasets import get_dataset_nc
 from core.models import get_sheaf_model
 from core.sheaf_configs import SheafModelCfg, SheafNCDatasetCfg
 from core.trainer import TrainerArgs
-from models.SheafGNN.config import SheafModelArguments
-from models.SheafNodeClassifier import SheafNodeClassifier
+from models import SheafNodeClassifier
+from models.sheaf_gnn.config import SheafModelArguments
 
 
 @dataclass

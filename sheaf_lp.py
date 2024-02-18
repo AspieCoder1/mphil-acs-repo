@@ -11,8 +11,8 @@ from core.datasets import get_dataset_lp, LinkPredDatasets
 from core.models import get_inductive_sheaf_model
 from core.sheaf_configs import SheafModelCfg, SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
-from models.SheafGNNInductive.config import SheafModelArguments
-from models.SheafLinkPredictor import SheafLinkPredictor
+from models.sheaf_gnn_inductive.config import SheafModelArguments
+from models import SheafLinkPredictor
 
 
 @dataclass
