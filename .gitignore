@@ -185,3 +185,5 @@ sheafnc_tsne/
 umap-input/
 umap-plots/
 multirun/
+checkpoints/
+slurm_outputs/
