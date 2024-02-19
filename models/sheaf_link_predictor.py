@@ -1,7 +1,7 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 
-from typing import NamedTuple
+from typing import NamedTuple, Callable
 
 import lightning as L
 import torch
@@ -10,21 +10,14 @@ from torch import nn, Tensor
 from torch.nn import functional as F
 from torch.nn.modules.loss import _Loss
 from torch_geometric.data import Data
-from torchmetrics.collections import MetricCollection
-from torchmetrics.retrieval import (
-    RetrievalMRR,
-    RetrievalPrecision,
-    RetrievalRecall,
-    RetrievalNormalizedDCG,
-    RetrievalHitRate,
+from torchmetrics.classification import (
+    BinaryAUROC,
+    BinaryAccuracy,
+    BinaryF1Score,
 )
+from torchmetrics.collections import MetricCollection
 
-
-class RecSysStepOutput(NamedTuple):
-    y: Tensor
-    y_hat: Tensor
-    loss: Tensor
-    index: Tensor
+from models.node_classifier import CommonStepOutput
 
 
 class EdgeDecoder(nn.Module):
@@ -38,6 +31,8 @@ class EdgeDecoder(nn.Module):
         concat = torch.concat((h_src, h_dest), dim=1)
 
         return self.lin(concat)
+
+
 
 
 class SheafLinkPredictor(L.LightningModule):
@@ -55,18 +50,16 @@ class SheafLinkPredictor(L.LightningModule):
 
         self.train_metrics = MetricCollection(
             {
-                "nDCG@20": RetrievalNormalizedDCG(top_k=20),
-                "recall@20": RetrievalRecall(top_k=20),
-                "precision@20": RetrievalPrecision(top_k=20),
-                "HR@20": RetrievalHitRate(top_k=20),
-                "MRR": RetrievalMRR(top_k=20),
+                "accuracy": BinaryAccuracy(),
+                "auroc": BinaryAUROC(),
+                "f1": BinaryF1Score()
             },
             prefix="train/",
         )
 
         self.valid_metrics = self.train_metrics.clone(prefix="valid/")
         self.test_metrics = self.train_metrics.clone(prefix="test/")
-        self.loss_fn = BPRLoss()
+        self.loss_fn: Callable = F.binary_cross_entropy_with_logits
 
         self.save_hyperparameters(ignore="model")
 
@@ -88,12 +81,12 @@ class SheafLinkPredictor(L.LightningModule):
         loss = self.loss_fn(pos_examples, neg_examples)
         y_hat = F.sigmoid(y_hat)
 
-        return RecSysStepOutput(loss=loss, y=y, y_hat=y_hat, index=edge_index[0])
+        return CommonStepOutput(loss=loss, y=y, y_hat=y_hat)
 
     def training_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss, index = self.common_step(batch)
+        y, y_hat, loss = self.common_step(batch)
 
-        metrics = self.train_metrics(y_hat, y, index)
+        metrics = self.train_metrics(y_hat, y)
 
         self.log_dict(
             metrics,
@@ -108,9 +101,9 @@ class SheafLinkPredictor(L.LightningModule):
         return loss
 
     def validation_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss, index = self.common_step(batch)
+        y, y_hat, loss = self.common_step(batch)
 
-        metrics = self.valid_metrics(y_hat, y, index)
+        metrics = self.valid_metrics(y_hat, y)
 
         self.log_dict(
             metrics,
@@ -124,9 +117,9 @@ class SheafLinkPredictor(L.LightningModule):
         return loss
 
     def test_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss, index = self.common_step(batch)
+        y, y_hat, loss = self.common_step(batch)
 
-        metrics = self.test_metrics(y_hat, y, index)
+        metrics = self.test_metrics(y_hat, y)
 
         self.log_dict(
             metrics,

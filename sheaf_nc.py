@@ -2,6 +2,7 @@
 #  License: MIT
 
 from dataclasses import dataclass, field
+from typing import Tuple
 
 import hydra
 import lightning as L
@@ -61,7 +62,7 @@ def main(cfg: Config) -> None:
     )
 
     # 4) init trainer
-    trainer = init_trainer(cfg)
+    trainer, timer, logger = init_trainer(cfg)
 
     # 5) train the model
     trainer.fit(sheaf_nc, datamodule)
@@ -69,8 +70,16 @@ def main(cfg: Config) -> None:
     # 6) test the model
     trainer.test(sheaf_nc, datamodule)
 
+    runtime = {
+        "train/runtime": timer.time_elapsed("train"),
+        "valid/runtime": timer.time_elapsed("validate"),
+        "test/runtime": timer.time_elapsed("test"),
+    }
 
-def init_trainer(cfg) -> L.Trainer:
+    logger.log_metrics(runtime)
+
+
+def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:
     logger = WandbLogger(
         project="gnn-baselines",
         log_model=True,
@@ -79,6 +88,8 @@ def init_trainer(cfg) -> L.Trainer:
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name
     logger.experiment.tags = cfg.tags
+
+    timer = Timer()
 
     trainer = L.Trainer(
         accelerator=cfg.trainer.accelerator,
@@ -97,10 +108,10 @@ def init_trainer(cfg) -> L.Trainer:
                             filename=f'{cfg.model.type}-{cfg.dataset.name}',
                             monitor="valid/accuracy",
                             mode="max", save_top_k=1),
-            Timer()
+            timer
         ]
     )
-    return trainer
+    return trainer, timer, logger
 
 
 if __name__ == '__main__':

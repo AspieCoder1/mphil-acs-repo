@@ -1,7 +1,7 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 
-from typing import Literal, NamedTuple
+from typing import Literal, NamedTuple, TypedDict
 
 import torch
 from lightning.pytorch.utilities.types import STEP_OUTPUT
@@ -16,6 +16,11 @@ class SheafNCSStepOutput(NamedTuple):
     y_hat: torch.Tensor
     loss: torch.Tensor
     maps: torch.Tensor
+
+
+class TrainStepOutput(TypedDict):
+    loss: float
+    restriction_maps: torch.Tensor
 
 
 class SheafNodeClassifier(NodeClassifier):
@@ -72,7 +77,6 @@ class SheafNodeClassifier(NodeClassifier):
             on_epoch=False,
             batch_size=1,
         )
-
         return loss
 
     def validation_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
@@ -104,7 +108,7 @@ class SheafNodeClassifier(NodeClassifier):
             prog_bar=False,
             on_step=False,
             on_epoch=True,
-            batch_size=128,
+            batch_size=1,
         )
 
         return loss

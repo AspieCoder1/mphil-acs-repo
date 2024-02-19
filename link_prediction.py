@@ -72,7 +72,6 @@ def main(cfg: Config):
         "valid/runtime": timer.time_elapsed("validate"),
         "test/runtime": timer.time_elapsed("test"),
     }
-    print(runtime)
     logger.log_metrics(runtime)
 
 
