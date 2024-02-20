@@ -23,7 +23,6 @@ class TrainStepOutput(TypedDict):
     restriction_maps: torch.Tensor
 
 
-
 class SheafNodeClassifier(NodeClassifier):
     def __init__(
         self,
