@@ -2,9 +2,9 @@
 #  License: MIT
 
 import lightning as L
-from cuml import LogisticRegression
-from cuml.metrics import accuracy
-from cuml.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 from torch_geometric.data import Data
 
 from models.sheaf_node_classifier import TrainStepOutput
@@ -30,6 +30,6 @@ class RestrictionMapCallback(L.Callback):
 
         preds = self.classifier.predict(X_test)
 
-        acc = accuracy(y_test, preds)
+        acc = accuracy_score(y_test, preds)
 
         pl_module.log("train/restriction_map_accuracy", acc)
