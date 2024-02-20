@@ -24,7 +24,7 @@ class RestrictionMapCallback(L.Callback):
     ) -> None:
         X_train, X_test, y_train, y_test = train_test_split(
             outputs['restriction_maps'].cpu().detach().numpy(),
-            batch.edge_types.cpu().detach().numpy()
+            batch.edge_type.cpu().detach().numpy()
         )
 
         self.classifier.fit(X_train, y_train)

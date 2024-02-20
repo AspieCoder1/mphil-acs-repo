@@ -266,7 +266,7 @@ class DiscreteBundleSheafDiffusion(SheafDiffusion):
         return x, maps
 
     def process_restriction_maps(self, maps):
-        transform = Orthogonal(self.get_param_size(), self.orth)
+        transform = Orthogonal(self.get_param_size(), self.orth_trans)
         maps = transform(maps)
         return torch.flatten(maps, start_dim=1, end_dim=-1)
 
