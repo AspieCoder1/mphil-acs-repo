@@ -70,14 +70,6 @@ class SheafNodeClassifier(NodeClassifier):
         self.log(
             "train/loss", loss, prog_bar=True, on_step=True, on_epoch=True, batch_size=1
         )
-        self.log(
-            "restriction_maps",
-            maps,
-            prog_bar=False,
-            on_step=False,
-            on_epoch=False,
-            batch_size=1,
-        )
         return TrainStepOutput(
             loss=loss,
             restriction_maps=self.endcoder.process_restriction_maps(maps),
