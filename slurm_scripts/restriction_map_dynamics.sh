@@ -27,6 +27,11 @@ DATA_IDX=$(( IDX % N_MODELS ))
 DATASET=${DATASETS[DATA_IDX]}
 MODEL=${MODELS[MODEL_IDX]}
 
+. /etc/profile.d/modules.sh                # Leave this line (enables the module command)
+module purge                               # Removes all modules still loaded
+module load rhel8/default-amp
+module load gcc/11
+
 export WANDB_CACHE_DIR="~/rds/hpc-work/.wandb"
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
 source ~/venv/bin/activate
