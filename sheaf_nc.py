@@ -99,7 +99,6 @@ def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:
         strategy=cfg.trainer.strategy,
         fast_dev_run=cfg.trainer.fast_dev_run,
         logger=logger,
-        precision="bf16-mixed",
         max_epochs=cfg.trainer.max_epochs,
         log_every_n_steps=1,
         callbacks=[
