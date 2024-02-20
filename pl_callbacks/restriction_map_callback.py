@@ -18,8 +18,8 @@ class RestrictionMapCallback(L.Callback):
         self,
         trainer: L.Trainer,
         pl_module: L.LightningModule,
-            outputs: TrainStepOutput,
-            batch: Data,
+        outputs: TrainStepOutput,
+        batch: Data,
         batch_idx: int,
     ) -> None:
         X_train, X_test, y_train, y_test = train_test_split(
