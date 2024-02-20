@@ -21,7 +21,6 @@ class SheafNCSStepOutput(NamedTuple):
 class TrainStepOutput(TypedDict):
     loss: torch.Tensor
     restriction_maps: torch.Tensor
-    edge_types: torch.Tensor
 
 
 
@@ -82,7 +81,6 @@ class SheafNodeClassifier(NodeClassifier):
         return TrainStepOutput(
             loss=loss,
             restriction_maps=maps,
-            edge_types=batch.edge_types,
         )
 
     def validation_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:

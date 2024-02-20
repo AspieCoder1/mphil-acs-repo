@@ -1,11 +1,11 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
-from typing import Any
 
 import lightning as L
 from cuml import LogisticRegression
 from cuml.metrics import accuracy
 from cuml.model_selection import train_test_split
+from torch_geometric.data import Data
 
 from models.sheaf_node_classifier import TrainStepOutput
 
@@ -19,11 +19,11 @@ class RestrictionMapCallback(L.Callback):
         trainer: L.Trainer,
         pl_module: L.LightningModule,
             outputs: TrainStepOutput,
-        batch: Any,
+            batch: Data,
         batch_idx: int,
     ) -> None:
         X_train, X_test, y_train, y_test = train_test_split(
-            outputs['restriction_maps'], outputs['edge_types']
+            outputs['restriction_maps'], batch.edge_types
         )
 
         self.classifier.fit(X_train, y_train)
