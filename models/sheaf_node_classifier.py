@@ -19,8 +19,10 @@ class SheafNCSStepOutput(NamedTuple):
 
 
 class TrainStepOutput(TypedDict):
-    loss: float
+    loss: torch.Tensor
     restriction_maps: torch.Tensor
+    edge_types: torch.Tensor
+
 
 
 class SheafNodeClassifier(NodeClassifier):
@@ -61,7 +63,7 @@ class SheafNodeClassifier(NodeClassifier):
 
         return SheafNCSStepOutput(y=y, y_hat=y_hat, loss=loss, maps=maps)
 
-    def training_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
+    def training_step(self, batch: Data, batch_idx: int) -> TrainStepOutput:
         y, y_hat, loss, maps = self.common_step(batch, batch.train_mask)
 
         output = self.train_metrics(y_hat, y)
@@ -77,7 +79,11 @@ class SheafNodeClassifier(NodeClassifier):
             on_epoch=False,
             batch_size=1,
         )
-        return loss
+        return TrainStepOutput(
+            loss=loss,
+            restriction_maps=maps,
+            edge_types=batch.edge_types,
+        )
 
     def validation_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
         y, y_hat, loss, _ = self.common_step(batch, batch.val_mask)

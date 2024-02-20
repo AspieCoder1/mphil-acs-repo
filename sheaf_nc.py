@@ -17,6 +17,7 @@ from core.sheaf_configs import SheafModelCfg, SheafNCDatasetCfg
 from core.trainer import TrainerArgs
 from models import SheafNodeClassifier
 from models.sheaf_gnn.config import SheafModelArguments
+from pl_callbacks.restriction_map_callback import RestrictionMapCallback
 
 
 @dataclass
@@ -108,7 +109,8 @@ def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:
                             filename=f'{cfg.model.type}-{cfg.dataset.name}',
                             monitor="valid/accuracy",
                             mode="max", save_top_k=1),
-            timer
+            timer,
+            RestrictionMapCallback()
         ]
     )
     return trainer, timer, logger

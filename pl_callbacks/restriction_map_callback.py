@@ -6,7 +6,8 @@ import lightning as L
 from cuml import LogisticRegression
 from cuml.metrics import accuracy
 from cuml.model_selection import train_test_split
-from lightning.pytorch.utilities.types import STEP_OUTPUT
+
+from models.sheaf_node_classifier import TrainStepOutput
 
 
 class RestrictionMapCallback(L.Callback):
@@ -17,13 +18,12 @@ class RestrictionMapCallback(L.Callback):
         self,
         trainer: L.Trainer,
         pl_module: L.LightningModule,
-        outputs: STEP_OUTPUT,
+            outputs: TrainStepOutput,
         batch: Any,
         batch_idx: int,
     ) -> None:
-        edge_types = trainer.train_dataloader().data.edge_types
         X_train, X_test, y_train, y_test = train_test_split(
-            outputs["restriction_maps"], edge_types
+            outputs['restriction_maps'], outputs['edge_types']
         )
 
         self.classifier.fit(X_train, y_train)
