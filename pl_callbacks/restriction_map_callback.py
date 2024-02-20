@@ -33,4 +33,4 @@ class RestrictionMapCallback(L.Callback):
 
         acc = accuracy_score(y_test, preds)
 
-        pl_module.log("train/restriction_map_accuracy", acc)
+        pl_module.log("train/restriction_map_accuracy", acc, batch_size=1)
