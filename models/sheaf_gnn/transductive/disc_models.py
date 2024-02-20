@@ -7,12 +7,13 @@ import torch_sparse
 from torch import nn
 
 from models.sheaf_gnn import laplacian_builders as lb
-from models.sheaf_gnn.transductive.sheaf_base import SheafDiffusion
+from models.sheaf_gnn.orthogonal import Orthogonal
 from models.sheaf_gnn.sheaf_models import (
     LocalConcatSheafLearner,
     EdgeWeightLearner,
     LocalConcatSheafLearnerVariant,
 )
+from models.sheaf_gnn.transductive.sheaf_base import SheafDiffusion
 
 
 class DiscreteDiagSheafDiffusion(SheafDiffusion):
@@ -123,6 +124,8 @@ class DiscreteDiagSheafDiffusion(SheafDiffusion):
         # x = self.lin2(x)
         return x, maps
 
+    def process_restriction_maps(self, maps):
+        return maps
 
 class DiscreteBundleSheafDiffusion(SheafDiffusion):
 
@@ -262,6 +265,11 @@ class DiscreteBundleSheafDiffusion(SheafDiffusion):
         # x = self.lin2(x)
         return x, maps
 
+    def process_restriction_maps(self, maps):
+        transform = Orthogonal(self.get_param_size(), self.orth)
+        maps = transform(maps)
+        return torch.flatten(maps, start_dim=1, end_dim=-1)
+
 
 class DiscreteGeneralSheafDiffusion(SheafDiffusion):
 
@@ -383,3 +391,6 @@ class DiscreteGeneralSheafDiffusion(SheafDiffusion):
         x = x.reshape(self.graph_size, -1)
         # x = self.lin2(x)
         return x, maps
+
+    def process_restriction_maps(self, maps):
+        return torch.flatten(maps, start_dim=1, end_dim=-1)

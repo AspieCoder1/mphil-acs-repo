@@ -1,7 +1,7 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 
-from typing import NamedTuple, Callable
+from typing import Callable
 
 import lightning as L
 import torch
@@ -63,7 +63,7 @@ class SheafLinkPredictor(L.LightningModule):
 
         self.save_hyperparameters(ignore="model")
 
-    def common_step(self, batch: Data) -> RecSysStepOutput:
+    def common_step(self, batch: Data) -> CommonStepOutput:
         # (1) Remove NaNs from edge_labels
         label_idx = ~batch.edge_label.isnan()
         y = batch.edge_label[label_idx]
