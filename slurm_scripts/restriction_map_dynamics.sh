@@ -8,8 +8,8 @@
 #SBATCH --output=slurm_output/restriction_map_dynamics/out/%A_%a.out
 #SBATCH --error=slurm_output/restriction_map_dynamics/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
-#SBATCH --time=3:00:00
-#SBATCH -a 0-8
+#SBATCH --time=1:00:00
+#SBATCH -a 0-44
 #SBATCH -p ampere
 #SBATCH --nodes 1
 #SBATCH --gres=gpu:1
@@ -21,9 +21,11 @@ DATASETS=( dblp acm imdb )
 
 IDX=${SLURM_ARRAY_TASK_ID}
 
-N_MODELS=${#MODELS[@]}
-MODEL_IDX=$(( IDX / N_MODELS ))
-DATA_IDX=$(( IDX % N_MODELS ))
+N_TRIALS=5
+N_DATASETS=${#DATASETS[@]}
+N_RUN=$((IDX / N_TRIALS))
+MODEL_IDX=$(( N_RUN / N_DATASETS ))
+DATA_IDX=$(( N_RUN % N_DATASETS ))
 DATASET=${DATASETS[DATA_IDX]}
 MODEL=${MODELS[MODEL_IDX]}
 
