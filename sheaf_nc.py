@@ -59,7 +59,7 @@ def main(cfg: Config) -> None:
         model,
         out_channels=datamodule.num_classes,
         target=datamodule.target,
-        task=datamodule.task
+        task=datamodule.task,
     )
 
     # 4) init trainer
@@ -102,18 +102,20 @@ def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:
         max_epochs=cfg.trainer.max_epochs,
         log_every_n_steps=1,
         callbacks=[
-            EarlyStopping("valid/loss",
-                          patience=cfg.trainer.patience),
-            ModelCheckpoint(dirpath=f"checkpoints/sheafnc_checkpoints/{logger.version}",
-                            filename=f'{cfg.model.type}-{cfg.dataset.name}',
-                            monitor="valid/accuracy",
-                            mode="max", save_top_k=1),
+            EarlyStopping("valid/loss", patience=cfg.trainer.patience),
+            ModelCheckpoint(
+                dirpath=f"checkpoints/sheafnc_checkpoints/{logger.version}",
+                filename=f"{cfg.model.type}-{cfg.dataset.name}",
+                monitor="valid/accuracy",
+                mode="max",
+                save_top_k=1,
+            ),
             timer,
-            RestrictionMapCallback()
-        ]
+            # RestrictionMapCallback()
+        ],
     )
     return trainer, timer, logger
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
