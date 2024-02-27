@@ -2,14 +2,29 @@
 #  License: MIT
 
 import lightning as L
+import torch
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from torch_geometric.data import Data
+from typing_extensions import TypeGuard, Protocol
 
 from models.sheaf_node_classifier import TrainStepOutput
+
+
+class ProcessesRestrictionMaps(Protocol):
+    def process_restriction_maps(self, maps: torch.Tensor) -> torch.Tensor: ...
+
+
+def is_sheaf_encoder(module: L.LightningModule) -> TypeGuard[ProcessesRestrictionMaps]:
+    if not hasattr(module, "encoder"):
+        return False
+
+    if not hasattr(module.encoder, "process_restriction_maps"):
+        return False
+    return True
 
 
 class RestrictionMapCallback(L.Callback):
@@ -27,8 +42,14 @@ class RestrictionMapCallback(L.Callback):
         batch: Data,
         batch_idx: int,
     ) -> None:
+        if not is_sheaf_encoder(pl_module):
+            return None
+
+        restriction_maps = pl_module.encoder.process_restriction_maps(
+            outputs["restriction_maps"]
+        )
         X_train, X_test, y_train, y_test = train_test_split(
-            outputs['restriction_maps'].cpu().detach().numpy(),
+            restriction_maps.cpu().detach().numpy(),
             batch.edge_type.cpu().detach().numpy(),
         )
 

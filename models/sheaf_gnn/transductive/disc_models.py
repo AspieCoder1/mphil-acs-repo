@@ -127,6 +127,7 @@ class DiscreteDiagSheafDiffusion(SheafDiffusion):
     def process_restriction_maps(self, maps):
         return maps
 
+
 class DiscreteBundleSheafDiffusion(SheafDiffusion):
 
     def __init__(self, edge_index, args):
@@ -265,7 +266,7 @@ class DiscreteBundleSheafDiffusion(SheafDiffusion):
         # x = self.lin2(x)
         return x, maps
 
-    def process_restriction_maps(self, maps):
+    def process_restriction_maps(self, maps: torch.Tensor) -> torch.Tensor:
         transform = Orthogonal(self.d, self.orth_trans)
         maps = transform(maps)
         return torch.flatten(maps, start_dim=1, end_dim=-1)

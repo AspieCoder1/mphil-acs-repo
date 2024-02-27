@@ -71,7 +71,7 @@ class SheafNodeClassifier(NodeClassifier):
         )
         return TrainStepOutput(
             loss=loss,
-            restriction_maps=self.encoder.process_restriction_maps(maps),
+            restriction_maps=maps,
         )
 
     def validation_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
