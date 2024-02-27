@@ -17,7 +17,6 @@ from core.sheaf_configs import SheafModelCfg, SheafNCDatasetCfg
 from core.trainer import TrainerArgs
 from models import SheafNodeClassifier
 from models.sheaf_gnn.config import SheafModelArguments
-from pl_callbacks.restriction_map_callback import RestrictionMapCallback
 
 
 @dataclass
@@ -85,6 +84,7 @@ def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:
         project="gnn-baselines",
         log_model=True,
         checkpoint_name=f"{cfg.model.type}-{cfg.dataset.name}",
+        entity="acs-thesis-lb2027"
     )
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name

@@ -14,8 +14,8 @@ from core.datasets import get_dataset_lp, LinkPredDatasets
 from core.models import get_inductive_sheaf_model
 from core.sheaf_configs import SheafModelCfg, SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
-from models.sheaf_gnn.config import IndSheafModelArguments
 from models import SheafLinkPredictor
+from models.sheaf_gnn.config import IndSheafModelArguments
 
 
 @dataclass
@@ -48,7 +48,11 @@ def main(cfg: Config):
         model=model, num_classes=1, hidden_dim=model.hidden_dim
     )
 
-    logger = WandbLogger(project="gnn-baselines", log_model=True)
+    logger = WandbLogger(
+        project="gnn-baselines",
+        log_model=True,
+        entity="acs-thesis-lb2027"
+    )
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name
     logger.experiment.tags = cfg.tags
