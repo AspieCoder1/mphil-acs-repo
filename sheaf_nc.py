@@ -82,7 +82,7 @@ def main(cfg: Config) -> None:
 
 def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:
     logger = WandbLogger(
-        project="acs-thesis-lb2027/gnn-baselines",
+        project="gnn-baselines",
         log_model=True,
         checkpoint_name=f"{cfg.model.type}-{cfg.dataset.name}",
     )

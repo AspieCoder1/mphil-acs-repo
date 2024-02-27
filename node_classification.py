@@ -62,7 +62,7 @@ def main(cfg: Config):
     )
 
     logger = WandbLogger(
-        project="acs-thesis-lb2027/gnn-baselines",
+        project="gnn-baselines",
         log_model=True,
         save_dir="~/rds/hpc-work/.wandb",
     )

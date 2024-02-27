@@ -48,7 +48,7 @@ def main(cfg: Config):
         model=model, num_classes=1, hidden_dim=model.hidden_dim
     )
 
-    logger = WandbLogger(project="acs-thesis-lb2027/gnn-baselines", log_model=True)
+    logger = WandbLogger(project="gnn-baselines", log_model=True)
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name
     logger.experiment.tags = cfg.tags
