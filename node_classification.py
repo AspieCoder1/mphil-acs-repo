@@ -52,42 +52,47 @@ def main(cfg: Config):
 
     model, is_homogeneous = get_model(cfg.model.type, datamodule)
 
-    classifier = NodeClassifier(model, hidden_channels=256,
-                                target=datamodule.target,
-                                out_channels=datamodule.num_classes,
-                                task=datamodule.task,
-                                homogeneous_model=is_homogeneous)
+    classifier = NodeClassifier(
+        model,
+        hidden_channels=256,
+        target=datamodule.target,
+        out_channels=datamodule.num_classes,
+        task=datamodule.task,
+        homogeneous_model=is_homogeneous,
+    )
 
-    logger = WandbLogger(project="gnn-baselines", log_model=False,
-                         save_dir="~/rds/hpc-work/.wandb")
+    logger = WandbLogger(
+        project="acs-thesis-lb2027/gnn-baselines",
+        log_model=True,
+        save_dir="~/rds/hpc-work/.wandb",
+    )
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name
     logger.experiment.tags = cfg.tags
     logger.log_hyperparams(
-        {
-            "n_heads": 8,
-            "hidden_units": 256,
-            "n_layers": 3,
-            "optimiser": "AdamW"
-        }
+        {"n_heads": 8, "hidden_units": 256, "n_layers": 3, "optimiser": "AdamW"}
     )
 
-    trainer = L.Trainer(accelerator=cfg.trainer.accelerator, log_every_n_steps=1,
-                        logger=logger,
-                        devices=cfg.trainer.devices,
-                        max_epochs=200,
-                        callbacks=[
-                            EarlyStopping("valid/loss",
-                                          patience=cfg.trainer.patience),
-                            ModelCheckpoint(
-                                dirpath=f"gnn_nc_checkpoints/{logger.version}",
-                                monitor="valid/accuracy",
-                                mode="max", save_top_k=1),
-                            Timer()
-                        ])
+    trainer = L.Trainer(
+        accelerator=cfg.trainer.accelerator,
+        log_every_n_steps=1,
+        logger=logger,
+        devices=cfg.trainer.devices,
+        max_epochs=200,
+        callbacks=[
+            EarlyStopping("valid/loss", patience=cfg.trainer.patience),
+            ModelCheckpoint(
+                dirpath=f"gnn_nc_checkpoints/{logger.version}",
+                monitor="valid/accuracy",
+                mode="max",
+                save_top_k=1,
+            ),
+            Timer(),
+        ],
+    )
     trainer.fit(classifier, datamodule)
     trainer.test(classifier, datamodule)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

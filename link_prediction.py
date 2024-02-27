@@ -38,31 +38,35 @@ def main(cfg: Config):
 
     model, is_homogeneous = get_model(cfg.model.type, datamodule)
 
-    link_predictor = LinkPredictor(model, edge_target=datamodule.target,
-                                   homogeneous=is_homogeneous,
-                                   batch_size=datamodule.batch_size)
+    link_predictor = LinkPredictor(
+        model,
+        edge_target=datamodule.target,
+        homogeneous=is_homogeneous,
+        batch_size=datamodule.batch_size,
+    )
 
-    logger = WandbLogger(project="gnn-baselines", log_model=True)
+    logger = WandbLogger(project="acs-thesis-lb2027/gnn-baselines", log_model=True)
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name
     logger.experiment.tags = cfg.tags
 
     timer = Timer()
 
-    trainer = L.Trainer(num_nodes=cfg.trainer.num_nodes,
-                        accelerator=cfg.trainer.accelerator,
-                        devices=cfg.trainer.devices,
-                        strategy=cfg.trainer.strategy,
-                        fast_dev_run=cfg.trainer.fast_dev_run,
-                        log_every_n_steps=1,
-                        max_epochs=200,
-                        logger=logger,
-                        callbacks=[
-                            EarlyStopping("valid/loss", patience=cfg.trainer.patience),
-                            ModelCheckpoint(monitor="valid/accuracy",
-                                            mode="max", save_top_k=1),
-                            timer
-                        ])
+    trainer = L.Trainer(
+        num_nodes=cfg.trainer.num_nodes,
+        accelerator=cfg.trainer.accelerator,
+        devices=cfg.trainer.devices,
+        strategy=cfg.trainer.strategy,
+        fast_dev_run=cfg.trainer.fast_dev_run,
+        log_every_n_steps=1,
+        max_epochs=200,
+        logger=logger,
+        callbacks=[
+            EarlyStopping("valid/loss", patience=cfg.trainer.patience),
+            ModelCheckpoint(monitor="valid/accuracy", mode="max", save_top_k=1),
+            timer,
+        ],
+    )
 
     trainer.fit(link_predictor, datamodule)
     trainer.test(link_predictor, datamodule)
@@ -75,5 +79,5 @@ def main(cfg: Config):
     logger.log_metrics(runtime)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -51,7 +51,7 @@ class LinkPredictor(L.LightningModule):
             {
                 "accuracy": BinaryAccuracy(),
                 "auroc": BinaryAUROC(),
-                "f1": BinaryF1Score()
+                "f1": BinaryF1Score(),
             },
             prefix="train/",
         )
@@ -70,7 +70,7 @@ class LinkPredictor(L.LightningModule):
         y_hat = self.decoder(x_dict, batch[self.target].edge_label_index).flatten()
         y = batch[self.target].edge_label
 
-        loss = F.binary_cross_entropy_with_logits(y, y_hat)
+        loss = F.binary_cross_entropy_with_logits(y_hat, y)
         y_hat = F.sigmoid(y_hat)
         return CommonStepOutput(y, y_hat, loss)
 

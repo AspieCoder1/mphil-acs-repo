@@ -45,11 +45,10 @@ def main(cfg: Config):
     model = model_cls(None, cfg.model_args)
 
     sheaf_lp = SheafLinkPredictor(
-        model=model, num_classes=1,
-        hidden_dim=model.hidden_dim
+        model=model, num_classes=1, hidden_dim=model.hidden_dim
     )
 
-    logger = WandbLogger(project="gnn-baselines", log_model=True)
+    logger = WandbLogger(project="acs-thesis-lb2027/gnn-baselines", log_model=True)
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name
     logger.experiment.tags = cfg.tags
@@ -67,14 +66,16 @@ def main(cfg: Config):
         max_epochs=cfg.trainer.max_epochs,
         log_every_n_steps=1,
         callbacks=[
-            EarlyStopping("valid/loss",
-                          patience=cfg.trainer.patience),
-            ModelCheckpoint(dirpath=f"sheaflp_checkpoints/{logger.version}",
-                            filename=cfg.model.type + '-' + cfg.dataset.name + '-{epoch}',
-                            monitor="valid/HR@20",
-                            mode="max", save_top_k=1),
-            timer
-        ]
+            EarlyStopping("valid/loss", patience=cfg.trainer.patience),
+            ModelCheckpoint(
+                dirpath=f"sheaflp_checkpoints/{logger.version}",
+                filename=cfg.model.type + "-" + cfg.dataset.name + "-{epoch}",
+                monitor="valid/HR@20",
+                mode="max",
+                save_top_k=1,
+            ),
+            timer,
+        ],
     )
 
     trainer.fit(sheaf_lp, dm)
