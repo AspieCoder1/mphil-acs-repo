@@ -5,18 +5,18 @@
 #
 
 #SBATCH -J sheaf_link_baselines
-#SBATCH --output=slurm_outputs/sheaf_link_baselines/out/%a.out
-#SBATCH --error=slurm_outputs/sheaf_link_baselines/err/%a.err
+#SBATCH --output=slurm_output/sheaf_link_baselines/out/%a.out
+#SBATCH --error=slurm_output/sheaf_link_baselines/err/%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=01:00:00
-#SBATCH -a 0-59
+#SBATCH -a 0-19
 #SBATCH -p ampere
 #SBATCH --nodes 1
 #SBATCH --gres=gpu:1
 #SBATCH --gpu-bind=none
 #SBATCH --mail-type=ALL
 
-MODEL_PARAMS=( bundle_sheaf diag_sheaf general_sheaf )
+MODEL_PARAMS=( general_sheaf )
 DATASETS=( last_fm amazon_books )
 
 N_TRIALS=10
