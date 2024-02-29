@@ -18,4 +18,4 @@
 export WANDB_CACHE_DIR="~/rds/hpc-work/.wandb"
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
 source ~/venv/bin/activate
-srun  python sheaf_lp.py
+srun  python sheaf_lp.py dataset='amazon_books'
