@@ -8,7 +8,7 @@
 #SBATCH --output=slurm_outputs/sheaf_lp_profile/out/%a.out
 #SBATCH --error=slurm_outputs/sheaf_lp_profile/err/%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
-#SBATCH --time=3:00:00
+#SBATCH --time=00:10:00
 #SBATCH -p ampere
 #SBATCH --nodes 1
 #SBATCH --gres=gpu:1
