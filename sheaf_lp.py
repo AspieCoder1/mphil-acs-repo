@@ -72,7 +72,7 @@ def main(cfg: Config):
             ModelCheckpoint(
                 dirpath=f"sheaflp_checkpoints/{logger.version}",
                 filename=cfg.model.type + "-" + cfg.dataset.name + "-{epoch}",
-                monitor="valid/HR@20",
+                monitor="valid/accuracy",
                 mode="max",
                 save_top_k=1,
             ),

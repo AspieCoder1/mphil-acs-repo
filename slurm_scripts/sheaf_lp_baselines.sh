@@ -5,8 +5,8 @@
 #
 
 #SBATCH -J sheaf_lp_profile
-#SBATCH --output=sheaf_lp_profile/out/%a.out
-#SBATCH --error=sheaf_lp_profile/err/%a.err
+#SBATCH --output=slurm_outputs/sheaf_lp_profile/out/%a.out
+#SBATCH --error=slurm_outputs/sheaf_lp_profile/err/%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=3:00:00
 #SBATCH -p ampere
