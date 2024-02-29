@@ -49,9 +49,7 @@ def main(cfg: Config):
     )
 
     logger = WandbLogger(
-        project="gnn-baselines",
-        log_model=True,
-        entity="acs-thesis-lb2027"
+        project="gnn-baselines", log_model=True, entity="acs-thesis-lb2027"
     )
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name

@@ -84,7 +84,7 @@ def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:
         project="gnn-baselines",
         log_model=True,
         checkpoint_name=f"{cfg.model.type}-{cfg.dataset.name}",
-        entity="acs-thesis-lb2027"
+        entity="acs-thesis-lb2027",
     )
     logger.experiment.config["model"] = cfg.model.type
     logger.experiment.config["dataset"] = cfg.dataset.name
