@@ -389,9 +389,12 @@ class GeneralLaplacianBuilder(LaplacianBuilder):
         )
 
         # Preprocess the sparse indices required to compute the Sheaf Laplacian.
-        self.diag_indices, self.tril_indices = lap.compute_learnable_laplacian_indices(
-            size, self.vertex_tril_idx, self.d, self.final_d
-        )
+        if edge_index is not None:
+            self.diag_indices, self.tril_indices = (
+                lap.compute_learnable_laplacian_indices(
+                    size, self.vertex_tril_idx, self.d, self.final_d
+                )
+            )
 
     def normalise(self, diag_maps, non_diag_maps, tril_row, tril_col):
         if self.normalised:
