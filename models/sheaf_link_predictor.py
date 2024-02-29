@@ -33,8 +33,6 @@ class EdgeDecoder(nn.Module):
         return self.lin(concat)
 
 
-
-
 class SheafLinkPredictor(L.LightningModule):
     def __init__(
         self,
@@ -52,7 +50,7 @@ class SheafLinkPredictor(L.LightningModule):
             {
                 "accuracy": BinaryAccuracy(),
                 "auroc": BinaryAUROC(),
-                "f1": BinaryF1Score()
+                "f1": BinaryF1Score(),
             },
             prefix="train/",
         )
@@ -76,9 +74,7 @@ class SheafLinkPredictor(L.LightningModule):
 
         # (4) Calculate dot product h[i].h[j] for i, j in edge_index
         y_hat = self.decoder(h, edge_index).flatten()
-        pos_examples = y_hat[batch.edge_label == 1]
-        neg_examples = y_hat[batch.edge_label == 0]
-        loss = self.loss_fn(pos_examples, neg_examples)
+        loss = F.binary_cross_entropy_with_logits(y_hat, y)
         y_hat = F.sigmoid(y_hat)
 
         return CommonStepOutput(loss=loss, y=y, y_hat=y_hat)
