@@ -3,6 +3,7 @@
 
 import lightning as L
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 import torch
 from lightning.pytorch.loggers import WandbLogger, Logger
@@ -90,13 +91,19 @@ class RestrictionMapUMAP(L.Callback):
         if not is_sheaf_encoder(pl_module):
             return None
 
+        edge_types = batch.edge_type.cpu().detach().numpy()
+        sample_idx, _, edge_types = train_test_split(
+            np.arange(len(edge_types)), edge_types, stratify=edge_types, random_state=42
+        )
+
+        restriction_maps = outputs["restriction_maps"][sample_idx]
+
         restriction_maps = (
-            pl_module.encoder.process_restriction_maps(outputs["restriction_maps"])
+            pl_module.encoder.process_restriction_maps(restriction_maps)
             .cpu()
             .detach()
             .numpy()
         )
-        edge_types = batch.edge_type.cpu().detach().numpy()
 
         rm_sample, _, _, _ = train_test_split(
             restriction_maps, edge_types, train_size=0.2, stratify=edge_types
