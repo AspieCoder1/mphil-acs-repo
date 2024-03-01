@@ -105,7 +105,7 @@ class RestrictionMapUMAP(L.Callback):
             .numpy()
         )
 
-        rm_sample, _, _, _ = train_test_split(
+        rm_sample, _, edge_types, _ = train_test_split(
             restriction_maps, edge_types, train_size=0.2, stratify=edge_types
         )
 
@@ -120,15 +120,13 @@ class RestrictionMapUMAP(L.Callback):
         ax.scatter(
             embeddings[:, 0],
             embeddings[:, 1],
-            c=batch.edge_types.cpu().detach().numpy(),
+            c=edge_types,
             cmap="Spectral",
             s=3,
         )
         ax.set_xlabel("UMAP Component 1")
         ax.set_ylabel("UMAP Component 2")
         ax.set_title(f"Epoch {batch_idx}")
-
-        assert isinstance(trainer.logger, WandbLogger)
 
         logger = trainer.logger
         if is_wandb_logger(logger):
