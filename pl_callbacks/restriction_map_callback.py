@@ -2,7 +2,10 @@
 #  License: MIT
 
 import lightning as L
+import matplotlib.pyplot as plt
+import seaborn as sns
 import torch
+from lightning.pytorch.loggers import WandbLogger, Logger
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
@@ -10,6 +13,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from torch_geometric.data import Data
 from typing_extensions import TypeGuard, Protocol
+from umap import UMAP
 
 from models.sheaf_node_classifier import TrainStepOutput
 
@@ -25,6 +29,10 @@ def is_sheaf_encoder(module: L.LightningModule) -> TypeGuard[ProcessesRestrictio
     if not hasattr(module.encoder, "process_restriction_maps"):
         return False
     return True
+
+
+def is_wandb_logger(module: Logger) -> TypeGuard[WandbLogger]:
+    return isinstance(module, WandbLogger)
 
 
 class RestrictionMapCallback(L.Callback):
@@ -60,3 +68,61 @@ class RestrictionMapCallback(L.Callback):
         acc = accuracy_score(y_test, preds)
 
         pl_module.log("train/restriction_map_accuracy", acc, batch_size=1)
+
+
+class RestrictionMapUMAP(L.Callback):
+    def __init__(self, log_every_n_epoch: int):
+        self.log_every_n_epoch: int = log_every_n_epoch
+
+    def on_train_batch_end(
+        self,
+        trainer: L.Trainer,
+        pl_module: L.LightningModule,
+        outputs: TrainStepOutput,
+        batch: Data,
+        batch_idx: int,
+    ) -> None:
+        ...
+
+        if batch_idx % self.log_every_n_epoch != 0:
+            return None
+
+        if not is_sheaf_encoder(pl_module):
+            return None
+
+        restriction_maps = (
+            pl_module.encoder.process_restriction_maps(outputs["restriction_maps"])
+            .cpu()
+            .detach()
+            .numpy()
+        )
+        edge_types = batch.edge_type.cpu().detach().numpy()
+
+        rm_sample, _, _, _ = train_test_split(
+            restriction_maps, edge_types, train_size=0.2, stratify=edge_types
+        )
+
+        umap = UMAP()
+        embeddings = umap.fit_transform(rm_sample)
+
+        sns.set_style("whitegrid")
+        sns.set_context("paper")
+        fig = plt.figure(figsize=(4, 4))
+        ax = fig.add_subplot(111)
+
+        ax.scatter(
+            embeddings[:, 0],
+            embeddings[:, 1],
+            c=batch.edge_types.cpu().detach().numpy(),
+            cmap="Spectral",
+            s=3,
+        )
+        ax.set_xlabel("UMAP Component 1")
+        ax.set_ylabel("UMAP Component 2")
+        ax.set_title(f"Epoch {batch_idx}")
+
+        assert isinstance(trainer.logger, WandbLogger)
+
+        logger = trainer.logger
+        if is_wandb_logger(logger):
+            logger.experiment.log({"UMAP Plot": fig})
