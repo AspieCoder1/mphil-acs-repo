@@ -92,8 +92,12 @@ class RestrictionMapUMAP(L.Callback):
             return None
 
         edge_types = batch.edge_type.cpu().detach().numpy()
-        sample_idx, _, edge_types = train_test_split(
-            np.arange(len(edge_types)), edge_types, stratify=edge_types, random_state=42
+        sample_idx, _, edge_types, _ = train_test_split(
+            np.arange(len(edge_types)),
+            edge_types,
+            stratify=edge_types,
+            random_state=42,
+            train_size=0.2,
         )
 
         restriction_maps = outputs["restriction_maps"][sample_idx]
@@ -105,12 +109,8 @@ class RestrictionMapUMAP(L.Callback):
             .numpy()
         )
 
-        rm_sample, _, edge_types, _ = train_test_split(
-            restriction_maps, edge_types, train_size=0.2, stratify=edge_types
-        )
-
         umap = UMAP()
-        embeddings = umap.fit_transform(rm_sample)
+        embeddings = umap.fit_transform(restriction_maps)
 
         sns.set_style("whitegrid")
         sns.set_context("paper")
