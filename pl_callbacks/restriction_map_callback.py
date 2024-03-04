@@ -74,6 +74,7 @@ class RestrictionMapCallback(L.Callback):
 class RestrictionMapUMAP(L.Callback):
     def __init__(self, log_every_n_epoch: int):
         self.log_every_n_epoch: int = log_every_n_epoch
+        self.epoch_number = 0
 
     def on_train_batch_end(
         self,
@@ -85,7 +86,8 @@ class RestrictionMapUMAP(L.Callback):
     ) -> None:
         ...
 
-        if batch_idx % self.log_every_n_epoch != 0:
+        if self.epoch_number % self.log_every_n_epoch != 0:
+            self.epoch_number += 1
             return None
 
         if not is_sheaf_encoder(pl_module):
@@ -126,7 +128,9 @@ class RestrictionMapUMAP(L.Callback):
         )
         ax.set_xlabel("UMAP Component 1")
         ax.set_ylabel("UMAP Component 2")
-        ax.set_title(f"Epoch {batch_idx}")
+        ax.set_title(f"Epoch {self.epoch_number}")
+
+        self.epoch_number += 1
 
         logger = trainer.logger
         if is_wandb_logger(logger):
