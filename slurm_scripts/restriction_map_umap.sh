@@ -4,9 +4,9 @@
 # License: MIT
 #
 
-#SBATCH -J restriction_map_dynamics
-#SBATCH --output=slurm_output/restriction_map_dynamics/out/%A_%a.out
-#SBATCH --error=slurm_output/restriction_map_dynamics/err/%A_%a.err
+#SBATCH -J restriction_map_umap
+#SBATCH --output=slurm_output/restriction_map_umap/out/%A_%a.out
+#SBATCH --error=slurm_output/restriction_map_umap/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=3:00:00
 #SBATCH -a 0-8
