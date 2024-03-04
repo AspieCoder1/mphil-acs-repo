@@ -2,6 +2,7 @@
 #  License: MIT
 
 from dataclasses import dataclass, field
+from datetime import timedelta
 from typing import Tuple
 
 import hydra
@@ -91,7 +92,7 @@ def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:
     logger.experiment.config["dataset"] = cfg.dataset.name
     logger.experiment.tags = cfg.tags
 
-    timer = Timer()
+    timer = Timer(timedelta(hours=3))
 
     trainer = L.Trainer(
         accelerator=cfg.trainer.accelerator,
