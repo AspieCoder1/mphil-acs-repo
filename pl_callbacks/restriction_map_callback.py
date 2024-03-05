@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import torch
+import wandb
 from lightning.pytorch.loggers import WandbLogger, Logger
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
@@ -86,8 +87,7 @@ class RestrictionMapUMAP(L.Callback):
     ) -> None:
         ...
 
-        if self.epoch_number % self.log_every_n_epoch != 0:
-            self.epoch_number += 1
+        if pl_module.global_step % self.log_every_n_epoch != 0:
             return None
 
         if not is_sheaf_encoder(pl_module):
@@ -134,4 +134,4 @@ class RestrictionMapUMAP(L.Callback):
 
         logger = trainer.logger
         if is_wandb_logger(logger):
-            logger.experiment.log({"UMAP Plot": fig})
+            logger.experiment.log({"UMAP Plot": wandb.Image(fig)})
