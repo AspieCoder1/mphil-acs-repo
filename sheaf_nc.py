@@ -113,7 +113,9 @@ def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:
                 save_top_k=1,
             ),
             timer,
-            RestrictionMapUMAP(log_every_n_epoch=50),
+            RestrictionMapUMAP(
+                log_every_n_epoch=50, model=cfg.model.type, dataset=cfg.dataset.name
+            ),
         ],
     )
     return trainer, timer, logger

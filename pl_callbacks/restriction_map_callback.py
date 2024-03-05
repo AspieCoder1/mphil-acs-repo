@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import torch
-import wandb
 from lightning.pytorch.loggers import WandbLogger, Logger
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
@@ -17,6 +16,8 @@ from torch_geometric.data import Data
 from typing_extensions import TypeGuard, Protocol
 from umap import UMAP
 
+from core.datasets import NCDatasets
+from core.sheaf_configs import ModelTypes
 from models.sheaf_node_classifier import TrainStepOutput
 
 
@@ -73,9 +74,10 @@ class RestrictionMapCallback(L.Callback):
 
 
 class RestrictionMapUMAP(L.Callback):
-    def __init__(self, log_every_n_epoch: int):
+    def __init__(self, log_every_n_epoch: int, dataset: NCDatasets, model: ModelTypes):
         self.log_every_n_epoch: int = log_every_n_epoch
-        self.epoch_number = 0
+        self.dataset = dataset
+        self.model = model
 
     def on_train_batch_end(
         self,
@@ -118,6 +120,10 @@ class RestrictionMapUMAP(L.Callback):
         sns.set_context("paper")
         fig = plt.figure(figsize=(4, 4))
         ax = fig.add_subplot(111)
+        fig.savefig(
+            f"umap_plots/{self.model}-{self.dataset}-{pl_module.global_step}.pdf",
+            dpi=300,
+        )
 
         ax.scatter(
             embeddings[:, 0],
@@ -134,4 +140,4 @@ class RestrictionMapUMAP(L.Callback):
 
         logger = trainer.logger
         if is_wandb_logger(logger):
-            logger.experiment.log({"UMAP Plot": wandb.Image(fig)})
+            logger.experiment.log({"UMAP Plot": fig})
