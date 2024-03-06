@@ -1,6 +1,8 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 
+import os
+
 import lightning as L
 import matplotlib.pyplot as plt
 import numpy as np
@@ -120,8 +122,12 @@ class RestrictionMapUMAP(L.Callback):
         sns.set_context("paper")
         fig = plt.figure(figsize=(4, 4))
         ax = fig.add_subplot(111)
+
+        if not os.path.exists(f"umap-plots/{self.model}/{self.dataset}"):
+            os.makedirs(f"umap-plots/{self.model}/{self.dataset}", exist_ok=True)
+
         fig.savefig(
-            f"umap_plots/{self.model}-{self.dataset}-{pl_module.global_step}.pdf",
+            f"umap-plots/{self.model}/{self.dataset}/step-{pl_module.global_step}.pdf",
             dpi=300,
         )
 
