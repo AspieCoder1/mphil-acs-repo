@@ -139,7 +139,7 @@ class RestrictionMapUMAP(L.Callback):
         ax.set_ylabel("UMAP Component 2")
         ax.set_title(f"Epoch {pl_module.global_step}")
 
-        fig.savefig(
+        plt.savefig(
             f"umap-plots/{self.model}/{self.dataset}/step-{pl_module.global_step}.pdf",
             dpi=300,
         )
