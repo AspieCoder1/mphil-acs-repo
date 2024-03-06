@@ -89,11 +89,12 @@ class RestrictionMapUMAP(L.Callback):
         batch: Data,
         batch_idx: int,
     ) -> None:
-        ...
 
-        if pl_module.global_step % self.log_every_n_epoch != 0:
+        if (
+            pl_module.global_step % self.log_every_n_epoch != 0
+            and pl_module.global_step != 1
+        ):
             return None
-
 
         if not is_sheaf_encoder(pl_module):
             return None
