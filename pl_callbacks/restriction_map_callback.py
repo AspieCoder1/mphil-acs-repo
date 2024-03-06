@@ -128,11 +128,6 @@ class RestrictionMapUMAP(L.Callback):
         if not os.path.exists(f"umap-plots/{self.model}/{self.dataset}"):
             os.makedirs(f"umap-plots/{self.model}/{self.dataset}", exist_ok=True)
 
-        fig.savefig(
-            f"umap-plots/{self.model}/{self.dataset}/step-{pl_module.global_step}.pdf",
-            dpi=300,
-        )
-
         ax.scatter(
             embeddings[:, 0],
             embeddings[:, 1],
@@ -143,6 +138,11 @@ class RestrictionMapUMAP(L.Callback):
         ax.set_xlabel("UMAP Component 1")
         ax.set_ylabel("UMAP Component 2")
         ax.set_title(f"Epoch {pl_module.global_step}")
+
+        fig.savefig(
+            f"umap-plots/{self.model}/{self.dataset}/step-{pl_module.global_step}.pdf",
+            dpi=300,
+        )
 
         logger = trainer.logger
         if is_wandb_logger(logger):
