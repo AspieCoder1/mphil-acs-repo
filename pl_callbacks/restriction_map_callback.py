@@ -94,6 +94,7 @@ class RestrictionMapUMAP(L.Callback):
         if pl_module.global_step % self.log_every_n_epoch != 0:
             return None
 
+
         if not is_sheaf_encoder(pl_module):
             return None
 
@@ -140,9 +141,7 @@ class RestrictionMapUMAP(L.Callback):
         )
         ax.set_xlabel("UMAP Component 1")
         ax.set_ylabel("UMAP Component 2")
-        ax.set_title(f"Epoch {self.epoch_number}")
-
-        self.epoch_number += 1
+        ax.set_title(f"Epoch {pl_module.global_step}")
 
         logger = trainer.logger
         if is_wandb_logger(logger):
