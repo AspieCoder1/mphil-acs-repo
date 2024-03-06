@@ -134,6 +134,7 @@ class RestrictionMapUMAP(L.Callback):
             c=edge_types,
             cmap="Spectral",
             s=3,
+            rasterized=True,
         )
         ax.set_xlabel("UMAP Component 1")
         ax.set_ylabel("UMAP Component 2")
@@ -142,6 +143,12 @@ class RestrictionMapUMAP(L.Callback):
         plt.savefig(
             f"umap-plots/{self.model}/{self.dataset}/step-{pl_module.global_step}.pdf",
             dpi=300,
+            bbox_inches="tight",
+        )
+        plt.savefig(
+            f"umap-plots/{self.model}/{self.dataset}/step-{pl_module.global_step}.png",
+            dpi=300,
+            bbox_inches="tight",
         )
 
         logger = trainer.logger
