@@ -137,4 +137,4 @@ class ACMDataModule(HGBBaseDataModule):
 if __name__ == "__main__":
     dm = DBLPDataModule(data_dir="../data", homogeneous=True)
     dm.prepare_data()
-    print(dm.pyg_datamodule.data)
+    print(dm.pyg_datamodule.data.node_type[0])
