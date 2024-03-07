@@ -22,11 +22,11 @@ class SheafLearner(nn.Module):
 
     @abstractmethod
     def forward(
-            self,
-            x: InputNodes,
-            edge_index: Adj,
-            edge_types: OptTensor = None,
-            node_types: OptTensor = None,
+        self,
+        x: InputNodes,
+        edge_index: Adj,
+        edge_types: OptTensor = None,
+        node_types: OptTensor = None,
     ):
         raise NotImplementedError()
 
@@ -55,11 +55,11 @@ class LocalConcatSheafLearner(SheafLearner):
             raise ValueError(f"Unsupported act {sheaf_act}")
 
     def forward(
-            self,
-            x: InputNodes,
-            edge_index: Adj,
-            edge_types: OptTensor = None,
-            node_types: OptTensor = None,
+        self,
+        x: InputNodes,
+        edge_index: Adj,
+        edge_types: OptTensor = None,
+        node_types: OptTensor = None,
     ):
         src, dst = edge_index
         x_src = torch.index_select(x, dim=0, index=src)
@@ -108,11 +108,11 @@ class LocalConcatSheafLearnerVariant(SheafLearner):
             raise ValueError(f"Unsupported act {sheaf_act}")
 
     def forward(
-            self,
-            x: InputNodes,
-            edge_index: Adj,
-            edge_types: OptTensor = None,
-            node_types: OptTensor = None,
+        self,
+        x: InputNodes,
+        edge_index: Adj,
+        edge_types: OptTensor = None,
+        node_types: OptTensor = None,
     ):
         src, dst = edge_index
 
@@ -143,11 +143,11 @@ class AttentionSheafLearner(SheafLearner):
         self.linear1 = torch.nn.Linear(in_channels * 2, d**2, bias=False)
 
     def forward(
-            self,
-            x: InputNodes,
-            edge_index: Adj,
-            edge_types: OptTensor = None,
-            node_types: OptTensor = None,
+        self,
+        x: InputNodes,
+        edge_index: Adj,
+        edge_types: OptTensor = None,
+        node_types: OptTensor = None,
     ):
         src, dst = edge_index
         x_src = torch.index_select(x, dim=0, index=src)
@@ -170,11 +170,11 @@ class EdgeWeightLearner(SheafLearner):
         )
 
     def forward(
-            self,
-            x: InputNodes,
-            edge_index: Adj,
-            edge_types: OptTensor = None,
-            node_types: OptTensor = None,
+        self,
+        x: InputNodes,
+        edge_index: Adj,
+        edge_types: OptTensor = None,
+        node_types: OptTensor = None,
     ):
         _, full_right_idx = self.full_left_right_idx
 
@@ -207,11 +207,11 @@ class QuadraticFormSheafLearner(SheafLearner):
         self.tensor = nn.Parameter(tensor)
 
     def forward(
-            self,
-            x: InputNodes,
-            edge_index: Adj,
-            edge_types: OptTensor = None,
-            node_types: OptTensor = None,
+        self,
+        x: InputNodes,
+        edge_index: Adj,
+        edge_types: OptTensor = None,
+        node_types: OptTensor = None,
     ):
         src, dst = edge_index
         x_src = torch.index_select(x, dim=0, index=src)
@@ -226,10 +226,10 @@ class QuadraticFormSheafLearner(SheafLearner):
 
 class TypeConatSheafLearner(SheafLearner):
     def __init__(
-            self,
-            in_channels: int,
-            out_shape: Tuple[int, ...],
-            sheaf_act: Literal["id", "tanh", "elu"] = "tanh",
+        self,
+        in_channels: int,
+        out_shape: Tuple[int, ...],
+        sheaf_act: Literal["id", "tanh", "elu"] = "tanh",
     ):
         super(TypeConatSheafLearner, self).__init__()
         assert len(out_shape) in [1, 2]
@@ -248,11 +248,11 @@ class TypeConatSheafLearner(SheafLearner):
             raise ValueError(f"Unsupported act {sheaf_act}")
 
     def forward(
-            self,
-            x: InputNodes,
-            edge_index: Adj,
-            edge_types: OptTensor = None,
-            node_types: OptTensor = None,
+        self,
+        x: InputNodes,
+        edge_index: Adj,
+        edge_types: OptTensor = None,
+        node_types: OptTensor = None,
     ):
         src, dst = edge_index
         x_src = torch.index_select(x, dim=0, index=src)
