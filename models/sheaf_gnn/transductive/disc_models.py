@@ -19,7 +19,7 @@ from models.sheaf_gnn.transductive.sheaf_base import SheafDiffusion
 
 class DiscreteSheafDiffusion(SheafDiffusion):
     def __init__(self, edge_index, args):
-        super(DiscreteSheafDiffusion).__init__(edge_index, args)
+        super(DiscreteSheafDiffusion, self).__init__(edge_index, args)
 
     @abstractmethod
     def process_restriction_maps(self, maps): ...
