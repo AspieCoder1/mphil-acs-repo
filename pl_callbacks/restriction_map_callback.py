@@ -128,12 +128,10 @@ class RestrictionMapUMAP(L.Callback):
         if not os.path.exists(f"umap-plots/{self.model}/{self.dataset}"):
             os.makedirs(f"umap-plots/{self.model}/{self.dataset}", exist_ok=True)
 
-        unique_edge_types, inverse_indices = torch.unique(
-            edge_types, return_inverse=True
-        )
+        unique_edge_types, unique_index = np.unique(edge_types, return_index=True)
         edge_types_to_label = {}
 
-        src, dst = batch.edge_index[inverse_indices]
+        src, dst = batch.edge_index[unique_index]
         src_type = batch.node_type[src]
         dst_type = batch.node_type[dst]
 
