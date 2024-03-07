@@ -11,18 +11,21 @@ from torch_geometric.data import HeteroData, Data
 from torch_geometric.data.lightning import LightningNodeData
 from torch_geometric.datasets import HGBDataset
 
-from .utils import RemoveSelfLoops
+from datasets.utils import RemoveSelfLoops
 
 DATA_DIR = "data"
 
 
 class HGBBaseDataModule(L.LightningDataModule):
-    def __init__(self, target: str = "author", num_classes: int = 4,
-                 data_dir: str = DATA_DIR,
-                 task: Literal["multiclass", "multilabel", "binary"] = "multiclass",
-                 dataset: Literal["IMDB", "DBLP", "ACM", "Freebase"] = "DBLP",
-                 homogeneous: bool = False,
-                 ):
+    def __init__(
+        self,
+        target: str = "author",
+        num_classes: int = 4,
+        data_dir: str = DATA_DIR,
+        task: Literal["multiclass", "multilabel", "binary"] = "multiclass",
+        dataset: Literal["IMDB", "DBLP", "ACM", "Freebase"] = "DBLP",
+        homogeneous: bool = False,
+    ):
         super().__init__()
         self.data_dir = data_dir
         self.target = target
@@ -39,10 +42,16 @@ class HGBBaseDataModule(L.LightningDataModule):
 
     def prepare_data(self) -> None:
         transform = T.Compose(
-            [T.Constant(node_types=None), T.RandomNodeSplit(), T.ToUndirected(),
-             RemoveSelfLoops(), T.NormalizeFeatures(), T.RemoveDuplicatedEdges()])
-        dataset = HGBDataset(root=self.data_dir, name=self.dataset,
-                             transform=transform)
+            [
+                T.Constant(node_types=None),
+                T.RandomNodeSplit(),
+                T.ToUndirected(),
+                RemoveSelfLoops(),
+                T.NormalizeFeatures(),
+                T.RemoveDuplicatedEdges(),
+            ]
+        )
+        dataset = HGBDataset(root=self.data_dir, name=self.dataset, transform=transform)
 
         data: Union[HeteroData, Data] = dataset[0].coalesce()
         input_nodes = data[self.target]
@@ -67,7 +76,7 @@ class HGBBaseDataModule(L.LightningDataModule):
             input_val_nodes=(self.target, input_nodes.val_mask),
             input_test_nodes=(self.target, input_nodes.test_mask),
             loader="full",
-            batch_size=1
+            batch_size=1,
         )
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
@@ -81,15 +90,14 @@ class HGBBaseDataModule(L.LightningDataModule):
 
 
 class IMDBDataModule(HGBBaseDataModule):
-    def __init__(self, data_dir: str = DATA_DIR,
-                 homogeneous: bool = False):
+    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
         super().__init__(
             data_dir=data_dir,
             task="multilabel",
             num_classes=5,
             dataset="IMDB",
             target="movie",
-            homogeneous=homogeneous
+            homogeneous=homogeneous,
         )
 
     def __str__(self):
@@ -97,15 +105,14 @@ class IMDBDataModule(HGBBaseDataModule):
 
 
 class DBLPDataModule(HGBBaseDataModule):
-    def __init__(self, data_dir: str = DATA_DIR,
-                 homogeneous: bool = False):
+    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
         super().__init__(
             dataset="DBLP",
             num_classes=4,
             target="author",
             task="multiclass",
             data_dir=data_dir,
-            homogeneous=homogeneous
+            homogeneous=homogeneous,
         )
 
     def __str__(self):
@@ -113,16 +120,21 @@ class DBLPDataModule(HGBBaseDataModule):
 
 
 class ACMDataModule(HGBBaseDataModule):
-    def __init__(self, data_dir: str = DATA_DIR,
-                 homogeneous: bool = False):
+    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
         super().__init__(
             data_dir=data_dir,
             dataset="ACM",
             num_classes=3,
             target="paper",
             task="multiclass",
-            homogeneous=homogeneous
+            homogeneous=homogeneous,
         )
 
     def __str__(self):
         return "ACM"
+
+
+if __name__ == "__main__":
+    dm = DBLPDataModule(data_dir="../data", homogeneous=True)
+    dm.prepare_data()
+    print(dm.pyg_datamodule.data)
