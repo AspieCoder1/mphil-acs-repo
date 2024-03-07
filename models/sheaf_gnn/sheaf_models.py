@@ -2,12 +2,13 @@
 #  Adapted from: https://github.com/twitter-research/neural-sheaf-diffusion
 
 from abc import abstractmethod
-from typing import Tuple
+from typing import Tuple, Literal
 
 import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import nn
+from torch_geometric.typing import Adj, InputNodes, OptTensor
 
 from .lib import laplace as lap
 
@@ -20,7 +21,13 @@ class SheafLearner(nn.Module):
         self.L = None
 
     @abstractmethod
-    def forward(self, x, edge_index):
+    def forward(
+            self,
+            x: InputNodes,
+            edge_index: Adj,
+            edge_types: OptTensor = None,
+            node_types: OptTensor = None,
+    ):
         raise NotImplementedError()
 
     def set_L(self, weights):
@@ -47,7 +54,13 @@ class LocalConcatSheafLearner(SheafLearner):
         else:
             raise ValueError(f"Unsupported act {sheaf_act}")
 
-    def forward(self, x, edge_index):
+    def forward(
+            self,
+            x: InputNodes,
+            edge_index: Adj,
+            edge_types: OptTensor = None,
+            node_types: OptTensor = None,
+    ):
         src, dst = edge_index
         x_src = torch.index_select(x, dim=0, index=src)
         x_dst = torch.index_select(x, dim=0, index=dst)
@@ -94,7 +107,13 @@ class LocalConcatSheafLearnerVariant(SheafLearner):
         else:
             raise ValueError(f"Unsupported act {sheaf_act}")
 
-    def forward(self, x, edge_index):
+    def forward(
+            self,
+            x: InputNodes,
+            edge_index: Adj,
+            edge_types: OptTensor = None,
+            node_types: OptTensor = None,
+    ):
         src, dst = edge_index
 
         x_src = torch.index_select(x, dim=0, index=src)  # this is really x_src
@@ -123,7 +142,13 @@ class AttentionSheafLearner(SheafLearner):
         self.d = d
         self.linear1 = torch.nn.Linear(in_channels * 2, d**2, bias=False)
 
-    def forward(self, x, edge_index):
+    def forward(
+            self,
+            x: InputNodes,
+            edge_index: Adj,
+            edge_types: OptTensor = None,
+            node_types: OptTensor = None,
+    ):
         src, dst = edge_index
         x_src = torch.index_select(x, dim=0, index=src)
         x_dst = torch.index_select(x, dim=0, index=dst)
@@ -144,7 +169,13 @@ class EdgeWeightLearner(SheafLearner):
             edge_index, full_matrix=True
         )
 
-    def forward(self, x, edge_index):
+    def forward(
+            self,
+            x: InputNodes,
+            edge_index: Adj,
+            edge_types: OptTensor = None,
+            node_types: OptTensor = None,
+    ):
         _, full_right_idx = self.full_left_right_idx
 
         row, col = edge_index
@@ -175,7 +206,13 @@ class QuadraticFormSheafLearner(SheafLearner):
         tensor = torch.eye(in_channels).unsqueeze(0).tile(int(np.prod(out_shape)), 1, 1)
         self.tensor = nn.Parameter(tensor)
 
-    def forward(self, x, edge_index):
+    def forward(
+            self,
+            x: InputNodes,
+            edge_index: Adj,
+            edge_types: OptTensor = None,
+            node_types: OptTensor = None,
+    ):
         src, dst = edge_index
         x_src = torch.index_select(x, dim=0, index=src)
         x_dst = torch.index_select(x, dim=0, index=dst)
@@ -185,3 +222,59 @@ class QuadraticFormSheafLearner(SheafLearner):
             return torch.tanh(maps).view(-1, self.out_shape[0], self.out_shape[1])
         else:
             return torch.tanh(maps).view(-1, self.out_shape[0])
+
+
+class TypeConatSheafLearner(SheafLearner):
+    def __init__(
+            self,
+            in_channels: int,
+            out_shape: Tuple[int, ...],
+            sheaf_act: Literal["id", "tanh", "elu"] = "tanh",
+    ):
+        super(TypeConatSheafLearner, self).__init__()
+        assert len(out_shape) in [1, 2]
+        self.out_shape = out_shape
+        self.linear1 = torch.nn.Linear(
+            in_channels * 2, int(np.prod(out_shape)), bias=False
+        )
+
+        if sheaf_act == "id":
+            self.act = lambda x: x
+        elif sheaf_act == "tanh":
+            self.act = torch.tanh
+        elif sheaf_act == "elu":
+            self.act = F.elu
+        else:
+            raise ValueError(f"Unsupported act {sheaf_act}")
+
+    def forward(
+            self,
+            x: InputNodes,
+            edge_index: Adj,
+            edge_types: OptTensor = None,
+            node_types: OptTensor = None,
+    ):
+        src, dst = edge_index
+        x_src = torch.index_select(x, dim=0, index=src)
+        x_dst = torch.index_select(x, dim=0, index=dst)
+
+        node_types_one_hot = F.one_hot(node_types)
+        src_type = torch.index_select(node_types_one_hot, dim=0, index=src)
+        dst_type = torch.index_select(node_types_one_hot, dim=0, index=dst)
+        edge_type = F.one_hot(edge_types)
+
+        maps = self.linear1(
+            torch.cat(
+                [x_src, x_dst, src_type, dst_type, edge_type],
+                dim=1,
+            )
+        )
+        maps = self.act(maps)
+
+        # sign = maps.sign()
+        # maps = maps.abs().clamp(0.05, 1.0) * sign
+
+        if len(self.out_shape) == 2:
+            return maps.view(-1, self.out_shape[0], self.out_shape[1])
+        else:
+            return maps.view(-1, self.out_shape[0])
