@@ -1,5 +1,6 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  Adapted from: https://github.com/twitter-research/neural-sheaf-diffusion
+from abc import abstractmethod
 
 import torch
 import torch.nn.functional as F
@@ -16,7 +17,15 @@ from models.sheaf_gnn.sheaf_models import (
 from models.sheaf_gnn.transductive.sheaf_base import SheafDiffusion
 
 
-class DiscreteDiagSheafDiffusion(SheafDiffusion):
+class DiscreteSheafDiffusion(SheafDiffusion):
+    def __init__(self, edge_index, args):
+        super(DiscreteSheafDiffusion).__init__(edge_index, args)
+
+    @abstractmethod
+    def process_restriction_maps(self, maps): ...
+
+
+class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
 
     def __init__(self, edge_index, args):
         super(DiscreteDiagSheafDiffusion, self).__init__(edge_index, args)
@@ -128,7 +137,7 @@ class DiscreteDiagSheafDiffusion(SheafDiffusion):
         return maps
 
 
-class DiscreteBundleSheafDiffusion(SheafDiffusion):
+class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
 
     def __init__(self, edge_index, args):
         super(DiscreteBundleSheafDiffusion, self).__init__(edge_index, args)
@@ -272,7 +281,7 @@ class DiscreteBundleSheafDiffusion(SheafDiffusion):
         return torch.flatten(maps, start_dim=1, end_dim=-1)
 
 
-class DiscreteGeneralSheafDiffusion(SheafDiffusion):
+class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
 
     def __init__(self, edge_index, args):
         super(DiscreteGeneralSheafDiffusion, self).__init__(edge_index, args)
