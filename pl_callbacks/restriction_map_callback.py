@@ -128,17 +128,22 @@ class RestrictionMapUMAP(L.Callback):
         if not os.path.exists(f"umap-plots/{self.model}/{self.dataset}"):
             os.makedirs(f"umap-plots/{self.model}/{self.dataset}", exist_ok=True)
 
-        ax.scatter(
-            embeddings[:, 0],
-            embeddings[:, 1],
-            c=edge_types,
-            cmap="Spectral",
-            s=3,
-            rasterized=True,
-        )
+        uniques, idxs = np.unique(edge_types, return_index=True)
+
+        for i, unique in enumerate(uniques):
+            ax.scatter(
+                embeddings[idxs[i], 0],
+                embeddings[idxs[i], 1],
+                c=edge_types,
+                cmap="Spectral",
+                label=unique,
+                s=3,
+                rasterized=True,
+            )
         ax.set_xlabel("UMAP Component 1")
         ax.set_ylabel("UMAP Component 2")
         ax.set_title(f"Epoch {pl_module.global_step}")
+        ax.legend()
 
         plt.savefig(
             f"umap-plots/{self.model}/{self.dataset}/step-{pl_module.global_step}.pdf",
