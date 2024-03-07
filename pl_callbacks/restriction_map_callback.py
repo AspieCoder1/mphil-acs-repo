@@ -133,8 +133,11 @@ class RestrictionMapUMAP(L.Callback):
         edge_types_to_label = {}
 
         edge = batch.edge_index[unique_index]
-        src_type = batch.node_type[edge[0, :]]
-        dst_type = batch.node_type[edge[1, :]]
+        src_type = batch.node_type[edge[:, 0]]
+        dst_type = batch.node_type[edge[:, 1]]
+
+        print(src_type)
+        print(dst_type)
 
         for i, edge_type in enumerate(unique_edge_types):
             edge_types_to_label[edge_type] = (
