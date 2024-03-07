@@ -128,24 +128,34 @@ class RestrictionMapUMAP(L.Callback):
         if not os.path.exists(f"umap-plots/{self.model}/{self.dataset}"):
             os.makedirs(f"umap-plots/{self.model}/{self.dataset}", exist_ok=True)
 
-        uniques, idxs = np.unique(edge_types, return_index=True)
+        unique_edge_types, edge_type_idx = np.unique(edge_types, return_index=True)
+        edge_types_to_label = {}
 
-        for i, unique in enumerate(uniques):
-            src_type = batch.node_types[batch.edge_index[idxs[i][0]]]
-            dst_type = batch.node_types[batch.edge_index[idxs[i][1]]]
-            ax.scatter(
-                embeddings[idxs[i], 0],
-                embeddings[idxs[i], 1],
-                c=edge_types,
-                cmap="Spectral",
-                label=rf"${src_type}\to{dst_type}$",
-                s=3,
-                rasterized=True,
-            )
+        for i, edge_type in enumerate(unique_edge_types):
+            src_type = batch.node_types[batch.edge_index[edge_type_idx[i][0]]]
+            dst_type = batch.node_types[batch.edge_index[edge_type_idx[i][1]]]
+            edge_types_to_label[edge_type] = rf"{src_type}\to{dst_type}"
+
+        scatter = ax.scatter(
+            embeddings[:, 0],
+            embeddings[:, 1],
+            c=edge_types,
+            cmap="Spectral",
+            s=3,
+            rasterized=True,
+        )
         ax.set_xlabel("UMAP Component 1")
         ax.set_ylabel("UMAP Component 2")
         ax.set_title(f"Epoch {pl_module.global_step}")
-        ax.legend()
+        legend1 = ax.legend(
+            *scatter.legend_elements(
+                func=lambda x: edge_types_to_label[x],
+                prop="colors",
+            ),
+            title="Edge types",
+        )
+
+        ax.add_artist(legend1)
 
         plt.savefig(
             f"umap-plots/{self.model}/{self.dataset}/step-{pl_module.global_step}.pdf",
