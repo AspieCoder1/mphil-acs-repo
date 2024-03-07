@@ -129,7 +129,7 @@ class RestrictionMapUMAP(L.Callback):
             os.makedirs(f"umap-plots/{self.model}/{self.dataset}", exist_ok=True)
 
         unique_edge_types, inverse_indices = torch.unique(
-            edge_types, inverse_indices=True
+            edge_types, return_inverse=True
         )
         edge_types_to_label = {}
 
