@@ -131,12 +131,14 @@ class RestrictionMapUMAP(L.Callback):
         uniques, idxs = np.unique(edge_types, return_index=True)
 
         for i, unique in enumerate(uniques):
+            src_type = batch.node_types[batch.edge_index[idxs[i][0]]]
+            dst_type = batch.node_types[batch.edge_index[idxs[i][1]]]
             ax.scatter(
                 embeddings[idxs[i], 0],
                 embeddings[idxs[i], 1],
                 c=edge_types,
                 cmap="Spectral",
-                label=unique,
+                label=rf"${src_type}\to{dst_type}$",
                 s=3,
                 rasterized=True,
             )
