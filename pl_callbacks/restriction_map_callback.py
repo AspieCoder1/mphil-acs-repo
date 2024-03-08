@@ -140,9 +140,9 @@ class RestrictionMapUMAP(L.Callback):
         print(dst_type)
 
         for i, edge_type in enumerate(unique_edge_types):
-            edge_types_to_label[edge_type] = (
-                rf"{src_type[i].item()} \to {dst_type[i].item()}"
-            )
+            src = src_type[i].item()
+            dst = dst_type[i].item()
+            edge_types_to_label[edge_type] = rf"{src: d} \to {dst: d}"
 
         scatter = ax.scatter(
             embeddings[:, 0],
