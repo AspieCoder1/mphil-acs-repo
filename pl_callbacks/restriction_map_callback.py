@@ -136,9 +136,6 @@ class RestrictionMapUMAP(L.Callback):
         src_type = batch.node_type[edge[:, 0]]
         dst_type = batch.node_type[edge[:, 1]]
 
-        print(src_type)
-        print(dst_type)
-
         for i, edge_type in enumerate(unique_edge_types):
             src = src_type[i].item()
             dst = dst_type[i].item()
