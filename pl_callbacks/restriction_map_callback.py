@@ -128,20 +128,6 @@ class RestrictionMapUMAP(L.Callback):
         if not os.path.exists(f"umap-plots/{self.model}/{self.dataset}"):
             os.makedirs(f"umap-plots/{self.model}/{self.dataset}", exist_ok=True)
 
-        unique_edge_types, unique_index = np.unique(edge_types, return_index=True)
-
-        edge_types_to_label = {}
-
-        edge = batch.edge_index[unique_index]
-        src_type = batch.node_type[edge[:, 0]].detach().cpu().numpy()
-        dst_type = batch.node_type[edge[:, 1]].detach().cpu().numpy()
-
-        for i, edge_type in enumerate(unique_edge_types):
-            src = src_type[unique_index[i]]
-            dst = dst_type[unique_index[i]]
-            print(rf"{src: d} \to {dst: d}")
-            edge_types_to_label[edge_type] = rf"{src: d} \to {dst: d}"
-
         scatter = ax.scatter(
             embeddings[:, 0],
             embeddings[:, 1],
