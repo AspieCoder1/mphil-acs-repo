@@ -132,7 +132,6 @@ class RestrictionMapUMAP(L.Callback):
             embeddings[:, 0],
             embeddings[:, 1],
             c=edge_types,
-            cmap="Spectral",
             s=3,
             rasterized=True,
         )
