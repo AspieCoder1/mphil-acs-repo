@@ -128,6 +128,17 @@ class RestrictionMapUMAP(L.Callback):
         if not os.path.exists(f"umap-plots/{self.model}/{self.dataset}"):
             os.makedirs(f"umap-plots/{self.model}/{self.dataset}", exist_ok=True)
 
+        unique_vals, unique_indices = np.unique(edge_types, return_index=True)
+
+        src, dst = batch.edge_index[:, unique_indices]
+        src_types = batch.node_type[src]
+        dst_types = batch.node_type[dst]
+
+        edge_type_to_label = {}
+
+        for i, edge_type in enumerate(unique_vals):
+            edge_type_to_label[edge_type] = rf"{src_types[i]} \to {dst_types[i]}"
+
         scatter = ax.scatter(
             embeddings[:, 0],
             embeddings[:, 1],
@@ -139,7 +150,9 @@ class RestrictionMapUMAP(L.Callback):
         ax.set_ylabel("UMAP Component 2")
         ax.set_title(f"Epoch {pl_module.global_step}")
         legend1 = ax.legend(
-            *scatter.legend_elements(),
+            *scatter.legend_elements(
+                prop="colors", func=lambda x: edge_type_to_label[x]
+            ),
             title="Edge types",
         )
 
