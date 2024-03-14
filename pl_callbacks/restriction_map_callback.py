@@ -152,7 +152,9 @@ class RestrictionMapUMAP(L.Callback):
         legend1 = ax.legend(
             *scatter.legend_elements(
                 prop="colors",
-                func=lambda arr: np.array(map(lambda x: edge_type_to_label[x], arr)),
+                func=lambda arr: np.array(
+                    map(lambda x: edge_type_to_label[x], arr.data)
+                ),
             ),
             title="Edge types",
         )
