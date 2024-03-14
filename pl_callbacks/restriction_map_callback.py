@@ -151,7 +151,8 @@ class RestrictionMapUMAP(L.Callback):
         ax.set_title(f"Epoch {pl_module.global_step}")
         legend1 = ax.legend(
             *scatter.legend_elements(
-                prop="colors", func=lambda x: edge_type_to_label[x]
+                prop="colors",
+                func=lambda arr: np.array(map(lambda x: edge_type_to_label[x], arr)),
             ),
             title="Edge types",
         )
