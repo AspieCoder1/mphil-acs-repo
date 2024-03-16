@@ -9,6 +9,7 @@ import numpy as np
 import seaborn as sns
 import torch
 from lightning.pytorch.loggers import WandbLogger, Logger
+from matplotlib.ticker import FuncFormatter
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
@@ -80,6 +81,7 @@ class RestrictionMapUMAP(L.Callback):
         self.log_every_n_epoch: int = log_every_n_epoch
         self.dataset = dataset
         self.model = model
+        self.edge_type_to_label = None
 
     def on_train_batch_end(
         self,
@@ -128,16 +130,16 @@ class RestrictionMapUMAP(L.Callback):
         if not os.path.exists(f"umap-plots/{self.model}/{self.dataset}"):
             os.makedirs(f"umap-plots/{self.model}/{self.dataset}", exist_ok=True)
 
-        unique_vals, unique_indices = np.unique(edge_types, return_index=True)
+        if self.edge_type_to_label is None:
+            unique_vals, unique_indices = np.unique(edge_types, return_index=True)
+            src, dst = batch.edge_index[:, unique_indices]
+            src_types = batch.node_type[src]
+            dst_types = batch.node_type[dst]
 
-        src, dst = batch.edge_index[:, unique_indices]
-        src_types = batch.node_type[src]
-        dst_types = batch.node_type[dst]
-
-        edge_type_to_label = {}
-
-        for i, edge_type in enumerate(unique_vals):
-            edge_type_to_label[edge_type] = rf"{src_types[i]} \to {dst_types[i]}"
+            self.edge_type_to_label = {
+                edge_type: rf"{src_types[i]} \to {dst_types[i]}"
+                for i, edge_type in enumerate(unique_vals)
+            }
 
         scatter = ax.scatter(
             embeddings[:, 0],
@@ -152,9 +154,7 @@ class RestrictionMapUMAP(L.Callback):
         legend1 = ax.legend(
             *scatter.legend_elements(
                 prop="colors",
-                func=lambda arr: np.array(
-                    map(lambda x: edge_type_to_label[x], arr.data)
-                ),
+                fmt=FuncFormatter(lambda x, _pos: self.edge_type_to_label[x]),
             ),
             title="Edge types",
         )
