@@ -4,7 +4,7 @@
 # License: MIT
 #
 
-#SBATCH -A COMPUTERLAB-SL2-GPU
+#SBATCH -A COMPUTERLAB-SL3-GPU
 #SBATCH --time=01:00:00
 #SBATCH -p ampere
 #SBATCH --nodes 1

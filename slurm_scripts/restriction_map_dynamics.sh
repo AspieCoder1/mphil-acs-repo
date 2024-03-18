@@ -7,7 +7,7 @@
 #SBATCH -J restriction_map_dynamics
 #SBATCH --output=slurm_output/restriction_map_dynamics/out/%A_%a.out
 #SBATCH --error=slurm_output/restriction_map_dynamics/err/%A_%a.err
-#SBATCH -A COMPUTERLAB-SL2-GPU
+#SBATCH -A COMPUTERLAB-SL3-GPU
 #SBATCH --time=1:00:00
 #SBATCH -a 0-44
 #SBATCH -p ampere

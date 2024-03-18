@@ -7,7 +7,7 @@
 #SBATCH -J preprocess_umap
 #SBATCH --output=preprocess_umap/out/%A_%a.out
 #SBATCH --error=preprocess_umap/err/%A_%a.err
-#SBATCH -A COMPUTERLAB-SL2-GPU
+#SBATCH -A COMPUTERLAB-SL3-GPU
 #SBATCH --time=3:00:00
 #SBATCH -a 0-8
 #SBATCH -p ampere
