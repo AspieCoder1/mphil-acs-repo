@@ -37,7 +37,9 @@ class SheafLearner(nn.Module):
 class LocalConcatSheafLearner(SheafLearner):
     """Learns a sheaf by concatenating the local node features and passing them through a linear layer + activation."""
 
-    def __init__(self, in_channels: int, out_shape: Tuple[int, ...], sheaf_act="tanh"):
+    def __init__(
+        self, in_channels: int, out_shape: Tuple[int, ...], sheaf_act="tanh", **kwargs
+    ):
         super(LocalConcatSheafLearner, self).__init__()
         assert len(out_shape) in [1, 2]
         self.out_shape = out_shape
@@ -230,13 +232,19 @@ class TypeConatSheafLearner(SheafLearner):
         in_channels: int,
         out_shape: Tuple[int, ...],
         sheaf_act: Literal["id", "tanh", "elu"] = "tanh",
+        num_node_types: int = 4,
+        num_edge_types: int = 12,
     ):
         super(TypeConatSheafLearner, self).__init__()
         assert len(out_shape) in [1, 2]
         self.out_shape = out_shape
         self.linear1 = torch.nn.Linear(
-            in_channels * 2, int(np.prod(out_shape)), bias=False
+            in_channels * 2 + num_node_types * 2 + num_edge_types,
+            int(np.prod(out_shape)),
+            bias=False,
         )
+        self.num_node_types = num_node_types
+        self.num_edge_types = num_edge_types
 
         if sheaf_act == "id":
             self.act = lambda x: x
@@ -258,21 +266,18 @@ class TypeConatSheafLearner(SheafLearner):
         x_src = torch.index_select(x, dim=0, index=src)
         x_dst = torch.index_select(x, dim=0, index=dst)
 
-        node_types_one_hot = F.one_hot(node_types)
+        node_types_one_hot = F.one_hot(node_types, self.num_node_types)
         src_type = torch.index_select(node_types_one_hot, dim=0, index=src)
         dst_type = torch.index_select(node_types_one_hot, dim=0, index=dst)
-        edge_type = F.one_hot(edge_types)
+        edge_type = F.one_hot(edge_types, num_classes=self.num_edge_types)
 
-        maps = self.linear1(
-            torch.cat(
-                [x_src, x_dst, src_type, dst_type, edge_type],
-                dim=1,
-            )
+        x_cat = torch.cat(
+            [x_src, x_dst, src_type, dst_type, edge_type],
+            dim=1,
         )
-        maps = self.act(maps)
 
-        # sign = maps.sign()
-        # maps = maps.abs().clamp(0.05, 1.0) * sign
+        maps = self.linear1(x_cat)
+        maps = self.act(maps)
 
         if len(self.out_shape) == 2:
             return maps.view(-1, self.out_shape[0], self.out_shape[1])

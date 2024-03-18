@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from enum import auto
 from typing import Optional
 
-from strenum import LowercaseStrEnum
+from strenum import LowercaseStrEnum, SnakeCaseStrEnum
 
 
 class IntMethod(LowercaseStrEnum):
@@ -66,8 +66,15 @@ class SheafModelArguments:
     graph_size: Optional[int] = None
     dropout: float = 0.0
     initial_dropout: float = 0.0
+    num_edge_types: Optional[int] = None
+    num_node_types: Optional[int] = None
 
 
 @dataclass
 class IndSheafModelArguments(SheafModelArguments):
     edge_weights: bool = False
+
+
+class SheafLearners(SnakeCaseStrEnum):
+    type_concat = auto()
+    local_concat = auto()

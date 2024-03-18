@@ -2,6 +2,7 @@
 #  License: MIT
 
 from dataclasses import field, dataclass
+from typing import Optional
 
 import hydra
 import lightning as L
@@ -48,12 +49,16 @@ def main(cfg: Config):
         model=model, num_classes=1, hidden_dim=model.hidden_dim
     )
 
-    logger = WandbLogger(
-        project="gnn-baselines", log_model=True, entity="acs-thesis-lb2027"
-    )
-    logger.experiment.config["model"] = cfg.model.type
-    logger.experiment.config["dataset"] = cfg.dataset.name
-    logger.experiment.tags = cfg.tags
+    logger: Optional[WandbLogger] = None
+    checkpoint_name = "test_run"
+    if cfg.trainer.logger:
+        logger = WandbLogger(
+            project="gnn-baselines", log_model=True, entity="acs-thesis-lb2027"
+        )
+        logger.experiment.config["model"] = cfg.model.type
+        logger.experiment.config["dataset"] = cfg.dataset.name
+        logger.experiment.tags = cfg.tags
+        checkpoint_name = logger.version
 
     timer = Timer()
 
@@ -70,7 +75,7 @@ def main(cfg: Config):
         callbacks=[
             EarlyStopping("valid/loss", patience=cfg.trainer.patience),
             ModelCheckpoint(
-                dirpath=f"sheaflp_checkpoints/{logger.version}",
+                dirpath=f"sheaflp_checkpoints/{checkpoint_name}",
                 filename=cfg.model.type + "-" + cfg.dataset.name + "-{epoch}",
                 monitor="valid/accuracy",
                 mode="max",
@@ -89,7 +94,8 @@ def main(cfg: Config):
         "test/runtime": timer.time_elapsed("test"),
     }
 
-    logger.log_metrics(runtime)
+    if cfg.trainer.logger:
+        logger.log_metrics(runtime)
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@ from torchdiffeq import odeint_adjoint
 
 from models.sheaf_gnn import laplacian_builders as lb
 from models.sheaf_gnn.config import ODEArguments
-from models.sheaf_gnn.transductive.sheaf_base import SheafDiffusion
+from models.sheaf_gnn.sheaf_base import SheafDiffusion
 from models.sheaf_gnn.sheaf_models import LocalConcatSheafLearner, EdgeWeightLearner
 
 

@@ -11,4 +11,5 @@ from models.sheaf_gnn.transductive.disc_models import (
     DiscreteDiagSheafDiffusion,
     DiscreteBundleSheafDiffusion,
     DiscreteGeneralSheafDiffusion,
+    DiscreteSheafDiffusion,
 )

@@ -14,3 +14,4 @@ class TrainerArgs:
     fast_dev_run: bool = False
     log_every_n_steps: int = 1
     max_epochs: int = 100
+    logger: bool = True

@@ -5,10 +5,10 @@ from typing import Literal, NamedTuple, TypedDict
 
 import torch
 from lightning.pytorch.utilities.types import STEP_OUTPUT
-from torch import nn
 from torch_geometric.data import Data
 
 from .node_classifier import NodeClassifier
+from .sheaf_gnn.transductive.disc_models import DiscreteSheafDiffusion
 
 
 class SheafNCSStepOutput(NamedTuple):
@@ -26,13 +26,12 @@ class TrainStepOutput(TypedDict):
 class SheafNodeClassifier(NodeClassifier):
     def __init__(
         self,
-        model: nn.Module,
+        model: DiscreteSheafDiffusion,
         out_channels: int = 10,
         target: str = "author",
         task: Literal["binary", "multiclass", "multilabel"] = "multilabel",
         homogeneous_model: bool = False,
     ):
-
         super().__init__(
             model=model,
             hidden_channels=model.hidden_dim,
@@ -51,7 +50,7 @@ class SheafNodeClassifier(NodeClassifier):
 
         mask = torch.logical_and(target_mask, mask)
         y = batch.y[mask]
-        logits, maps = self.encoder(batch.x)
+        logits, maps = self.encoder(batch)
 
         y_hat = self.decoder(logits)[mask]
 

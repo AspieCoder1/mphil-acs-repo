@@ -1,34 +1,50 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  Adapted from: https://github.com/twitter-research/neural-sheaf-diffusion
 from abc import abstractmethod
+from typing import Type, Union
 
 import torch
 import torch.nn.functional as F
 import torch_sparse
 from torch import nn
+from torch_geometric.data import Data
 
 from models.sheaf_gnn import laplacian_builders as lb
 from models.sheaf_gnn.orthogonal import Orthogonal
+from models.sheaf_gnn.sheaf_base import SheafDiffusion
 from models.sheaf_gnn.sheaf_models import (
     LocalConcatSheafLearner,
     EdgeWeightLearner,
     LocalConcatSheafLearnerVariant,
+    TypeConatSheafLearner,
 )
-from models.sheaf_gnn.transductive.sheaf_base import SheafDiffusion
 
 
 class DiscreteSheafDiffusion(SheafDiffusion):
-    def __init__(self, edge_index, args):
+    def __init__(
+        self,
+        edge_index,
+        args,
+        sheaf_learner: Type[
+            Union[LocalConcatSheafLearner, TypeConatSheafLearner]
+        ] = LocalConcatSheafLearner,
+    ):
         super(DiscreteSheafDiffusion, self).__init__(edge_index, args)
+        self.sheaf_learner = sheaf_learner
 
     @abstractmethod
     def process_restriction_maps(self, maps): ...
 
+    @abstractmethod
+    def forward(self, data: Data): ...
+
 
 class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
 
-    def __init__(self, edge_index, args):
-        super(DiscreteDiagSheafDiffusion, self).__init__(edge_index, args)
+    def __init__(self, edge_index, args, sheaf_learner):
+        super(DiscreteDiagSheafDiffusion, self).__init__(
+            edge_index, args, sheaf_learner
+        )
         assert args.d > 0
 
         self.lin_right_weights = nn.ModuleList()
@@ -63,8 +79,12 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
                 )
             else:
                 self.sheaf_learners.append(
-                    LocalConcatSheafLearner(
-                        self.hidden_dim, out_shape=(self.d,), sheaf_act=self.sheaf_act
+                    self.sheaf_learner(
+                        in_channels=self.hidden_dim,
+                        out_shape=(self.d,),
+                        sheaf_act=self.sheaf_act,
+                        num_edge_types=args.num_edge_types,
+                        num_node_types=args.num_node_types,
                     )
                 )
         self.laplacian_builder = lb.DiagLaplacianBuilder(
@@ -86,8 +106,8 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
             self.lin12 = nn.Linear(self.hidden_dim, self.hidden_dim)
         self.lin2 = nn.Linear(self.hidden_dim, self.output_dim)
 
-    def forward(self, x):
-        x = F.dropout(x, p=self.input_dropout, training=self.training)
+    def forward(self, data: Data):
+        x = F.dropout(data.x, p=self.input_dropout, training=self.training)
         x = self.lin1(x)
         if self.use_act:
             x = F.elu(x)
@@ -105,7 +125,10 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
 
                 # maps are the linear restriction maps
                 maps = self.sheaf_learners[layer](
-                    x_maps.reshape(self.graph_size, -1), self.edge_index
+                    x_maps.reshape(self.graph_size, -1),
+                    self.edge_index,
+                    data.edge_type,
+                    data.node_type,
                 )
                 L, trans_maps = self.laplacian_builder(maps)
                 self.sheaf_learners[layer].set_L(trans_maps)
@@ -139,8 +162,10 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
 
 class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
 
-    def __init__(self, edge_index, args):
-        super(DiscreteBundleSheafDiffusion, self).__init__(edge_index, args)
+    def __init__(self, edge_index, args, sheaf_learner):
+        super(DiscreteBundleSheafDiffusion, self).__init__(
+            edge_index, args, sheaf_learner
+        )
         assert args.d > 1
         assert not self.deg_normalised
 
@@ -177,10 +202,12 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
                 )
             else:
                 self.sheaf_learners.append(
-                    LocalConcatSheafLearner(
-                        self.hidden_dim,
+                    self.sheaf_learner(
+                        in_channels=self.hidden_dim,
                         out_shape=(self.get_param_size(),),
                         sheaf_act=self.sheaf_act,
+                        num_edge_types=args.num_edge_types,
+                        num_node_types=args.num_node_types,
                     )
                 )
 
@@ -228,8 +255,8 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
         for weight_learner in self.weight_learners:
             weight_learner.update_edge_index(edge_index)
 
-    def forward(self, x):
-        x = F.dropout(x, p=self.input_dropout, training=self.training)
+    def forward(self, data: Data):
+        x = F.dropout(data.x, p=self.input_dropout, training=self.training)
         x = self.lin1(x)
         if self.use_act:
             x = F.elu(x)
@@ -245,7 +272,9 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
                     x, p=self.dropout if layer > 0 else 0.0, training=self.training
                 )
                 x_maps = x_maps.reshape(self.graph_size, -1)
-                maps = self.sheaf_learners[layer](x_maps, self.edge_index)
+                maps = self.sheaf_learners[layer](
+                    x_maps, self.edge_index, data.edge_type, data.node_type
+                )
                 edge_weights = (
                     self.weight_learners[layer](x_maps, self.edge_index)
                     if self.use_edge_weights
@@ -283,8 +312,10 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
 
 class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
 
-    def __init__(self, edge_index, args):
-        super(DiscreteGeneralSheafDiffusion, self).__init__(edge_index, args)
+    def __init__(self, edge_index, args, sheaf_learner):
+        super(DiscreteGeneralSheafDiffusion, self).__init__(
+            edge_index, args, sheaf_learner
+        )
         assert args.d > 1
 
         self.lin_right_weights = nn.ModuleList()
@@ -319,10 +350,12 @@ class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
                 )
             else:
                 self.sheaf_learners.append(
-                    LocalConcatSheafLearner(
-                        self.hidden_dim,
+                    self.sheaf_learner(
+                        in_channels=self.hidden_dim,
                         out_shape=(self.d, self.d),
                         sheaf_act=self.sheaf_act,
+                        num_edge_types=args.num_edge_types,
+                        num_node_types=args.num_node_types,
                     )
                 )
         self.laplacian_builder = lb.GeneralLaplacianBuilder(
@@ -355,8 +388,8 @@ class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
 
         return x
 
-    def forward(self, x):
-        x = F.dropout(x, p=self.input_dropout, training=self.training)
+    def forward(self, data: Data):
+        x = F.dropout(data.x, p=self.input_dropout, training=self.training)
         x = self.lin1(x)
         if self.use_act:
             x = F.elu(x)
@@ -373,7 +406,10 @@ class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
                     x, p=self.dropout if layer > 0 else 0.0, training=self.training
                 )
                 maps = self.sheaf_learners[layer](
-                    x_maps.reshape(self.graph_size, -1), self.edge_index
+                    x_maps.reshape(self.graph_size, -1),
+                    self.edge_index,
+                    data.edge_type,
+                    data.node_type,
                 )
                 L, trans_maps = self.laplacian_builder(maps)
                 self.sheaf_learners[layer].set_L(trans_maps)

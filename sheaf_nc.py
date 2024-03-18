@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass, field
 from datetime import timedelta
-from typing import Tuple
+from typing import Tuple, Literal
 
 import hydra
 import lightning as L
@@ -17,7 +17,8 @@ from core.models import get_sheaf_model
 from core.sheaf_configs import SheafModelCfg, SheafNCDatasetCfg
 from core.trainer import TrainerArgs
 from models import SheafNodeClassifier
-from models.sheaf_gnn.config import SheafModelArguments
+from models.sheaf_gnn.config import SheafModelArguments, SheafLearners
+from models.sheaf_gnn.sheaf_models import LocalConcatSheafLearner, TypeConatSheafLearner
 from pl_callbacks.restriction_map_callback import RestrictionMapUMAP
 
 
@@ -28,6 +29,7 @@ class Config:
     model: SheafModelCfg = field(default_factory=SheafModelCfg)
     dataset: SheafNCDatasetCfg = field(default_factory=SheafNCDatasetCfg)
     model_args: SheafModelArguments = field(default_factory=SheafModelArguments)
+    sheaf_learner: SheafLearners = SheafLearners.local_concat
 
 
 cs = ConfigStore.instance()
@@ -41,6 +43,8 @@ def main(cfg: Config) -> None:
     # The data  must be homogeneous due to how code is configured
     datamodule = get_dataset_nc(cfg.dataset.name, True)
     datamodule.prepare_data()
+    print(datamodule.pyg_datamodule.data.num_edge_types)
+    print(datamodule.pyg_datamodule.data.num_node_types)
 
     # 2) Update the config
     cfg.model_args.graph_size = datamodule.graph_size
@@ -49,12 +53,18 @@ def main(cfg: Config) -> None:
     cfg.model_args.graph_size = datamodule.graph_size
     cfg.model_args.input_dim = datamodule.in_channels
     cfg.model_args.output_dim = datamodule.num_classes
+    cfg.model_args.num_edge_types = datamodule.num_edge_types
+    cfg.model_args.num_node_types = datamodule.num_node_types
     edge_index = datamodule.edge_index.to(cfg.model_args.device)
 
     # 3) Initialise models
-
     model_cls = get_sheaf_model(cfg.model.type)
-    model = model_cls(edge_index, cfg.model_args)
+    if cfg.sheaf_learner == "type_concat":
+        sheaf_learner = TypeConatSheafLearner
+    else:
+        sheaf_learner = LocalConcatSheafLearner
+
+    model = model_cls(edge_index, cfg.model_args, sheaf_learner=sheaf_learner)
 
     sheaf_nc = SheafNodeClassifier(
         model,
@@ -78,20 +88,25 @@ def main(cfg: Config) -> None:
         "test/runtime": timer.time_elapsed("test"),
     }
 
-    logger.log_metrics(runtime)
+    if cfg.trainer.logger:
+        logger.log_metrics(runtime)
 
 
 def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:
-    logger = WandbLogger(
-        project="gnn-baselines",
-        log_model=True,
-        checkpoint_name=f"{cfg.model.type}-{cfg.dataset.name}",
-        entity="acs-thesis-lb2027",
-    )
-    logger.experiment.config["model"] = cfg.model.type
-    logger.experiment.config["dataset"] = cfg.dataset.name
-    logger.experiment.tags = cfg.tags
+    logger = None
+    checkpoint_name = "test_run"
 
+    if cfg.trainer.logger:
+        logger = WandbLogger(
+            project="gnn-baselines",
+            log_model=True,
+            checkpoint_name=f"{cfg.model.type}-{cfg.dataset.name}",
+            entity="acs-thesis-lb2027",
+        )
+        logger.experiment.config["model"] = cfg.model.type
+        logger.experiment.config["dataset"] = cfg.dataset.name
+        logger.experiment.tags = cfg.tags
+        checkpoint_name = logger.version
     timer = Timer(timedelta(hours=3))
 
     trainer = L.Trainer(
@@ -106,7 +121,7 @@ def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:
         callbacks=[
             EarlyStopping("valid/loss", patience=cfg.trainer.patience),
             ModelCheckpoint(
-                dirpath=f"checkpoints/sheafnc_checkpoints/{logger.version}",
+                dirpath=f"checkpoints/sheafnc_checkpoints/{checkpoint_name}",
                 filename=f"{cfg.model.type}-{cfg.dataset.name}",
                 monitor="valid/accuracy",
                 mode="max",
