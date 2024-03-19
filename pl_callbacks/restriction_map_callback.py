@@ -9,7 +9,6 @@ import numpy as np
 import seaborn as sns
 import torch
 from lightning.pytorch.loggers import WandbLogger, Logger
-from matplotlib.ticker import FuncFormatter
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
@@ -130,8 +129,9 @@ class RestrictionMapUMAP(L.Callback):
         if not os.path.exists(f"umap-plots/{self.model}/{self.dataset}"):
             os.makedirs(f"umap-plots/{self.model}/{self.dataset}", exist_ok=True)
 
+        unique_vals, unique_indices = np.unique(edge_types, return_index=True)
+
         if self.edge_type_to_label is None:
-            unique_vals, unique_indices = np.unique(edge_types, return_index=True)
             src, dst = batch.edge_index[:, unique_indices]
             src_types = batch.node_type[src]
             dst_types = batch.node_type[dst]
@@ -140,26 +140,25 @@ class RestrictionMapUMAP(L.Callback):
                 edge_type: rf"{src_types[i]} \to {dst_types[i]}"
                 for i, edge_type in enumerate(unique_vals)
             }
+            print(self.edge_type_to_label)
 
-        scatter = ax.scatter(
-            embeddings[:, 0],
-            embeddings[:, 1],
-            c=edge_types,
-            s=3,
-            rasterized=True,
-        )
+        for edge_type in unique_vals:
+            edge_mask = edge_types == edge_type
+            embs = embeddings[edge_mask]
+            edge_types = [edge_mask]
+
+            ax.scatter(
+                embs[:, 0],
+                embs[:, 1],
+                c=edge_types,
+                label=self.edge_type_to_label[edge_type],
+                s=3,
+                rasterized=True,
+            )
         ax.set_xlabel("UMAP Component 1")
         ax.set_ylabel("UMAP Component 2")
         ax.set_title(f"Epoch {pl_module.global_step}")
-        legend1 = ax.legend(
-            *scatter.legend_elements(
-                prop="colors",
-                fmt=FuncFormatter(lambda x, _pos: self.edge_type_to_label[x]),
-            ),
-            title="Edge types",
-        )
-
-        ax.add_artist(legend1)
+        ax.legend()
 
         plt.savefig(
             f"umap-plots/{self.model}/{self.dataset}/step-{pl_module.global_step}.pdf",
