@@ -141,8 +141,7 @@ class RestrictionMapUMAP(L.Callback):
 
         for edge_type in unique_vals:
             edge_mask = edge_types == edge_type
-            embs = embeddings[edge_mask, :]
-            edge_types = [edge_mask]
+            embs = embeddings[edge_mask]
 
             ax.scatter(
                 embs[:, 0],
