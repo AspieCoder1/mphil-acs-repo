@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass, field
 from datetime import timedelta
-from typing import Tuple, Literal
+from typing import Tuple
 
 import hydra
 import lightning as L
@@ -103,7 +103,7 @@ def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:
             checkpoint_name=f"{cfg.model.type}-{cfg.dataset.name}",
             entity="acs-thesis-lb2027",
         )
-        logger.experiment.config["model"] = cfg.model.type
+        logger.experiment.config["model"] = f"{cfg.model.type}-{cfg.sheaf_learner}"
         logger.experiment.config["dataset"] = cfg.dataset.name
         logger.experiment.tags = cfg.tags
         checkpoint_name = logger.version
