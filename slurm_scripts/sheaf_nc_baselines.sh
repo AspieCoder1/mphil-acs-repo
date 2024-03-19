@@ -5,8 +5,8 @@
 #
 
 #SBATCH -J sheafnc_baselines
-#SBATCH --output=sheafnc_baselines/out/%A_%a.out
-#SBATCH --error=sheafnc_baselines/err/%A_%a.err
+#SBATCH --output=slurm_outputs/sheafnc_baselines/out/%A_%a.out
+#SBATCH --error=slurm_outputs/sheafnc_baselines/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL3-GPU
 #SBATCH --time=3:00:00
 #SBATCH -a 0-89%10
@@ -34,4 +34,4 @@ DATASET=${DATASETS[DATA_IDX]}
 export WANDB_CACHE_DIR="~/rds/hpc-work/.wandb"
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
 source ~/venv/bin/activate
-srun python sheaf_nc.py model="${MODEL}" dataset="${DATASET}" sheaf_learner=type_concat tags=["${MODEL}","${DATASET}",nc,sheaf,exp1_1, type_concat]
+srun python sheaf_nc.py model="${MODEL}" dataset="${DATASET}" sheaf_learner=type_concat tags=["${MODEL}","${DATASET}",nc,sheaf,exp1_1,type_concat]
