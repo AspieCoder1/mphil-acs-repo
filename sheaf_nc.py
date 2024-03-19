@@ -30,6 +30,7 @@ class Config:
     dataset: SheafNCDatasetCfg = field(default_factory=SheafNCDatasetCfg)
     model_args: SheafModelArguments = field(default_factory=SheafModelArguments)
     sheaf_learner: SheafLearners = SheafLearners.local_concat
+    plot_maps: bool = False
 
 
 cs = ConfigStore.instance()
@@ -109,6 +110,25 @@ def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:
         checkpoint_name = logger.version
     timer = Timer(timedelta(hours=3))
 
+    callbacks = [
+        EarlyStopping("valid/loss", patience=cfg.trainer.patience),
+        ModelCheckpoint(
+            dirpath=f"checkpoints/sheafnc_checkpoints/{checkpoint_name}",
+            filename=f"{cfg.model.type}-{cfg.dataset.name}",
+            monitor="valid/accuracy",
+            mode="max",
+            save_top_k=1,
+        ),
+        timer,
+    ]
+
+    if cfg.plot_maps:
+        callbacks.append(
+            RestrictionMapUMAP(
+                log_every_n_epoch=50, model=cfg.model.type, dataset=cfg.dataset.name
+            )
+        )
+
     trainer = L.Trainer(
         accelerator=cfg.trainer.accelerator,
         devices=cfg.trainer.devices,
@@ -118,20 +138,7 @@ def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:
         logger=logger,
         max_epochs=cfg.trainer.max_epochs,
         log_every_n_steps=1,
-        callbacks=[
-            EarlyStopping("valid/loss", patience=cfg.trainer.patience),
-            ModelCheckpoint(
-                dirpath=f"checkpoints/sheafnc_checkpoints/{checkpoint_name}",
-                filename=f"{cfg.model.type}-{cfg.dataset.name}",
-                monitor="valid/accuracy",
-                mode="max",
-                save_top_k=1,
-            ),
-            timer,
-            # RestrictionMapUMAP(
-            #     log_every_n_epoch=50, model=cfg.model.type, dataset=cfg.dataset.name
-            # ),
-        ],
+        callbacks=callbacks,
     )
     return trainer, timer, logger
 
