@@ -147,7 +147,6 @@ class RestrictionMapUMAP(L.Callback):
             ax.scatter(
                 embs[:, 0],
                 embs[:, 1],
-                c=edge_types,
                 label=edge_type_to_label[edge_type],
                 s=3,
                 rasterized=True,
