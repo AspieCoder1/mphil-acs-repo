@@ -283,3 +283,69 @@ class TypeConatSheafLearner(SheafLearner):
             return maps.view(-1, self.out_shape[0], self.out_shape[1])
         else:
             return maps.view(-1, self.out_shape[0])
+
+
+class TypeEnsembleSheafLearner(SheafLearner):
+    def __init__(
+        self,
+        in_channels: int,
+        out_shape: Tuple[int, ...],
+        sheaf_act: Literal["id", "tanh", "elu"] = "tanh",
+        num_node_types: int = 4,
+        num_edge_types: int = 12,
+    ):
+        super(TypeEnsembleSheafLearner, self).__init__()
+        assert len(out_shape) in [1, 2]
+        self.out_shape = out_shape
+        self.linear1 = torch.nn.Linear(
+            in_channels * 2 + num_node_types * 2 + num_edge_types,
+            int(np.prod(out_shape)),
+            bias=False,
+        )
+        self.num_node_types = num_node_types
+        self.num_edge_types = num_edge_types
+
+        self.linear1 = nn.ModuleDict(
+            {
+                f"{edge_type}": nn.Linear(
+                    in_channels * 2, int(np.prod(out_shape)), bias=False
+                )
+                for edge_type in range(num_edge_types)
+            }
+        )
+
+        if sheaf_act == "id":
+            self.act = lambda x: x
+        elif sheaf_act == "tanh":
+            self.act = torch.tanh
+        elif sheaf_act == "elu":
+            self.act = F.elu
+        else:
+            raise ValueError(f"Unsupported act {sheaf_act}")
+
+    def compute_map(self, x_cat: torch.Tensor, edge_type: int):
+        return self.linear1[f"{edge_type}"](x_cat)
+
+    def forward(
+        self,
+        x: InputNodes,
+        edge_index: Adj,
+        edge_types: OptTensor = None,
+        node_types: OptTensor = None,
+    ):
+        src, dst = edge_index
+        x_src = torch.index_select(x, dim=0, index=src)
+        x_dst = torch.index_select(x, dim=0, index=dst)
+
+        x_cat = torch.cat(
+            [x_src, x_dst],
+            dim=1,
+        )
+
+        maps = torch.vmap(self.compute_map)(x_cat, edge_types)
+        maps = self.act(maps)
+
+        if len(self.out_shape) == 2:
+            return maps.view(-1, self.out_shape[0], self.out_shape[1])
+        else:
+            return maps.view(-1, self.out_shape[0])
