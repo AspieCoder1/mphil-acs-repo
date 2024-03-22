@@ -18,7 +18,11 @@ from core.sheaf_configs import SheafModelCfg, SheafNCDatasetCfg
 from core.trainer import TrainerArgs
 from models import SheafNodeClassifier
 from models.sheaf_gnn.config import SheafModelArguments, SheafLearners
-from models.sheaf_gnn.sheaf_models import LocalConcatSheafLearner, TypeConatSheafLearner
+from models.sheaf_gnn.sheaf_models import (
+    LocalConcatSheafLearner,
+    TypeConatSheafLearner,
+    TypeEnsembleSheafLearner,
+)
 from pl_callbacks.restriction_map_callback import RestrictionMapUMAP
 
 
@@ -29,7 +33,7 @@ class Config:
     model: SheafModelCfg = field(default_factory=SheafModelCfg)
     dataset: SheafNCDatasetCfg = field(default_factory=SheafNCDatasetCfg)
     model_args: SheafModelArguments = field(default_factory=SheafModelArguments)
-    sheaf_learner: SheafLearners = SheafLearners.local_concat
+    sheaf_learner: SheafLearners = SheafLearners.type_ensemble
     plot_maps: bool = False
 
 
@@ -60,10 +64,12 @@ def main(cfg: Config) -> None:
 
     # 3) Initialise models
     model_cls = get_sheaf_model(cfg.model.type)
-    if cfg.sheaf_learner == "type_concat":
+    if cfg.sheaf_learner == SheafLearners.type_concat:
         sheaf_learner = TypeConatSheafLearner
-    else:
+    elif cfg.sheaf_learner == SheafLearners.local_concat:
         sheaf_learner = LocalConcatSheafLearner
+    else:
+        sheaf_learner = TypeEnsembleSheafLearner
 
     model = model_cls(edge_index, cfg.model_args, sheaf_learner=sheaf_learner)
 

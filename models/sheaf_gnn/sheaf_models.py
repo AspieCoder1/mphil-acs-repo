@@ -305,13 +305,11 @@ class TypeEnsembleSheafLearner(SheafLearner):
         self.num_node_types = num_node_types
         self.num_edge_types = num_edge_types
 
-        self.linear1 = nn.ModuleDict(
-            {
-                f"{edge_type}": nn.Linear(
-                    in_channels * 2, int(np.prod(out_shape)), bias=False
-                )
-                for edge_type in range(num_edge_types)
-            }
+        self.linear1 = nn.ModuleList(
+            [
+                nn.Linear(in_channels * 2, int(np.prod(out_shape)), bias=False)
+                for _ in range(num_edge_types)
+            ]
         )
 
         if sheaf_act == "id":
@@ -323,8 +321,8 @@ class TypeEnsembleSheafLearner(SheafLearner):
         else:
             raise ValueError(f"Unsupported act {sheaf_act}")
 
-    def compute_map(self, x_cat: torch.Tensor, edge_type: int):
-        return self.linear1[f"{edge_type}"](x_cat)
+    def compute_map(self, x_cat: torch.Tensor, edge_type):
+        return self.linear1[edge_type](x_cat)
 
     def forward(
         self,

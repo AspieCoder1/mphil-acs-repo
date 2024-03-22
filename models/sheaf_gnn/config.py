@@ -78,3 +78,4 @@ class IndSheafModelArguments(SheafModelArguments):
 class SheafLearners(SnakeCaseStrEnum):
     type_concat = auto()
     local_concat = auto()
+    type_ensemble = auto()
