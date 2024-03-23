@@ -1,42 +1,52 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 
-import torch.nn.functional as F
 from torch import nn
-from torch_geometric.nn import GATConv
+from torch_geometric.nn import GATConv, Sequential
 
 
 class GAT(nn.Module):
     def __init__(self, hidden_channels: int = 256, n_heads=8, in_channels: int = 64):
         super().__init__()
 
-        self.conv = nn.ModuleList(
+        self.conv = Sequential(
+            "x, edge_index",
             [
-                GATConv(
-                    in_channels,
-                    hidden_channels,
-                    heads=n_heads,
-                    dropout=0.6,
-                    add_self_loops=False,
+                (
+                    GATConv(
+                        in_channels,
+                        hidden_channels,
+                        heads=n_heads,
+                        dropout=0.6,
+                        add_self_loops=False,
+                    ),
+                    "x, edge_index -> x",
                 ),
-                GATConv(
-                    hidden_channels * n_heads,
-                    hidden_channels,
-                    heads=n_heads,
-                    dropout=0.6,
-                    add_self_loops=False,
+                nn.ELU(),
+                (
+                    GATConv(
+                        hidden_channels * n_heads,
+                        hidden_channels,
+                        heads=n_heads,
+                        dropout=0.6,
+                        add_self_loops=False,
+                    ),
+                    "x, edge_index -> x",
                 ),
-                GATConv(
-                    n_heads * hidden_channels,
-                    hidden_channels,
-                    heads=1,
-                    dropout=0.6,
-                    add_self_loops=False,
+                nn.ELU(),
+                (
+                    GATConv(
+                        hidden_channels * n_heads,
+                        hidden_channels,
+                        heads=1,
+                        dropout=0.6,
+                        add_self_loops=False,
+                    ),
+                    "x, edge_index -> x",
                 ),
-            ]
+                nn.ELU(),
+            ],
         )
 
     def forward(self, x, edge_index):
-        for layer in self.conv:
-            x = F.elu(layer(x, edge_index))
-        return x
+        return self.conv(x, edge_index)
