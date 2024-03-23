@@ -3,7 +3,7 @@
 
 import torch.nn as nn
 from torch_geometric.data import HeteroData
-from torch_geometric.nn import HeteroConv, GCNConv
+from torch_geometric.nn import HeteroConv, SAGEConv
 
 
 class HeteroGNN(nn.Module):
@@ -23,8 +23,11 @@ class HeteroGNN(nn.Module):
         self.convs.append(
             HeteroConv(
                 {
-                    edge_type: GCNConv(
-                        in_channels=in_channels[edge_type[0]],
+                    edge_type: SAGEConv(
+                        in_channels=(
+                            in_channels[edge_type[0]],
+                            in_channels[edge_type[-1]],
+                        ),
                         out_channels=hidden_channels,
                         add_self_loops=False,
                     )
@@ -35,7 +38,7 @@ class HeteroGNN(nn.Module):
         for i in range(num_layers - 1):
             conv = HeteroConv(
                 {
-                    edge_type: GCNConv(
+                    edge_type: SAGEConv(
                         in_channels=hidden_channels,
                         out_channels=hidden_channels,
                         add_self_loops=False,
