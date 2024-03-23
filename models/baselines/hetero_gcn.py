@@ -24,10 +24,7 @@ class HeteroGNN(nn.Module):
             HeteroConv(
                 {
                     edge_type: GCNConv(
-                        in_channels=(
-                            in_channels[edge_type[0]],
-                            in_channels[edge_type[-1]],
-                        ),
+                        in_channels=in_channels[edge_type[0]],
                         out_channels=hidden_channels,
                         add_self_loops=False,
                     )
