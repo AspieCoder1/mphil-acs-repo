@@ -7,13 +7,13 @@ from torch_geometric.nn import GATConv
 
 
 class GAT(nn.Module):
-    def __init__(self, hidden_channels: int = 256, n_heads=8):
+    def __init__(self, hidden_channels: int = 256, n_heads=8, in_channels: int = 64):
         super().__init__()
 
         self.conv = nn.ModuleList(
             [
                 GATConv(
-                    64,
+                    in_channels,
                     hidden_channels,
                     heads=n_heads,
                     dropout=0.6,

@@ -5,7 +5,6 @@ from enum import auto
 from typing import Union, Type
 
 from strenum import UppercaseStrEnum
-from torch_geometric.nn import to_hetero_with_bases
 
 from core.sheaf_configs import ModelTypes
 from datasets.hgb import HGBBaseDataModule
@@ -36,7 +35,9 @@ class Models(UppercaseStrEnum):
     GAT = auto()
 
 
-def get_model(model: Models, datamodule: Union[HGBBaseDataModule, LinkPredBase]):
+def get_baseline_model(
+    model: Models, datamodule: Union[HGBBaseDataModule, LinkPredBase]
+):
     if model == Models.HAN:
         return (
             HAN(
@@ -76,22 +77,12 @@ def get_model(model: Models, datamodule: Union[HGBBaseDataModule, LinkPredBase])
             False,
         )
     elif model == Models.GCN:
-        gcn = GCN(hidden_channels=256)
+        gcn = GCN(hidden_channels=256, in_channels=datamodule.in_channels)
 
-        return (
-            to_hetero_with_bases(
-                gcn, datamodule.metadata, num_bases=3, in_channels={"x": 64}
-            ),
-            True,
-        )
+        return gcn, True
     else:
-        gat = GAT(hidden_channels=256)
-        return (
-            to_hetero_with_bases(
-                gat, datamodule.metadata, num_bases=3, in_channels={"x": 64}
-            ),
-            True,
-        )
+        gat = GAT(hidden_channels=256, in_channels=datamodule.in_channels)
+        return gat, True
 
 
 def get_sheaf_model(model: ModelTypes) -> Type[DiscreteSheafDiffusion]:

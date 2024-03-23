@@ -11,7 +11,7 @@ from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint, Timer
 from lightning.pytorch.loggers import WandbLogger
 
 from core.datasets import NCDatasets, get_dataset_nc, get_dataset_hgt
-from core.models import Models, get_model
+from core.models import Models, get_baseline_model
 from core.trainer import TrainerArgs
 from models import NodeClassifier
 
@@ -42,15 +42,21 @@ cs.store("config", Config)
 def main(cfg: Config):
     torch.set_float32_matmul_precision("high")
 
-    if cfg.model == Models.HGT:
+    print(cfg.model.type)
+
+    if cfg.model.type == Models.HGT:
         datamodule = get_dataset_hgt(cfg.dataset.name)
+    elif cfg.model.type == Models.GCN or cfg.model.type == Models.GAT:
+        print("Should print")
+        datamodule = get_dataset_nc(cfg.dataset.name, homogeneous=True)
     else:
+        print("Should not print")
         datamodule = get_dataset_nc(cfg.dataset.name)
 
     datamodule.prepare_data()
-    print(datamodule.metadata)
+    print(datamodule.in_channels)
 
-    model, is_homogeneous = get_model(cfg.model.type, datamodule)
+    model, is_homogeneous = get_baseline_model(cfg.model.type, datamodule)
 
     classifier = NodeClassifier(
         model,
@@ -61,38 +67,53 @@ def main(cfg: Config):
         homogeneous_model=is_homogeneous,
     )
 
-    logger = WandbLogger(
-        project="gnn-baselines",
-        log_model=True,
-        save_dir="~/rds/hpc-work/.wandb",
-        entity="acs-thesis-lb2027",
-    )
-    logger.experiment.config["model"] = cfg.model.type
-    logger.experiment.config["dataset"] = cfg.dataset.name
-    logger.experiment.tags = cfg.tags
-    logger.log_hyperparams(
-        {"n_heads": 8, "hidden_units": 256, "n_layers": 3, "optimiser": "AdamW"}
-    )
+    logger = None
+    timer = Timer()
+    checkpoint_name = "test_run"
+
+    if cfg.trainer.logger:
+        logger = WandbLogger(
+            project="gnn-baselines",
+            log_model=True,
+            save_dir="~/rds/hpc-work/.wandb",
+            entity="acs-thesis-lb2027",
+        )
+        logger.experiment.config["model"] = cfg.model.type
+        logger.experiment.config["dataset"] = cfg.dataset.name
+        logger.experiment.tags = cfg.tags
+        checkpoint_name = logger.version
 
     trainer = L.Trainer(
         accelerator=cfg.trainer.accelerator,
         log_every_n_steps=1,
         logger=logger,
         devices=cfg.trainer.devices,
+        fast_dev_run=cfg.trainer.fast_dev_run,
         max_epochs=200,
         callbacks=[
             EarlyStopping("valid/loss", patience=cfg.trainer.patience),
             ModelCheckpoint(
-                dirpath=f"gnn_nc_checkpoints/{logger.version}",
+                dirpath=f"gnn_nc_checkpoints/{checkpoint_name}",
                 monitor="valid/accuracy",
                 mode="max",
                 save_top_k=1,
             ),
-            Timer(),
+            timer,
         ],
     )
     trainer.fit(classifier, datamodule)
     trainer.test(classifier, datamodule)
+
+    runtime = {
+        "train/runtime": timer.time_elapsed("train"),
+        "valid/runtime": timer.time_elapsed("validate"),
+        "test/runtime": timer.time_elapsed("test"),
+    }
+
+    if cfg.trainer.logger:
+        logger.log_metrics(runtime)
+    else:
+        print(runtime)
 
 
 if __name__ == "__main__":

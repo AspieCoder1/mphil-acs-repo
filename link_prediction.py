@@ -11,7 +11,7 @@ from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint, Timer
 from lightning.pytorch.loggers import WandbLogger
 
 from core.datasets import get_dataset_lp
-from core.models import get_model
+from core.models import get_baseline_model
 from core.sheaf_configs import SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
 from models import LinkPredictor
@@ -36,7 +36,7 @@ def main(cfg: Config):
     datamodule = get_dataset_lp(cfg.dataset.name)
     datamodule.prepare_data()
 
-    model, is_homogeneous = get_model(cfg.model.type, datamodule)
+    model, is_homogeneous = get_baseline_model(cfg.model.type, datamodule)
 
     link_predictor = LinkPredictor(
         model,
