@@ -5,8 +5,8 @@
 #
 
 #SBATCH -J sheafnc_baselines
-#SBATCH --output=slurm_outputs/sheafnc_baselines/out/%A_%a.out
-#SBATCH --error=slurm_outputs/sheafnc_baselines/err/%A_%a.err
+#SBATCH --output=slurm_output/sheafnc_baselines/out/%A_%a.out
+#SBATCH --error=slurm_output/sheafnc_baselines/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=3:00:00
 #SBATCH -a 0-89%10

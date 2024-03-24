@@ -75,7 +75,7 @@ def main(cfg: Config):
         callbacks=[
             EarlyStopping("valid/loss", patience=cfg.trainer.patience),
             ModelCheckpoint(
-                dirpath=f"sheaflp_checkpoints/{checkpoint_name}",
+                dirpath=f"checkpoints/sheaflp_checkpoints/{checkpoint_name}",
                 filename=cfg.model.type + "-" + cfg.dataset.name + "-{epoch}",
                 monitor="valid/accuracy",
                 mode="max",
