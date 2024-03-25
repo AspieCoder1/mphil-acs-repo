@@ -159,7 +159,6 @@ cython_debug/
 .idea/
 .python-version
 data/
-gnn-baselines/
 wandb/
 lightning_logs/
 outputs/
@@ -168,7 +167,6 @@ outputs/
 logs/
 results/
 artifacts/
-gnn_baselines/
 sheafnc_baselines/
 gnn_lp/
 sheafnc_checkpoints/
