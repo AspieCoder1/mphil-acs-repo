@@ -73,7 +73,7 @@ def main(cfg: Config):
 
     if cfg.trainer.logger:
         logger = WandbLogger(
-            project="gnn-baselines",
+            project="gnn-gnn_baselines",
             log_model=True,
             save_dir="~/rds/hpc-work/.wandb",
             entity="acs-thesis-lb2027",

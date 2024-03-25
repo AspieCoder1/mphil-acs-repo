@@ -9,7 +9,7 @@ from strenum import UppercaseStrEnum
 from core.sheaf_configs import ModelTypes
 from datasets.hgb import HGBBaseDataModule
 from datasets.link_pred import LinkPredBase
-from models.baselines import HAN, HGT, HeteroGNN, RGCN, GCN, GAT
+from models.gnn_baselines import HAN, HGT, HeteroGNN, RGCN, GCN, GAT
 from models.sheaf_gnn import (
     DiscreteDiagSheafDiffusion,
     DiscreteBundleSheafDiffusion,

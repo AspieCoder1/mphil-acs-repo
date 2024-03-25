@@ -33,6 +33,11 @@ class SheafPredictionBlockTypes(SnakeCaseStrEnum):
     cp_decomp = auto()
 
 
+class SheafModelTypes(PascalCaseStrEnum):
+    SheafHyperGNN = "SheafHyperGNN"
+    SheafHyperGCN = "SheafHyperGCN"
+
+
 @dataclass
 class SheafHGNNConfig:
     num_features: int

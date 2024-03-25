@@ -105,7 +105,7 @@ def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:
 
     if cfg.trainer.logger:
         logger = WandbLogger(
-            project="gnn-baselines",
+            project="gnn-gnn_baselines",
             log_model=True,
             checkpoint_name=f"{cfg.model.type}-{cfg.dataset.name}",
             entity="acs-thesis-lb2027",
