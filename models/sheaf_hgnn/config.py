@@ -4,7 +4,7 @@
 from dataclasses import dataclass
 from enum import auto
 
-from strenum import PascalCaseStrEnum, LowercaseStrEnum
+from strenum import PascalCaseStrEnum, LowercaseStrEnum, SnakeCaseStrEnum
 
 args_dict = {
     "num_features": 10,  # number of node features
@@ -42,6 +42,19 @@ class SheafActivations(LowercaseStrEnum):
     tanh = auto()
 
 
+class SheafNormTypes(SnakeCaseStrEnum):
+    degree_norm = auto()
+    block_norm = auto()
+    sym_degree_norm = auto()
+    sym_block_norm = auto()
+
+
+class SheafPredictionBlockTypes(SnakeCaseStrEnum):
+    MLP_var1 = "MLP_var1"
+    MLP_var3 = "MLP_var3"
+    cp_decomp = auto()
+
+
 @dataclass
 class SheafHGNNConfig:
     num_features: int
@@ -53,11 +66,11 @@ class SheafHGNNConfig:
     residual_HCHA: bool
     heads: int
     init_hedge: str
-    sheaf_normtype: str
+    sheaf_normtype: SheafNormTypes
     sheaf_act: SheafActivations
     sheaf_left_proj: bool
     dynamic_sheaf: bool
-    sheaf_pred_block: str
+    sheaf_pred_block: SheafPredictionBlockTypes
     sheaf_dropout: float
     sheaf_special_head: bool
     rank: int
