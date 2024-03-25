@@ -4,12 +4,12 @@
 from dataclasses import dataclass
 from enum import auto
 
-from strenum import PascalCaseStrEnum
+from strenum import PascalCaseStrEnum, LowercaseStrEnum
 
 args_dict = {
     "num_features": 10,  # number of node features
     "num_classes": 4,  # number of classes
-    "All_num_layers": 2,  # number of layeers
+    "All_num_layers": 2,  # number of layers
     "dropout": 0.3,  # dropout rate
     "MLP_hidden": 256,  # dimension of hidden state (for most of the layers)
     "AllSet_input_norm": True,  # normalising the input at each layer
@@ -29,6 +29,19 @@ args_dict = {
 }
 
 
+class HGNNSheafTypes(PascalCaseStrEnum):
+    DiagSheafs = auto()
+    GeneralSheafs = auto()
+    OrthoSheafs = auto()
+    LowRankSheafs = auto()
+
+
+class SheafActivations(LowercaseStrEnum):
+    sigmoid = auto()
+    none = auto()
+    tanh = auto()
+
+
 @dataclass
 class SheafHGNNConfig:
     num_features: int
@@ -41,7 +54,7 @@ class SheafHGNNConfig:
     heads: int
     init_hedge: str
     sheaf_normtype: str
-    sheaf_act: str
+    sheaf_act: SheafActivations
     sheaf_left_proj: bool
     dynamic_sheaf: bool
     sheaf_pred_block: str
@@ -50,17 +63,3 @@ class SheafHGNNConfig:
     rank: int
     HyperGCN_mediators: bool
     cuda: int
-
-
-class LinearSheafTypes(PascalCaseStrEnum):
-    SheafHyperGNNDiag = auto()
-    SheafHyperGNNGeneral = auto()
-    SheafHyperGNNOrtho = auto()
-    SheafHyperGNNLowRank = auto()
-
-
-class NonLinearSheafTypes(PascalCaseStrEnum):
-    DiagSheafs = auto()
-    GeneralSheafs = auto()
-    OrthoSheafs = auto()
-    LowRankSheafs = auto()

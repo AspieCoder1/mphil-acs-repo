@@ -8,8 +8,7 @@ from torch_geometric.data import Data
 
 from models.sheaf_hgnn.config import (
     SheafHGNNConfig,
-    NonLinearSheafTypes,
-    LinearSheafTypes,
+    HGNNSheafTypes,
 )
 from models.sheaf_hgnn.models import SheafHyperGNN, SheafHyperGCN
 
@@ -26,9 +25,9 @@ def main():
         "heads": 6,  # dimension of reduction map (d)
         "init_hedge": "avg",  # how to compute hedge features when needed. options: 'avg'or 'rand'
         "sheaf_normtype": "sym_degree_norm",  # the type of normalisation for the sheaf Laplacian. options: 'degree_norm', 'block_norm', 'sym_degree_norm', 'sym_block_norm'
-        "sheaf_act": "tanh",  # non-linear activation used on tpop of the d x d restriction maps. options: 'sigmoid', 'tanh', 'none'
+        "sheaf_act": "tanh",  # non-linear activation applied to the restriction maps. options: 'sigmoid', 'tanh', 'none'
         "sheaf_left_proj": False,  # multiply to the left with IxW or not
-        "dynamic_sheaf": False,  # infering a differetn sheaf at each layer or use ta shared one
+        "dynamic_sheaf": False,  # infer a different sheaf at each layer or share one
         "sheaf_pred_block": "cp_decomp",  # indicated the type of model used to predict the restriction maps. options: 'MLP_var1', 'MLP_var3' or 'cp_decomp'
         "sheaf_dropout": False,  # use dropout in the sheaf layer or not
         "sheaf_special_head": False,  # if True, add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
@@ -63,9 +62,7 @@ def main():
     # Running Linear SheafHNN.
     # To change the type of restrictian map change between
     # sheaf_type= 'SheafHyperGNNDiag'/'SheafHyperGNNGeneral'/'SheafHyperGNNOrtho'/'SheafHyperGNNLowRank'
-    model = SheafHyperGNN(args, sheaf_type=LinearSheafTypes.SheafHyperGNNDiag).to(
-        device
-    )
+    model = SheafHyperGNN(args, sheaf_type=HGNNSheafTypes.DiagSheafs).to(device)
     out = model(data)
     print(out.shape)
 
@@ -78,7 +75,7 @@ def main():
         num_layers=args.All_num_layers,
         num_classses=args.num_classes,
         args=args,
-        sheaf_type=NonLinearSheafTypes.DiagSheafs,
+        sheaf_type=HGNNSheafTypes.DiagSheafs,
     ).to(device)
     out = model(data)
     print(out.shape)
