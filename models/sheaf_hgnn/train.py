@@ -1,30 +1,24 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os
-import time
-
-# import math
-
 # import pickle
 import argparse
-
+import os
 import os.path as osp
-import matplotlib.pyplot as plt
+import time
 
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from models.hgnn_baselines.CEGAT import CEGAT
-from models.hgnn_baselines.GEGCN import CEGCN
-from models.hgnn_baselines.HNHN import HNHN
-from models.hgnn_baselines.HCHA import HCHA
-from models.hgnn_baselines.HyperGCN import HyperGCN
-from models.hgnn_baselines.MLP import MLP_model
-from models.hgnn_baselines.SetGNN import SetGNN
-from .models import *
-from preprocessing import *
-
 from convert_datasets_to_pygDataset import dataset_Hypergraph
+from models.hgnn_baselines import CEGAT, CEGCN, HCHA, HNHN, HyperGCN, MLP_model, SetGNN
+from preprocessing import *
+from .models import (
+    SheafHyperGNN,
+    SheafHyperGCN,
+)
+
+# import math
 
 os.environ["WANDB_AGENT_MAX_INITIAL_FAILURES"] = "200"
 
