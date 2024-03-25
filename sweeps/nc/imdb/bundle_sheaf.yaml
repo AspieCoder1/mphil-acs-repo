@@ -1,12 +1,12 @@
-name: DiagSheaf-IMDB
+name: BundleSheaf-IMDB
 program: sheaf_nc.py
 method: bayes
 metric:
   goal: maximize
-  name: test/accuracy
+  name: val/accuracy
 parameters:
   model:
-    value: DiagSheaf
+    value: BundleSheaf
   dataset:
     value: IMDB
   model_args.d:
