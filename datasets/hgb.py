@@ -138,7 +138,22 @@ class ACMDataModule(HGBBaseDataModule):
         return "ACM"
 
 
+class FreebaseDataModule(HGBBaseDataModule):
+    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
+        super().__init__(
+            data_dir=data_dir,
+            dataset="Freebase",
+            num_classes=7,
+            target="book",
+            task="multiclass",
+            homogeneous=homogeneous,
+        )
+
+    def __str__(self):
+        return "Freebase"
+
+
 if __name__ == "__main__":
-    dm = DBLPDataModule(data_dir="../data", homogeneous=True)
+    dm = FreebaseDataModule(data_dir="../data", homogeneous=True)
     dm.prepare_data()
     print(dm.pyg_datamodule.data.node_type[0])
