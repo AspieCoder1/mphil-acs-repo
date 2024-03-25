@@ -6,6 +6,7 @@ from enum import auto
 
 from strenum import PascalCaseStrEnum, LowercaseStrEnum, SnakeCaseStrEnum
 
+
 class HGNNSheafTypes(PascalCaseStrEnum):
     DiagSheafs = auto()
     GeneralSheafs = auto()
