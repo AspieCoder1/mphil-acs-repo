@@ -1,9 +1,9 @@
 from .models import MLP
 import torch.nn as nn
 import torch
-from orthogonal import Orthogonal
+from .orthogonal import Orthogonal
 from torch_scatter import scatter, scatter_mean, scatter_add
-import utils
+from . import utils
 
 import torch.nn.functional as F
 import numpy as np

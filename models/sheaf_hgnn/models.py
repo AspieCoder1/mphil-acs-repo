@@ -11,20 +11,16 @@ This script contains all models in our paper.
 """
 
 import torch
-import utils
-
-import torch.nn as nn
-import torch.nn.functional as F
-
-from torch_geometric.nn.conv import MessagePassing, GCNConv, GATConv
-from .layers import *
-
-import math
-
-from torch_scatter import scatter, scatter_mean, scatter_add
-from torch_geometric.utils import softmax
 import torch_sparse
+from torch_geometric.nn.conv import GCNConv, GATConv
+from torch_geometric.utils import softmax
+from torch_scatter import scatter, scatter_mean
 
+from .config import SheafHGNNConfig, LinearSheafTypes, NonLinearSheafTypes
+
+#  This part is for HyperGCN
+from .hgcn_sheaf_laplacians import *
+from .layers import *
 from .sheaf_builder import (
     SheafBuilderDiag,
     SheafBuilderOrtho,
@@ -36,9 +32,6 @@ from .sheaf_builder import (
     SheafBuilderLowRank,
 )
 
-#  This part is for HyperGCN
-from .hgcn_sheaf_laplacians import *
-
 
 class SheafHyperGNN(nn.Module):
     """
@@ -49,7 +42,7 @@ class SheafHyperGNN(nn.Module):
 
     """
 
-    def __init__(self, args, sheaf_type):
+    def __init__(self, args: SheafHGNNConfig, sheaf_type: LinearSheafTypes):
         super(SheafHyperGNN, self).__init__()
 
         self.num_layers = args.All_num_layers
@@ -94,13 +87,13 @@ class SheafHyperGNN(nn.Module):
 
         # define the model and sheaf generator according to the type of sheaf wanted
         # The diuffusion does not change, however tha implementation for diag and ortho is more efficient
-        if sheaf_type == "SheafHyperGNNDiag":
+        if sheaf_type == LinearSheafTypes.SheafHyperGNNDiag:
             ModelSheaf, ModelConv = SheafBuilderDiag, HyperDiffusionDiagSheafConv
-        elif sheaf_type == "SheafHyperGNNOrtho":
+        elif sheaf_type == LinearSheafTypes.SheafHyperGNNOrtho:
             ModelSheaf, ModelConv = SheafBuilderOrtho, HyperDiffusionOrthoSheafConv
-        elif sheaf_type == "SheafHyperGNNGeneral":
+        elif sheaf_type == LinearSheafTypes.SheafHyperGNNGeneral:
             ModelSheaf, ModelConv = SheafBuilderGeneral, HyperDiffusionGeneralSheafConv
-        elif sheaf_type == "SheafHyperGNNLowRank":
+        elif sheaf_type == LinearSheafTypes.SheafHyperGNNLowRank:
             ModelSheaf, ModelConv = SheafBuilderLowRank, HyperDiffusionGeneralSheafConv
 
         self.convs = nn.ModuleList()
@@ -223,7 +216,15 @@ class SheafHyperGNN(nn.Module):
 
 class SheafHyperGCN(nn.Module):
     # replace hyperedge with edges amax(F_v<e(x_v)) ~ amin(F_v<e(x_v))
-    def __init__(self, V, num_features, num_layers, num_classses, args, sheaf_type):
+    def __init__(
+        self,
+        V,
+        num_features,
+        num_layers,
+        num_classses,
+        args: SheafHGNNConfig,
+        sheaf_type: NonLinearSheafTypes,
+    ):
         super(SheafHyperGCN, self).__init__()
         d, l, c = num_features, num_layers, num_classses
         cuda = args.cuda  # and torch.cuda.is_available()
@@ -270,13 +271,13 @@ class SheafHyperGCN(nn.Module):
         self.residual = args.residual_HCHA
 
         # sheaf_type = 'OrthoSheafs'
-        if sheaf_type == "DiagSheafs":
+        if sheaf_type == NonLinearSheafTypes.DiagSheafs:
             ModelSheaf, self.Laplacian = HGCNSheafBuilderDiag, SheafLaplacianDiag
-        elif sheaf_type == "OrthoSheafs":
+        elif sheaf_type == NonLinearSheafTypes.OrthoSheafs:
             ModelSheaf, self.Laplacian = HGCNSheafBuilderOrtho, SheafLaplacianOrtho
-        elif sheaf_type == "GeneralSheafs":
+        elif sheaf_type == NonLinearSheafTypes.GeneralSheafs:
             ModelSheaf, self.Laplacian = HGCNSheafBuilderGeneral, SheafLaplacianGeneral
-        elif sheaf_type == "LowRankSheafs":
+        elif sheaf_type == NonLinearSheafTypes.LowRankSheafs:
             ModelSheaf, self.Laplacian = HGCNSheafBuilderLowRank, SheafLaplacianGeneral
 
         if self.left_proj:

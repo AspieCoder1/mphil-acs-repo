@@ -1,6 +1,7 @@
-from utils import *
 import numpy as np
 import itertools
+import torch
+from . import utils
 
 from torch_scatter import scatter_add
 
@@ -130,7 +131,7 @@ def reduce_graph(X_reduced, m, d, edge_index):
                             [mediator_idx, I_idx],
                         ]
                     )
-                    weights = update(Se, Ie, mediator_e, weights, c)
+                    weights = utils.update(Se, Ie, mediator_e, weights, c)
 
         else:
             edges.extend([[Se, Ie], [Ie, Se]])

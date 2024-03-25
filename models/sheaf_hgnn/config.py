@@ -1,11 +1,10 @@
-# This is a simple example to show how to perform inference on the SheafGNN/SheafHGCN models.
-import torch
+#  Copyright (c) 2024. Luke Braithwaite
+#  License: MIT
 
-from torch_geometric.data import Data
-from argparse import Namespace
-from .layers import *
-from .models import *
+from dataclasses import dataclass
+from enum import auto
 
+from strenum import PascalCaseStrEnum
 
 args_dict = {
     "num_features": 10,  # number of node features
@@ -29,41 +28,39 @@ args_dict = {
     "cuda": 0,
 }
 
-args = Namespace(**args_dict)
 
-if args.cuda in [0, 1]:
-    device = torch.device(
-        "cuda:" + str(args.cuda) if torch.cuda.is_available() else "cpu"
-    )
-else:
-    device = torch.device("cpu")
+@dataclass
+class SheafHGNNConfig:
+    num_features: int
+    num_classes: int
+    All_num_layers: int
+    dropout: float
+    MLP_hidden: int
+    AllSet_input_norm: bool
+    residual_HCHA: bool
+    heads: int
+    init_hedge: str
+    sheaf_normtype: str
+    sheaf_act: str
+    sheaf_left_proj: bool
+    dynamic_sheaf: bool
+    sheaf_pred_block: str
+    sheaf_dropout: float
+    sheaf_special_head: bool
+    rank: int
+    HyperGCN_mediators: bool
+    cuda: int
 
-# create a random hypergraph to run inference for
-num_nodes = 25
-features = torch.rand(num_nodes, args.num_features)
-edge_index = torch.tensor(
-    [[0, 1, 2, 0, 1, 3, 4, 1, 2, 4], [0, 0, 0, 1, 1, 1, 1, 2, 2, 2]]
-)
-labels = torch.randint(args.num_classes, (num_nodes,))
-data = Data(x=features, edge_index=edge_index, y=labels).to(device)
 
-# Running Linear SheafHNN.
-# To change the type of restrictian map change between
-# sheaf_type= 'SheafHyperGNNDiag'/'SheafHyperGNNGeneral'/'SheafHyperGNNOrtho'/'SheafHyperGNNLowRank'
-model = SheafHyperGNN(args, sheaf_type="SheafHyperGNNDiag").to(device)
-out = model(data)
-print(out.shape)
+class LinearSheafTypes(PascalCaseStrEnum):
+    SheafHyperGNNDiag = auto()
+    SheafHyperGNNGeneral = auto()
+    SheafHyperGNNOrtho = auto()
+    SheafHyperGNNLowRank = auto()
 
-# Running Non-Linear SheafHNN.
-# To change the type of restrictian map change between
-# sheaf_type= 'DiagSheafs'/'GeneralSheafs'/'OrthoSheafs'/'LowRankSheafs'
-model = Smodel = SheafHyperGCN(
-    V=data.x.shape[0],
-    num_features=args.num_features,
-    num_layers=args.All_num_layers,
-    num_classses=args.num_classes,
-    args=args,
-    sheaf_type="DiagSheafs",
-).to(device)
-out = model(data)
-print(out.shape)
+
+class NonLinearSheafTypes(PascalCaseStrEnum):
+    DiagSheafs = auto()
+    GeneralSheafs = auto()
+    OrthoSheafs = auto()
+    LowRankSheafs = auto()
