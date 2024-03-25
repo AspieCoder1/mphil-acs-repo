@@ -4,13 +4,14 @@ import torch
 from .orthogonal import Orthogonal
 from torch_scatter import scatter, scatter_mean, scatter_add
 from . import utils
+from .config import SheafHGNNConfig
 
 import torch.nn.functional as F
 import numpy as np
 
 
 # helper functions to predict sigma(MLP(x_v || h_e)) varying how thw attributes for hyperedge are computed
-def predict_blocks(x, e, hyperedge_index, sheaf_lin, args):
+def predict_blocks(x, e, hyperedge_index, sheaf_lin, args: SheafHGNNConfig):
     # e_j = avg(x_v)
     row, col = hyperedge_index
     xs = torch.index_select(x, dim=0, index=row)
@@ -30,7 +31,7 @@ def predict_blocks(x, e, hyperedge_index, sheaf_lin, args):
     return h_sheaf
 
 
-def predict_blocks_var2(x, hyperedge_index, sheaf_lin, args):
+def predict_blocks_var2(x, hyperedge_index, sheaf_lin, args: SheafHGNNConfig):
     # e_j = avg(h_v)
     row, col = hyperedge_index
     e = scatter_mean(x[row], col, dim=0)
@@ -53,7 +54,9 @@ def predict_blocks_var2(x, hyperedge_index, sheaf_lin, args):
     return h_sheaf
 
 
-def predict_blocks_var3(x, hyperedge_index, sheaf_lin, sheaf_lin2, args):
+def predict_blocks_var3(
+    x, hyperedge_index, sheaf_lin, sheaf_lin2, args: SheafHGNNConfig
+):
     # universal approx according to  Equivariant Hypergraph Diffusion Neural Operators
     # # e_j = sum(φ(x_v))
 
@@ -113,7 +116,7 @@ def predict_blocks_cp_decomp(x, hyperedge_index, cp_W, cp_V, sheaf_lin, args):
 
 # Build the restriction maps for the Diagonal Case
 class SheafBuilderDiag(nn.Module):
-    def __init__(self, args):
+    def __init__(self, args: SheafHGNNConfig):
         super(SheafBuilderDiag, self).__init__()
         self.args = args
         self.prediction_type = (
@@ -242,7 +245,7 @@ class SheafBuilderDiag(nn.Module):
 
 # Build the restriction maps for the General Case
 class SheafBuilderGeneral(nn.Module):
-    def __init__(self, args):
+    def __init__(self, args: SheafHGNNConfig):
         super(SheafBuilderGeneral, self).__init__()
         self.args = args
         self.prediction_type = (
@@ -389,7 +392,7 @@ class SheafBuilderGeneral(nn.Module):
 
 # Build the restriction maps for the Orthogonal Case
 class SheafBuilderOrtho(nn.Module):
-    def __init__(self, args):
+    def __init__(self, args: SheafHGNNConfig):
         super(SheafBuilderOrtho, self).__init__()
         self.args = args
         self.prediction_type = (
@@ -540,7 +543,7 @@ class SheafBuilderOrtho(nn.Module):
 
 # Build the restriction maps for the LowRank Case
 class SheafBuilderLowRank(nn.Module):
-    def __init__(self, args):
+    def __init__(self, args: SheafHGNNConfig):
         super(SheafBuilderLowRank, self).__init__()
         self.args = args
         self.prediction_type = (
@@ -759,7 +762,7 @@ class SheafBuilderLowRank(nn.Module):
 
 
 class HGCNSheafBuilderDiag(nn.Module):
-    def __init__(self, args, hidden_dim):
+    def __init__(self, args: SheafHGNNConfig, hidden_dim):
         """
         hidden_dim overwrite the args.MLP_hidden used in the normal sheaf HNN
         """
@@ -873,7 +876,7 @@ class HGCNSheafBuilderDiag(nn.Module):
 
 
 class HGCNSheafBuilderGeneral(nn.Module):
-    def __init__(self, args, hidden_dim):
+    def __init__(self, args: SheafHGNNConfig, hidden_dim):
         super(HGCNSheafBuilderGeneral, self).__init__()
         self.args = args
         self.prediction_type = (
@@ -985,7 +988,7 @@ class HGCNSheafBuilderGeneral(nn.Module):
 
 
 class HGCNSheafBuilderOrtho(nn.Module):
-    def __init__(self, args, hidden_dim):
+    def __init__(self, args: SheafHGNNConfig, hidden_dim):
         super(HGCNSheafBuilderOrtho, self).__init__()
         self.args = args
         self.prediction_type = (
@@ -1100,7 +1103,7 @@ class HGCNSheafBuilderOrtho(nn.Module):
 
 
 class HGCNSheafBuilderLowRank(nn.Module):
-    def __init__(self, args, hidden_dim):
+    def __init__(self, args: SheafHGNNConfig, hidden_dim):
         super(HGCNSheafBuilderLowRank, self).__init__()
         self.args = args
         self.prediction_type = (
