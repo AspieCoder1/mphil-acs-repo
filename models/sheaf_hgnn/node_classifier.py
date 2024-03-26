@@ -38,7 +38,7 @@ class SheafHyperGNNNodeClassifier(L.LightningModule):
         y = batch.y[mask]
         logits = self.model(batch)[mask]
         loss = F.cross_entropy(logits, y)
-        y_hat = F.softmax(logits)
+        y_hat = F.softmax(logits, dim=0)
         return loss, y, y_hat
 
     def training_step(self, batch, batch_idx) -> STEP_OUTPUT:

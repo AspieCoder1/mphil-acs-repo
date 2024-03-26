@@ -29,7 +29,7 @@ def reduce_graph(X_reduced, m, d, edge_index):
 
     row, col = edge_index
 
-    receivers_idx = torch.range(0, len(row) - 1).to(
+    receivers_idx = torch.arange(0, len(row)).to(
         X_reduced.device
     )  # to keep track of position in the nnz vector
     receivers_nodes = row  # nodes that are part of the hyperedge

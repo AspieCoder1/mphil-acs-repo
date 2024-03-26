@@ -1,7 +1,11 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
+import lightning
 import torch
 from torch_geometric.data import Data
+from torch_geometric.data.lightning import LightningNodeData
+from torch_geometric.transforms import RandomNodeSplit
+import lightning as L
 
 from core.trainer import TrainerArgs
 from models.sheaf_hgnn.config import HGNNSheafTypes, SheafHGNNConfig, SheafModelTypes
@@ -40,7 +44,7 @@ def main():
     }
     args = SheafHGNNConfig(**args_dict)
 
-    num_nodes = 25
+    num_nodes = 100
     node_features = torch.rand(num_nodes, args.num_features)
     # Edge index is an incidence matrix
     edge_index = torch.tensor(
@@ -59,7 +63,20 @@ def main():
         args=args,
         sheaf_type=HGNNSheafTypes.DiagSheafs,
     )
-    classifier = SheafHyperGNNNodeClassifier(model, args.num_classes)
+    classifier = SheafHyperGNNNodeClassifier(model1, args.num_classes)
+    split = RandomNodeSplit(num_test=10, num_val=10)
+    data = split(data)
+
+    dm = LightningNodeData(data, loader="full")
+
+    trainer = L.Trainer(fast_dev_run=True, accelerator="cpu")
+
+    trainer.fit(
+        classifier,
+        train_dataloaders=dm.train_dataloader(),
+        val_dataloaders=dm.val_dataloader(),
+    )
+    trainer.test(classifier, dataloaders=dm.test_dataloader())
 
     out = classifier(data)
     print(out.shape)
