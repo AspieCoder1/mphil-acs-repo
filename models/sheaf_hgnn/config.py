@@ -3,6 +3,7 @@
 
 from dataclasses import dataclass
 from enum import auto
+from core.trainer import TrainerArgs
 
 from strenum import PascalCaseStrEnum, LowercaseStrEnum, SnakeCaseStrEnum
 
@@ -59,3 +60,10 @@ class SheafHGNNConfig:
     rank: int
     HyperGCN_mediators: bool
     cuda: int
+
+
+@dataclass
+class Config:
+    model: SheafModelTypes
+    restriction_maps: HGNNSheafTypes
+    trainer: TrainerArgs
