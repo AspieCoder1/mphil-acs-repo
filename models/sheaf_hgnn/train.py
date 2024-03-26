@@ -17,6 +17,7 @@ from .models import (
     SheafHyperGNN,
     SheafHyperGCN,
 )
+import torch.nn.functional as F
 
 # import math
 

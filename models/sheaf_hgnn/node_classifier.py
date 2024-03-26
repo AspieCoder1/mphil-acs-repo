@@ -1,7 +1,7 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 
-from typing import Union
+from typing import Union, Any
 
 import lightning as L
 import torch
@@ -73,6 +73,9 @@ class SheafHyperGNNNodeClassifier(L.LightningModule):
         )
 
         return loss
+
+    def forward(self, batch: Data) -> Any:
+        return self.model(batch)
 
     def configure_optimizers(self) -> OptimizerLRScheduler:
         optimiser = torch.optim.AdamW(self.parameters())
