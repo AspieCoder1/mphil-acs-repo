@@ -11,8 +11,6 @@ def test_type_ensemble():
     ).to(torch.int64)
     edge_type = torch.randint(low=0, high=4, size=(edge_index.shape[1],))
     node_type = torch.randint(low=0, high=4, size=(x.shape[0],))
-    print(edge_type)
-    print(node_type)
 
     module = TypeEnsembleSheafLearner(5, (5,), "id", 4, 4)
 
