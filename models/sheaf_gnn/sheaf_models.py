@@ -350,10 +350,10 @@ class TypeEnsembleSheafLearner(SheafLearner):
             self.linear1[i](x_cat[split])
             results.append(self.linear1[i](x_cat[split]))
 
-        results = torch.row_stack(results)
+        stacked_maps = torch.row_stack(results)
 
-        maps = torch.empty(results.shape)
-        maps[edge_type_idx] = results
+        maps = torch.empty(stacked_maps.shape, device=stacked_maps.device)
+        maps[edge_type_idx] = stacked_maps
         maps = self.act(maps)
 
         if len(self.out_shape) == 2:
