@@ -16,7 +16,7 @@ from models.sheaf_gnn.sheaf_models import (
     LocalConcatSheafLearner,
     EdgeWeightLearner,
     LocalConcatSheafLearnerVariant,
-    TypeConatSheafLearner,
+    TypeConcatSheafLearner,
 )
 
 
@@ -26,7 +26,7 @@ class DiscreteSheafDiffusion(SheafDiffusion):
         edge_index,
         args,
         sheaf_learner: Type[
-            Union[LocalConcatSheafLearner, TypeConatSheafLearner]
+            Union[LocalConcatSheafLearner, TypeConcatSheafLearner]
         ] = LocalConcatSheafLearner,
     ):
         super(DiscreteSheafDiffusion, self).__init__(edge_index, args)

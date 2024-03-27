@@ -20,7 +20,7 @@ from models import SheafNodeClassifier
 from models.sheaf_gnn.config import SheafModelArguments, SheafLearners
 from models.sheaf_gnn.sheaf_models import (
     LocalConcatSheafLearner,
-    TypeConatSheafLearner,
+    TypeConcatSheafLearner,
     TypeEnsembleSheafLearner,
 )
 from pl_callbacks.restriction_map_callback import RestrictionMapUMAP
@@ -63,7 +63,7 @@ def main(cfg: Config) -> None:
     # 3) Initialise models
     model_cls = get_sheaf_model(cfg.model.type)
     if cfg.sheaf_learner == SheafLearners.type_concat:
-        sheaf_learner = TypeConatSheafLearner
+        sheaf_learner = TypeConcatSheafLearner
     elif cfg.sheaf_learner == SheafLearners.local_concat:
         sheaf_learner = LocalConcatSheafLearner
     else:
