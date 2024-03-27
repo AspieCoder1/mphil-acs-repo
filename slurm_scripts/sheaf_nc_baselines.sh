@@ -17,6 +17,7 @@
 #SBATCH --mail-type=ALL
 
 MODEL_PARAMS=( diag_sheaf bundle_sheaf general_sheaf )
+SHEAF_LEARNER=type_ensemble
 DATASETS=( dblp acm imdb )
 
 N_TRIALS=10
@@ -34,4 +35,4 @@ DATASET=${DATASETS[DATA_IDX]}
 export WANDB_CACHE_DIR="~/rds/hpc-work/.wandb"
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
 source ~/venv/bin/activate
-srun python sheaf_nc.py model="${MODEL}" dataset="${DATASET}" sheaf_learner=local_concat tags=["${MODEL}","${DATASET}",nc,sheaf,exp1_1]
+srun python sheaf_nc.py model="${MODEL}" dataset="${DATASET}" sheaf_learner="${SHEAF_LEARNER}" tags=["${MODEL}","${DATASET}",nc,sheaf,exp1_1]
