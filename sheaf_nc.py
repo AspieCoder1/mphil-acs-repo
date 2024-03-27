@@ -48,8 +48,6 @@ def main(cfg: Config) -> None:
     # The data  must be homogeneous due to how code is configured
     datamodule = get_dataset_nc(cfg.dataset.name, True)
     datamodule.prepare_data()
-    print(datamodule.pyg_datamodule.data.num_edge_types)
-    print(datamodule.pyg_datamodule.data.num_node_types)
 
     # 2) Update the config
     cfg.model_args.graph_size = datamodule.graph_size
