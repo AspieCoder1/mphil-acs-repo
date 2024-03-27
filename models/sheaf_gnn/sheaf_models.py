@@ -340,7 +340,20 @@ class TypeEnsembleSheafLearner(SheafLearner):
             dim=1,
         )
 
-        maps = torch.vmap(self.compute_map)(x_cat, edge_types)
+        unique, counts = torch.unique(edge_types, return_counts=True)
+        edge_type_idx = torch.argsort(edge_types)
+        edge_type_splits = edge_type_idx.split(split_size=counts.tolist())
+
+        results = []
+
+        for i, split in enumerate(edge_type_splits):
+            self.linear1[i](x_cat[split])
+            results.append(self.linear1[i](x_cat[split]))
+
+        results = torch.row_stack(results)
+
+        maps = torch.empty(results.shape)
+        maps[edge_type_idx] = results
         maps = self.act(maps)
 
         if len(self.out_shape) == 2:
