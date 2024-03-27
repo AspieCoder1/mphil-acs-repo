@@ -3,6 +3,7 @@
 import torch
 from models.sheaf_gnn.sheaf_models import TypeEnsembleSheafLearner
 
+
 def test_type_ensemble():
     x = torch.rand(10, 5)
     edge_index = torch.tensor(
