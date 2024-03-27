@@ -53,7 +53,7 @@ def main(cfg: Config):
     checkpoint_name = "test_run"
     if cfg.trainer.logger:
         logger = WandbLogger(
-            project="gnn-gnn_baselines", log_model=True, entity="acs-thesis-lb2027"
+            project="gnn-baselines", log_model=True, entity="acs-thesis-lb2027"
         )
         logger.experiment.config["model"] = cfg.model.type
         logger.experiment.config["dataset"] = cfg.dataset.name
