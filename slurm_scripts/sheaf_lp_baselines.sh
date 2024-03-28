@@ -32,7 +32,7 @@ MODEL=${MODEL_PARAMS[MODEL_IDX]}
 DATASET=${DATASETS[DATA_IDX]}
 
 
-export WANDB_CACHE_DIR="~/rds/hpc-work/.wandb"
+export WANDB_CACHE_DIR=".wandb"
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
 source ~/venv/bin/activate
 srun  python sheaf_lp.py dataset="${DATASET}" model="${MODEL}" +tags=["${MODEL}","${DATASET}",lp,sheaf,exp2]

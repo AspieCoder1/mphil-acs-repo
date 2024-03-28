@@ -24,6 +24,8 @@ from models.sheaf_gnn.sheaf_models import (
     TypeEnsembleSheafLearner,
     NodeTypeConcatSheafLearner,
     EdgeTypeConcatSheafLearner,
+    NodeTypeSheafLearner,
+    EdgeTypeSheafLearner,
 )
 from pl_callbacks.restriction_map_callback import RestrictionMapUMAP
 
@@ -72,6 +74,10 @@ def main(cfg: Config) -> None:
         sheaf_learner = TypeEnsembleSheafLearner
     elif cfg.sheaf_learner == SheafLearners.node_type_concat:
         sheaf_learner = NodeTypeConcatSheafLearner
+    elif cfg.sheaf_learner == SheafLearners.node_type:
+        sheaf_learner = NodeTypeSheafLearner
+    elif cfg.sheaf_learner == SheafLearners.edge_type:
+        sheaf_learner = EdgeTypeSheafLearner
     else:
         sheaf_learner = EdgeTypeConcatSheafLearner
 

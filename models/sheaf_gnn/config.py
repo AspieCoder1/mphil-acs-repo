@@ -81,3 +81,5 @@ class SheafLearners(SnakeCaseStrEnum):
     type_ensemble = auto()
     edge_type_concat = auto()
     node_type_concat = auto()
+    node_type = auto()
+    edge_type = auto()

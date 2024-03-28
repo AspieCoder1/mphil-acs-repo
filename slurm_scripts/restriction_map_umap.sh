@@ -34,7 +34,7 @@ module purge                               # Removes all modules still loaded
 module load rhel8/default-amp
 module load gcc/11
 
-export WANDB_CACHE_DIR="~/rds/hpc-work/.wandb"
+export WANDB_CACHE_DIR=".wandb"
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
 source ~/venv/bin/activate
 srun python sheaf_nc.py model="${MODEL}" plot_maps=true dataset="${DATASET}" tags=["${MODEL}","${DATASET}",nc,sheaf,exp3_1]
