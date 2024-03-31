@@ -16,9 +16,9 @@
 #SBATCH --gpu-bind=none
 #SBATCH --mail-type=ALL
 
-MODEL_PARAMS=( diag_sheaf bundle_sheaf general_sheaf )
-SHEAF_LEARNERS=( node_type_concat edge_type_concat node_type edge_type )
-DATASETS=( dblp acm imdb )
+MODEL_PARAMS=(diag_sheaf bundle_sheaf general_sheaf)
+SHEAF_LEARNERS=(node_type_concat edge_type_concat node_type edge_type)
+DATASETS=(dblp acm imdb)
 
 N_TRIALS=10
 N_DATASETS=${#DATASETS[@]}
@@ -27,7 +27,7 @@ N_SHEAF_LEARNERS=${#SHEAF_LEARNERS[@]}
 
 IDX=${SLURM_ARRAY_TASK_ID}
 BLOCK_IDX=$((IDX / N_TRIALS))
-MODEL_IDX=$((BLOCK_IDX / N_MODELS))
+MODEL_IDX=$((BLOCK_IDX % N_MODELS))
 DATA_SHEAF_IDX=$((BLOCK_IDX % (N_DATASETS * N_SHEAF_LEARNERS)))
 SHEAF_LEARNER_IDX=$((DATA_SHEAF_IDX / N_SHEAF_LEARNERS))
 DATA_IDX=$((DATA_SHEAF_IDX % N_DATASETS))
