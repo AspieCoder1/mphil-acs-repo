@@ -106,8 +106,8 @@ class _Recommender(torch.nn.Module):
     def predict_link_embedding(self, embed: Adj, edge_label_index: Adj) -> Tensor:
         embed_src = embed[edge_label_index[0]]
         embed_dst = embed[edge_label_index[1]]
-        concat = torch.cat([embed_src, embed_dst], dim=1)
-        return self.score_func(concat)
+        # concat = torch.cat([embed_src, embed_dst], dim=1)
+        return (embed_src * embed_dst).sum(dim=-1)
 
     def recommend(
         self,
@@ -213,7 +213,6 @@ class GNNRecommender(L.LightningModule):
             dst_index=torch.arange(0, batch.num_nodes),
             k=20,
         )
-        print(rec_scores.shape, batch.num_nodes)
         return loss, rec_scores, pos_edge_index
 
     def training_step(self, batch: DataOrHeteroData, batch_idx: int) -> STEP_OUTPUT:
