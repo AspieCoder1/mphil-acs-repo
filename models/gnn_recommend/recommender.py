@@ -77,20 +77,14 @@ class Recommender(torch.nn.Module):
 
     def __init__(
         self,
-        num_nodes: int,
         encoder: nn.Module,
     ):
         super().__init__()
-        self.num_nodes = num_nodes
         self.encoder = encoder
 
     def get_embedding(self, data: Data) -> Tensor:
         x = self.embedding.weight
         return self.encoder(data.x, data.edge_index)
-
-    def initialize_embeddings(self, data):
-        # initialize with the data node features
-        self.embedding.weight.data.copy_(data.node_feature)
 
     def forward(self, data: Data) -> Tensor:
         out = self.get_embedding(data.edge_index)
@@ -154,15 +148,4 @@ class Recommender(torch.nn.Module):
         return (
             f"{self.__class__.__name__}({self.num_nodes}, "
             f"{self.embedding_dim}, num_layers={self.num_layers})"
-        )
-
-
-class RecommenderModule(L.LightningModule):
-    def __init__(self, num_nodes: int, embedding_dim: int, num_layers: int):
-        super(RecommenderModule, self).__init__()
-        self.recommender = Recommender(
-            num_nodes,
-            embedding_dim,
-            num_layers,
-            alpha_learnable=True,
         )
