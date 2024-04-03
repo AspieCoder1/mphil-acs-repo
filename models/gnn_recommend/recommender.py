@@ -14,6 +14,7 @@ from torch.nn.modules.loss import _Loss
 from torch_geometric.data import Data, HeteroData
 from torch_geometric.typing import Adj, Tensor, OptTensor
 from torchmetrics import MetricCollection
+from torch_geometric.nn import HeteroDictLinear
 
 from .metrics import LinkPredNDCG, LinkPredRecall
 
@@ -88,20 +89,19 @@ class _Recommender(torch.nn.Module):
     def __init__(
         self,
         encoder: nn.Module,
-        hidden_dim: int = 256,
         target=("user", "rates", "artist"),
         is_hetero: bool = True,
     ):
         super().__init__()
         self.encoder = encoder
-        self.score_func = nn.Linear(2 * hidden_dim, 1)
+
         self.target = target
         self.is_hetero = is_hetero
 
     def get_embedding(self, data: DataOrHeteroData) -> Tensor:
         if isinstance(data, HeteroData):
             return self.encoder(data)
-        return self.encoder(data.x, data.edge_index)
+        return F.elu(self.encoder(data.x, data.edge_index))
 
     def forward(self, data: DataOrHeteroData) -> Tensor:
         out = self.get_embedding(data)

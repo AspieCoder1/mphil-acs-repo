@@ -50,6 +50,7 @@ class LinkPredBase(L.LightningDataModule):
         self.num_classes = num_classes
         self.graph_size = 0
         self.task = "binary"
+        self.num_node_types: int = 0
 
     def download_data(self) -> HeteroData: ...
 
@@ -58,6 +59,7 @@ class LinkPredBase(L.LightningDataModule):
 
         self.metadata = data.metadata()
         self.num_nodes = data.num_nodes
+        self.num_node_types = len(data.node_types)
 
         self.in_channels = {
             node_type: data[node_type].num_features for node_type in data.node_types
