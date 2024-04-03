@@ -1,13 +1,23 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
+#
+#  Adapted from https://medium.com/stanford-cs224w/spotify-track-neural-recommender-system-51d266e31e16
+
+from typing import Union
 
 import lightning as L
 import torch
 import torch.nn.functional as F
+from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn
 from torch.nn.modules.loss import _Loss
-from torch_geometric.data import Data
+from torch_geometric.data import Data, HeteroData
 from torch_geometric.typing import Adj, Tensor, OptTensor
+from torchmetrics import MetricCollection
+
+from .metrics import LinkPredNDCG, LinkPredRecall
+
+DataOrHeteroData = Union[Data, HeteroData]
 
 
 class BPRLoss(_Loss):
@@ -67,7 +77,7 @@ class BPRLoss(_Loss):
         return (-log_prob + regularization) / n_pairs
 
 
-class Recommender(torch.nn.Module):
+class _Recommender(torch.nn.Module):
     """
     Here we adapt the LightGCN model from Torch Geometric for our purposes. We allow
     for customizable convolutional layers, custom embeddings. In addition, we deifne some
@@ -75,36 +85,33 @@ class Recommender(torch.nn.Module):
 
     """
 
-    def __init__(
-        self,
-        encoder: nn.Module,
-    ):
+    def __init__(self, encoder: nn.Module, hidden_dim: int = 256):
         super().__init__()
         self.encoder = encoder
+        self.score_func = nn.Linear(2 * hidden_dim, 1)
 
-    def get_embedding(self, data: Data) -> Tensor:
-        x = self.embedding.weight
+    def get_embedding(self, data: DataOrHeteroData) -> Tensor:
+        if isinstance(data, HeteroData):
+            return self.encoder(data.x_dict, data.edge_index_dict)
         return self.encoder(data.x, data.edge_index)
 
-    def forward(self, data: Data) -> Tensor:
-        out = self.get_embedding(data.edge_index)
+    def forward(self, data: DataOrHeteroData) -> Tensor:
+        out = self.get_embedding(data)
+        return out
 
-        return self.predict_link_embedding(out, data.edge_label_index)
-
-    def predict_link(self, data: Data, prob: bool = False) -> Tensor:
-
+    def predict_link(self, data: DataOrHeteroData, prob: bool = False) -> Tensor:
         pred = self(data).sigmoid()
         return pred if prob else pred.round()
 
     def predict_link_embedding(self, embed: Adj, edge_label_index: Adj) -> Tensor:
-
         embed_src = embed[edge_label_index[0]]
         embed_dst = embed[edge_label_index[1]]
-        return (embed_src * embed_dst).sum(dim=-1)
+        concat = torch.cat([embed_src, embed_dst], dim=1)
+        return self.score_func(concat)
 
     def recommend(
         self,
-        data: Data,
+        data: DataOrHeteroData,
         src_index: OptTensor = None,
         dst_index: OptTensor = None,
         k: int = 1,
@@ -123,6 +130,7 @@ class Recommender(torch.nn.Module):
         if dst_index is not None:  # Map local top-indices to original indices.
             top_index = dst_index[top_index.view(-1)].view(*top_index.size())
 
+        print(top_index.shape)
         return top_index
 
     def link_pred_loss(self, pred: Tensor, edge_label: Tensor, **kwargs) -> Tensor:
@@ -139,7 +147,7 @@ class Recommender(torch.nn.Module):
         r"""Computes the model loss for a ranking objective via the Bayesian
         Personalized Ranking (BPR) loss."""
         loss_fn = BPRLoss(lambda_reg, **kwargs)
-        return loss_fn(pos_edge_rank, neg_edge_rank, self.embedding.weight)
+        return loss_fn(pos_edge_rank, neg_edge_rank, None)
 
     def bpr_loss(self, pos_scores, neg_scores):
         return -torch.log(torch.sigmoid(pos_scores - neg_scores)).mean()
@@ -149,3 +157,125 @@ class Recommender(torch.nn.Module):
             f"{self.__class__.__name__}({self.num_nodes}, "
             f"{self.embedding_dim}, num_layers={self.num_layers})"
         )
+
+
+class GNNRecommender(L.LightningModule):
+    def __init__(
+        self,
+        model: nn.Module,
+        edge_target: tuple[str, str, str] = ("user", "rates", "movie"),
+        homogeneous: bool = False,
+        batch_size: int = 1,
+    ):
+        super(GNNRecommender, self).__init__()
+        self.recommender: _Recommender = _Recommender(model)
+        self.homogeneous = homogeneous
+        self.target = edge_target
+        self.batch_size = batch_size
+        self.train_metrics = MetricCollection(
+            {
+                "NDCG@20": LinkPredNDCG(k=20),
+                "Precision@20": LinkPredRecall(k=20),
+                "Recall@20": LinkPredRecall(k=20),
+            },
+            prefix="train/",
+        )
+        self.val_metrics = self.train_metrics.clone(prefix="val/")
+        self.test_metrics = self.train_metrics.clone(prefix="test/")
+
+    def common_step(self, batch: DataOrHeteroData) -> [Tensor, Tensor, Adj]:
+        if isinstance(batch, HeteroData):
+            x_dict = self.recommender(batch)
+            embed = x_dict[self.target]
+            pos_scores = self.recommender.predict_link_embedding(
+                embed, batch[self.target].pos_edge_label_index
+            )
+            neg_scores = self.recommender.predict_link_embedding(
+                embed, batch[self.target].neg_edge_label_index
+            )
+            pos_edge_index = batch[self.target].pos_edge_index
+        else:
+            embed = self.recommender(batch)
+            pos_scores = self.recommender.predict_link_embedding(
+                embed, batch.pos_edge_label_index
+            )
+            neg_scores = self.recommender.predict_link_embedding(
+                embed, batch.neg_edge_label_index
+            )
+            pos_edge_index = batch.pos_edge_label_index
+
+        src_index, dst_index = pos_edge_index[:15]
+        scores = torch.cat((pos_scores, neg_scores), dim=0)
+        labels = torch.cat(
+            (torch.ones(pos_scores.shape), torch.zeros(neg_scores.shape)), dim=0
+        )
+        loss = self.recommender.link_pred_loss(scores, labels)
+        scores = self.recommender.recommend(
+            batch,
+            src_index=src_index,
+            dst_index=dst_index,
+            k=20,
+        )
+
+        recommendations = scores[src_index]
+        print(recommendations.shape)
+        return loss, recommendations, pos_edge_index
+
+    def training_step(self, batch: DataOrHeteroData, batch_idx: int) -> STEP_OUTPUT:
+        loss, recommendations, pos_edge_index = self.common_step(batch)
+
+        metrics = self.train_metrics(recommendations, pos_edge_index)
+        self.log_dict(
+            metrics,
+            prog_bar=False,
+            on_step=True,
+            on_epoch=True,
+            batch_size=self.batch_size,
+        )
+        self.log("train/loss", loss, batch_size=1)
+
+        return loss
+
+    def validation_step(self, batch: DataOrHeteroData, batch_idx: int) -> STEP_OUTPUT:
+        loss, recommendations, pos_edge_index = self.common_step(batch)
+
+        metrics = self.train_metrics(recommendations, pos_edge_index)
+        self.log_dict(
+            metrics,
+            prog_bar=False,
+            on_step=True,
+            on_epoch=True,
+            batch_size=self.batch_size,
+        )
+        self.log("val/loss", loss, batch_size=1)
+
+        return loss
+
+    def test_step(self, batch: DataOrHeteroData, batch_idx: int) -> STEP_OUTPUT:
+        loss, recommendations, pos_edge_index = self.common_step(batch)
+
+        metrics = self.train_metrics(recommendations, pos_edge_index)
+        self.log_dict(
+            metrics,
+            prog_bar=False,
+            on_step=True,
+            on_epoch=True,
+            batch_size=self.batch_size,
+        )
+        self.log("test/loss", loss, batch_size=1)
+
+        return loss
+
+    def configure_optimizers(self) -> OptimizerLRScheduler:
+        optimiser = torch.optim.AdamW(self.parameters())
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimiser, T_max=1_000, eta_min=1e-6
+        )
+
+        return {
+            "optimizer": optimiser,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "monitor": "valid/loss",
+            },
+        }

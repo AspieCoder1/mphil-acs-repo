@@ -115,11 +115,12 @@ class LastFMDataModule(LinkPredBase):
 
 
 class AmazonBooksDataModule(LinkPredBase):
-    def __init__(self, data_dir: str = DATA_DIR):
+    def __init__(self, data_dir: str = DATA_DIR, is_homogeneous: bool = False):
         super(AmazonBooksDataModule, self).__init__(
             data_dir=f"{data_dir}/amazon_books",
             target=("user", "rates", "book"),
             rev_target=("book", "rated_by", "user"),
+            is_homogeneous=is_homogeneous,
         )
 
     def download_data(self) -> HeteroData:
@@ -127,47 +128,48 @@ class AmazonBooksDataModule(LinkPredBase):
         return data
 
 
-class MovieLensDataset(L.LightningDataModule):
-    def __init__(self, data_dir: str = DATA_DIR):
-        super(MovieLensDataset, self).__init__()
-        self.data_dir = data_dir
-        self.pyg_datamodule: Optional[LightningLinkData] = None
-        self.edge_type = ("user", "rates", "movie")
-        self.metadata = None
-        self.train_split = None
-        self.valid_split = None
-        self.test_split = None
-
-    def prepare_data(self) -> None:
-        transform = T.Compose(
-            [
-                T.Constant(),
-                T.ToUndirected(),
-                T.RandomLinkSplit(
-                    edge_types=self.edge_type,
-                    split_labels=True,
-                    neg_sampling_ratio=0.6,
-                    rev_edge_types=("movie", "rev_rates", "user"),
-                ),
-            ]
+class MovieLensDataset(LinkPredBase):
+    def __init__(self, data_dir: str = DATA_DIR, is_homogeneous: bool = False):
+        super(MovieLensDataset, self).__init__(
+            data_dir=f"{data_dir}/movie_lens",
+            target=("user", "rates", "movie"),
+            rev_target=("movie", "rated_by", "user"),
+            is_homogeneous=is_homogeneous,
         )
-        data = MovieLens(self.data_dir)[0]
-        del data["edge_label"]
-        data = transform(data)
+        # self.data_dir = data_dir
+        # self.pyg_datamodule: Optional[LightningLinkData] = None
+        # self.edge_type = ("user", "rates", "movie")
+        # self.metadata = None
+        # self.train_split = None
+        # self.valid_split = None
+        # self.test_split = None
 
-        train_split, valid_split, test_split = data[0]
-        self.train_split = train_split
-        self.valid_split = valid_split
-        self.test_split = test_split
+    def download_data(self) -> HeteroData:
+        data = MovieLens(self.data_dir, transform=self.transform)[0]
+        # del data[self.edge_type].edge_label
+        return data
 
-        self.metadata = train_split.metadata()
-        self.pyg_datamodule = LightningLinkData(train_split, loader="full")
-
-    def train_dataloader(self) -> TRAIN_DATALOADERS:
-        return LightningLinkData(self.train_split, loader="full").full_dataloader()
-
-    def val_dataloader(self) -> EVAL_DATALOADERS:
-        return LightningLinkData(self.valid_split, loader="full").full_dataloader()
-
-    def test_dataloader(self) -> EVAL_DATALOADERS:
-        return LightningLinkData(self.test_split, loader="full").full_dataloader()
+    # def prepare_data(self) -> None:
+    #     transform = T.Compose(
+    #         [
+    #             T.Constant(),
+    #             T.ToUndirected(),
+    #             T.RandomLinkSplit(
+    #                 edge_types=self.edge_type,
+    #                 split_labels=True,
+    #                 neg_sampling_ratio=0.6,
+    #                 rev_edge_types=("movie", "rev_rates", "user"),
+    #             ),
+    #         ]
+    #     )
+    #     data = MovieLens(self.data_dir)[0]
+    #     del data[self.edge_type].edge_label
+    #     data = transform(data)
+    #
+    #     train_split, valid_split, test_split = data
+    #     self.train_split = train_split
+    #     self.valid_split = valid_split
+    #     self.test_split = test_split
+    #
+    #     self.metadata = train_split.metadata()
+    #     self.pyg_datamodule = LightningLinkData(train_split, loader="full")

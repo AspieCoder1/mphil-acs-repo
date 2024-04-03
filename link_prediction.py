@@ -11,11 +11,11 @@ from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint, Timer
 from lightning.pytorch.loggers import WandbLogger
 
 from core.datasets import get_dataset_lp
-from core.models import get_baseline_model
+from core.models import get_baseline_model, Models
 from core.sheaf_configs import SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
-from models import LinkPredictor
 from node_classification import ModelConfig
+from models.gnn_recommend.recommender import GNNRecommender
 
 
 @dataclass
@@ -33,24 +33,34 @@ cs.store("config", Config)
 @hydra.main(version_base=None, config_path="configs", config_name="lp_config")
 def main(cfg: Config):
     torch.set_float32_matmul_precision("high")
-    datamodule = get_dataset_lp(cfg.dataset.name)
+
+    is_homogeneous = False
+    if cfg.model.type == Models.GCN or cfg.model.type == Models.GAT:
+        is_homogeneous = True
+
+    datamodule = get_dataset_lp(cfg.dataset.name, is_homogeneous=is_homogeneous)
     datamodule.prepare_data()
 
     model, is_homogeneous = get_baseline_model(cfg.model.type, datamodule)
 
-    link_predictor = LinkPredictor(
+    print(is_homogeneous)
+
+    link_predictor = GNNRecommender(
         model,
         edge_target=datamodule.target,
         homogeneous=is_homogeneous,
         batch_size=datamodule.batch_size,
     )
 
-    logger = WandbLogger(
-        project="gnn-baselines", log_model=True, entity="acs-thesis-lb2027"
-    )
-    logger.experiment.config["model"] = cfg.model.type
-    logger.experiment.config["dataset"] = cfg.dataset.name
-    logger.experiment.tags = cfg.tags
+    logger = None
+
+    if cfg.trainer.logger:
+        logger = WandbLogger(
+            project="gnn-baselines", log_model=True, entity="acs-thesis-lb2027"
+        )
+        logger.experiment.config["model"] = cfg.model.type
+        logger.experiment.config["dataset"] = cfg.dataset.name
+        logger.experiment.tags = cfg.tags
 
     timer = Timer()
 
@@ -78,7 +88,10 @@ def main(cfg: Config):
         "valid/runtime": timer.time_elapsed("validate"),
         "test/runtime": timer.time_elapsed("test"),
     }
-    logger.log_metrics(runtime)
+    if cfg.trainer.logger:
+        logger.log_metrics(runtime)
+    else:
+        print(runtime)
 
 
 if __name__ == "__main__":
