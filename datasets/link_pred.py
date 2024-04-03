@@ -71,6 +71,8 @@ class LinkPredBase(L.LightningDataModule):
         split = T.RandomLinkSplit(
             edge_types=None if self.is_homogeneous else self.target,
             is_undirected=True,
+            split_labels=True,
+            neg_sampling_ratio=0.6,
             rev_edge_types=self.rev_target,
         )
 
@@ -135,8 +137,6 @@ class MovieLensDataset(L.LightningDataModule):
         self.train_split = None
         self.valid_split = None
         self.test_split = None
-        self.task = "multiclass"
-        self.num_classes = 7
 
     def prepare_data(self) -> None:
         transform = T.Compose(
@@ -145,17 +145,17 @@ class MovieLensDataset(L.LightningDataModule):
                 T.ToUndirected(),
                 T.RandomLinkSplit(
                     edge_types=self.edge_type,
+                    split_labels=True,
+                    neg_sampling_ratio=0.6,
                     rev_edge_types=("movie", "rev_rates", "user"),
                 ),
             ]
         )
-        dataset = MovieLens(self.data_dir, transform=transform)
+        data = MovieLens(self.data_dir)[0]
+        del data["edge_label"]
+        data = transform(data)
 
-        train_split, valid_split, test_split = dataset[0]
-        weights = torch.bincount(
-            train_split[self.edge_type].edge_label, minlength=self.num_classes
-        )
-        self.weights = weights / weights.sum()
+        train_split, valid_split, test_split = data[0]
         self.train_split = train_split
         self.valid_split = valid_split
         self.test_split = test_split
