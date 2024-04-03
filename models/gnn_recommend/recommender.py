@@ -129,8 +129,6 @@ class _Recommender(torch.nn.Module):
 
         if dst_index is not None:  # Map local top-indices to original indices.
             top_index = dst_index[top_index.view(-1)].view(*top_index.size())
-
-        print(top_index.shape)
         return top_index
 
     def link_pred_loss(self, pred: Tensor, edge_label: Tensor, **kwargs) -> Tensor:
@@ -204,22 +202,19 @@ class GNNRecommender(L.LightningModule):
             )
             pos_edge_index = batch.pos_edge_label_index
 
-        src_index, dst_index = pos_edge_index[:15]
         scores = torch.cat((pos_scores, neg_scores), dim=0)
         labels = torch.cat(
             (torch.ones(pos_scores.shape), torch.zeros(neg_scores.shape)), dim=0
         )
         loss = self.recommender.link_pred_loss(scores, labels)
-        scores = self.recommender.recommend(
+        rec_scores = self.recommender.recommend(
             batch,
-            src_index=src_index,
-            dst_index=dst_index,
+            src_index=torch.arange(0, batch.num_nodes),
+            dst_index=torch.arange(0, batch.num_nodes),
             k=20,
         )
-
-        recommendations = scores[src_index]
-        print(recommendations.shape)
-        return loss, recommendations, pos_edge_index
+        print(rec_scores.shape, batch.num_nodes)
+        return loss, rec_scores, pos_edge_index
 
     def training_step(self, batch: DataOrHeteroData, batch_idx: int) -> STEP_OUTPUT:
         loss, recommendations, pos_edge_index = self.common_step(batch)
@@ -239,7 +234,7 @@ class GNNRecommender(L.LightningModule):
     def validation_step(self, batch: DataOrHeteroData, batch_idx: int) -> STEP_OUTPUT:
         loss, recommendations, pos_edge_index = self.common_step(batch)
 
-        metrics = self.train_metrics(recommendations, pos_edge_index)
+        metrics = self.val_metrics(recommendations, pos_edge_index)
         self.log_dict(
             metrics,
             prog_bar=False,
@@ -254,7 +249,7 @@ class GNNRecommender(L.LightningModule):
     def test_step(self, batch: DataOrHeteroData, batch_idx: int) -> STEP_OUTPUT:
         loss, recommendations, pos_edge_index = self.common_step(batch)
 
-        metrics = self.train_metrics(recommendations, pos_edge_index)
+        metrics = self.test_metrics(recommendations, pos_edge_index)
         self.log_dict(
             metrics,
             prog_bar=False,
