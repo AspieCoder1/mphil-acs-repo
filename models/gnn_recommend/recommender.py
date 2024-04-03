@@ -1,13 +1,16 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
-import lightning as L
-from torch import nn
-from torch_geometric.typing import Adj, Tensor, OptTensor, SparseTensor
-import torch
-from torch.nn.modules.loss import _Loss
-import torch.nn.functional as F
-from torch_geometric.nn import GATConv, GCNConv, SAGEConv, LGConv
+#  Adapted from https://medium.com/stanford-cs224w/spotify-track-neural-recommender-system-51d266e31e16
+
 from typing import Union, Optional
+
+import lightning as L
+import torch
+import torch.nn.functional as F
+from torch import nn
+from torch.nn.modules.loss import _Loss
+from torch_geometric.nn import GATConv, SAGEConv, LGConv
+from torch_geometric.typing import Adj, Tensor, OptTensor, SparseTensor
 
 
 class BPRLoss(_Loss):
@@ -246,5 +249,11 @@ class Recommender(torch.nn.Module):
 
 
 class RecommenderModule(L.LightningModule):
-    def __init__(self):
+    def __init__(self, num_nodes: int, embedding_dim: int, num_layers: int):
         super(RecommenderModule, self).__init__()
+        self.recommender = Recommender(
+            num_nodes,
+            embedding_dim,
+            num_layers,
+            alpha_learnable=True,
+        )
