@@ -234,9 +234,6 @@ class GNNRecommender(L.LightningModule):
         )
         loss = self.recommender.link_pred_loss(scores, labels)
 
-        max_src_index = 10
-        max_dst_index = 20
-
         rec_scores = self.recommender.recommend(
             batch,
             src_index=torch.arange(0, max_src_index),
