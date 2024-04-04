@@ -24,6 +24,7 @@ class Config:
     model: ModelConfig
     trainer: TrainerArgs
     tags: list[str] = field(default_factory=list)
+    hidden_dim: int = 64
 
 
 cs = ConfigStore.instance()
@@ -41,7 +42,9 @@ def main(cfg: Config):
     datamodule = get_dataset_lp(cfg.dataset.name, is_homogeneous=is_homogeneous)
     datamodule.prepare_data()
 
-    model, is_homogeneous = get_baseline_model(cfg.model.type, datamodule)
+    model, is_homogeneous = get_baseline_model(
+        cfg.model.type, datamodule, hidden_channels=cfg.hidden_dim
+    )
 
     print(is_homogeneous)
 
@@ -50,6 +53,7 @@ def main(cfg: Config):
         edge_target=datamodule.target,
         homogeneous=is_homogeneous,
         batch_size=datamodule.batch_size,
+        hidden_channels=cfg.hidden_dim,
     )
 
     logger = None

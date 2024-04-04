@@ -36,14 +36,16 @@ class Models(UppercaseStrEnum):
 
 
 def get_baseline_model(
-    model: Models, datamodule: Union[HGBBaseDataModule, LinkPredBase]
+    model: Models,
+    datamodule: Union[HGBBaseDataModule, LinkPredBase],
+    hidden_channels: int = 256,
 ):
     if model == Models.HAN:
         return (
             HAN(
                 datamodule.metadata,
                 in_channels=datamodule.in_channels,
-                hidden_channels=256,
+                hidden_channels=hidden_channels,
             ),
             False,
         )
@@ -52,7 +54,7 @@ def get_baseline_model(
             HGT(
                 datamodule.metadata,
                 in_channels=datamodule.in_channels,
-                hidden_channels=256,
+                hidden_channels=hidden_channels,
             ),
             False,
         )
@@ -61,7 +63,7 @@ def get_baseline_model(
             HeteroGNN(
                 datamodule.metadata,
                 in_channels=datamodule.in_channels,
-                hidden_channels=256,
+                hidden_channels=hidden_channels,
                 target=datamodule.target,
                 num_layers=3,
             ),
@@ -70,18 +72,18 @@ def get_baseline_model(
     elif model == Models.RGCN:
         return (
             RGCN(
-                hidden_channels=256,
+                hidden_channels=hidden_channels,
                 num_nodes=datamodule.num_nodes,
                 num_relations=len(datamodule.metadata[1]),
             ),
             False,
         )
     elif model == Models.GCN:
-        gcn = GCN(hidden_channels=256, in_channels=datamodule.in_channels)
+        gcn = GCN(hidden_channels=hidden_channels, in_channels=datamodule.in_channels)
 
         return gcn, True
     else:
-        gat = GAT(hidden_channels=256, in_channels=datamodule.in_channels)
+        gat = GAT(hidden_channels=hidden_channels, in_channels=datamodule.in_channels)
         return gat, True
 
 

@@ -187,9 +187,12 @@ class GNNRecommender(L.LightningModule):
         edge_target: tuple[str, str, str] = ("user", "rates", "movie"),
         homogeneous: bool = False,
         batch_size: int = 1,
+        hidden_channels: int = 64,
     ):
         super(GNNRecommender, self).__init__()
-        self.recommender: _Recommender = _Recommender(model, target=edge_target)
+        self.recommender: _Recommender = _Recommender(
+            model, target=edge_target, hidden_dim=hidden_channels
+        )
         self.homogeneous = homogeneous
         self.target = edge_target
         self.batch_size = batch_size
