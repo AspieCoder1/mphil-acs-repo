@@ -79,7 +79,7 @@ def main(cfg: Config):
         strategy=cfg.trainer.strategy,
         fast_dev_run=cfg.trainer.fast_dev_run,
         log_every_n_steps=1,
-        max_epochs=500,
+        max_epochs=300,
         logger=logger,
         callbacks=[
             EarlyStopping("val/loss", patience=cfg.trainer.patience),

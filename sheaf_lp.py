@@ -27,7 +27,7 @@ class Config:
     model: SheafModelCfg = field(default_factory=SheafModelCfg)
     dataset: SheafLinkPredDatasetCfg = field(default_factory=SheafLinkPredDatasetCfg)
     model_args: IndSheafModelArguments = field(default_factory=IndSheafModelArguments)
-    rec_metrics: bool = False
+    rec_metrics: bool = True
     sheaf_learner: SheafLearners = SheafLearners.local_concat
 
 
