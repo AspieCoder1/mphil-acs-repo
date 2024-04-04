@@ -91,12 +91,14 @@ class _Recommender(torch.nn.Module):
         encoder: nn.Module,
         target=("user", "rates", "artist"),
         is_hetero: bool = True,
+        hidden_dim: int = 256,
     ):
         super().__init__()
         self.encoder = encoder
 
         self.target = target
         self.is_hetero = is_hetero
+        self.score_func = nn.Linear(2 * hidden_dim, 1)
 
     def get_embedding(self, data: DataOrHeteroData) -> Tensor:
         if isinstance(data, HeteroData):
@@ -111,14 +113,17 @@ class _Recommender(torch.nn.Module):
         pred = self(data).sigmoid()
         return pred if prob else pred.round()
 
-    def predict_link_embedding(self, embed: Adj, edge_label_index: Adj) -> Tensor:
-        if self.is_hetero:
+    def predict_link_embedding(
+        self, embed: Adj, edge_label_index: Adj, is_hetero: bool
+    ) -> Tensor:
+        if is_hetero:
             embed_src = embed[self.target[0]][edge_label_index[0]]
             embed_dst = embed[self.target[-1]][edge_label_index[1]]
         else:
             embed_src = embed[edge_label_index[0]]
             embed_dst = embed[edge_label_index[1]]
-        return (embed_src * embed_dst).sum(dim=-1)
+        embed_cat = torch.concat([embed_src, embed_dst], dim=1)
+        return self.score_func(embed_cat)
 
     def recommend(
         self,
@@ -138,7 +143,12 @@ class _Recommender(torch.nn.Module):
             out_src = out_src[src_index]
             out_dst = out_dst[dst_index]
 
-        pred = out_src @ out_dst.t()
+        num_src = out_src.shape[0]
+        num_dst = out_dst.shape[0]
+        src_tiled = out_src.unsqueeze(1).tile((1, num_dst, 1))
+        dst_tiled = out_dst.unsqueeze(0).tile((num_src, 1, 1))
+
+        pred = self.score_func(torch.concat([src_tiled, dst_tiled], dim=-1)).squeeze(-1)
         top_index = pred.topk(k, dim=-1).indices
 
         top_index = dst_index[top_index.view(-1)].view(*top_index.size())
@@ -198,10 +208,10 @@ class GNNRecommender(L.LightningModule):
         if isinstance(batch, HeteroData):
             x_dict = self.recommender(batch)
             pos_scores = self.recommender.predict_link_embedding(
-                x_dict, batch[self.target]["pos_edge_label_index"]
+                x_dict, batch[self.target]["pos_edge_label_index"], True
             )
             neg_scores = self.recommender.predict_link_embedding(
-                x_dict, batch[self.target]["neg_edge_label_index"]
+                x_dict, batch[self.target]["neg_edge_label_index"], True
             )
             pos_edge_index = batch[self.target]["pos_edge_label_index"]
             max_src_index = batch[self.target[0]].num_nodes
@@ -209,10 +219,10 @@ class GNNRecommender(L.LightningModule):
         else:
             embed = self.recommender(batch)
             pos_scores = self.recommender.predict_link_embedding(
-                embed, batch.pos_edge_label_index
+                embed, batch.pos_edge_label_index, False
             )
             neg_scores = self.recommender.predict_link_embedding(
-                embed, batch.neg_edge_label_index
+                embed, batch.neg_edge_label_index, False
             )
             pos_edge_index = batch.pos_edge_label_index
             max_src_index = batch.num_nodes
@@ -223,6 +233,9 @@ class GNNRecommender(L.LightningModule):
             (torch.ones(pos_scores.shape), torch.zeros(neg_scores.shape)), dim=0
         )
         loss = self.recommender.link_pred_loss(scores, labels)
+
+        max_src_index = 10
+        max_dst_index = 20
 
         rec_scores = self.recommender.recommend(
             batch,
