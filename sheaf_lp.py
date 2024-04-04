@@ -15,8 +15,9 @@ from core.datasets import get_dataset_lp, LinkPredDatasets
 from core.models import get_inductive_sheaf_model
 from core.sheaf_configs import SheafModelCfg, SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
-from models import SheafLinkPredictor
-from models.sheaf_gnn.config import IndSheafModelArguments
+from models.gnn_recommend.recommender import GNNRecommender
+from models.sheaf_gnn.config import IndSheafModelArguments, SheafLearners
+from sheaf_nc import init_sheaf_learner
 
 
 @dataclass
@@ -26,6 +27,8 @@ class Config:
     model: SheafModelCfg = field(default_factory=SheafModelCfg)
     dataset: SheafLinkPredDatasetCfg = field(default_factory=SheafLinkPredDatasetCfg)
     model_args: IndSheafModelArguments = field(default_factory=IndSheafModelArguments)
+    rec_metrics: bool = False
+    sheaf_learner: SheafLearners = SheafLearners.local_concat
 
 
 cs = ConfigStore.instance()
@@ -43,10 +46,15 @@ def main(cfg: Config):
     cfg.model_args.output_dim = 64
 
     model_cls = get_inductive_sheaf_model(cfg.model.type)
-    model = model_cls(None, cfg.model_args)
+    sheaf_learner = init_sheaf_learner(cfg)
+    model = model_cls(None, cfg.model_args, sheaf_learner=sheaf_learner)
 
-    sheaf_lp = SheafLinkPredictor(
-        model=model, num_classes=1, hidden_dim=model.hidden_dim
+    sheaf_lp = GNNRecommender(
+        model=model,
+        batch_size=dm.batch_size,
+        hidden_channels=model.hidden_dim,
+        homogeneous=True,
+        use_rec_metrics=cfg.rec_metrics,
     )
 
     logger: Optional[WandbLogger] = None
@@ -73,7 +81,7 @@ def main(cfg: Config):
         max_epochs=cfg.trainer.max_epochs,
         log_every_n_steps=1,
         callbacks=[
-            EarlyStopping("valid/loss", patience=cfg.trainer.patience),
+            EarlyStopping("val/loss", patience=cfg.trainer.patience),
             ModelCheckpoint(
                 dirpath=f"checkpoints/sheaflp_checkpoints/{checkpoint_name}",
                 filename=cfg.model.type + "-" + cfg.dataset.name + "-{epoch}",

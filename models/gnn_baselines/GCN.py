@@ -3,6 +3,7 @@
 
 from torch import nn
 from torch_geometric.nn import GCNConv, Sequential
+from torch_geometric.data import Data
 
 
 class GCN(nn.Module):
@@ -30,5 +31,5 @@ class GCN(nn.Module):
             ],
         )
 
-    def forward(self, x, edge_index):
-        return self.conv(x, edge_index)
+    def forward(self, data: Data):
+        return self.conv(data.x, data.edge_index)

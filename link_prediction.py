@@ -14,8 +14,8 @@ from core.datasets import get_dataset_lp
 from core.models import get_baseline_model, Models
 from core.sheaf_configs import SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
-from node_classification import ModelConfig
 from models.gnn_recommend.recommender import GNNRecommender
+from node_classification import ModelConfig
 
 
 @dataclass
@@ -25,6 +25,7 @@ class Config:
     trainer: TrainerArgs
     tags: list[str] = field(default_factory=list)
     hidden_dim: int = 64
+    rec_metrics: bool = True
 
 
 cs = ConfigStore.instance()
@@ -54,9 +55,11 @@ def main(cfg: Config):
         homogeneous=is_homogeneous,
         batch_size=datamodule.batch_size,
         hidden_channels=cfg.hidden_dim,
+        use_rec_metrics=cfg.rec_metrics,
     )
 
     logger = None
+    checkpoint_name = "test_run"
 
     if cfg.trainer.logger:
         logger = WandbLogger(
@@ -65,6 +68,7 @@ def main(cfg: Config):
         logger.experiment.config["model"] = cfg.model.type
         logger.experiment.config["dataset"] = cfg.dataset.name
         logger.experiment.tags = cfg.tags
+        checkpoint_name = logger.version
 
     timer = Timer()
 
@@ -75,11 +79,17 @@ def main(cfg: Config):
         strategy=cfg.trainer.strategy,
         fast_dev_run=cfg.trainer.fast_dev_run,
         log_every_n_steps=1,
-        max_epochs=200,
+        max_epochs=500,
         logger=logger,
         callbacks=[
             EarlyStopping("val/loss", patience=cfg.trainer.patience),
-            ModelCheckpoint(monitor="val/loss", mode="max", save_top_k=1),
+            ModelCheckpoint(
+                dirpath=f"checkpoints/sheaflp_checkpoints/{checkpoint_name}",
+                filename=cfg.model.type + "-" + cfg.dataset.name + "-{epoch}",
+                monitor="valid/accuracy",
+                mode="max",
+                save_top_k=1,
+            ),
             timer,
         ],
     )

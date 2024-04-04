@@ -66,20 +66,7 @@ def main(cfg: Config) -> None:
 
     # 3) Initialise models
     model_cls = get_sheaf_model(cfg.model.type)
-    if cfg.sheaf_learner == SheafLearners.type_concat:
-        sheaf_learner = TypeConcatSheafLearner
-    elif cfg.sheaf_learner == SheafLearners.local_concat:
-        sheaf_learner = LocalConcatSheafLearner
-    elif cfg.sheaf_learner == SheafLearners.type_ensemble:
-        sheaf_learner = TypeEnsembleSheafLearner
-    elif cfg.sheaf_learner == SheafLearners.node_type_concat:
-        sheaf_learner = NodeTypeConcatSheafLearner
-    elif cfg.sheaf_learner == SheafLearners.node_type:
-        sheaf_learner = NodeTypeSheafLearner
-    elif cfg.sheaf_learner == SheafLearners.edge_type:
-        sheaf_learner = EdgeTypeSheafLearner
-    else:
-        sheaf_learner = EdgeTypeConcatSheafLearner
+    sheaf_learner = init_sheaf_learner(cfg)
 
     model = model_cls(edge_index, cfg.model_args, sheaf_learner=sheaf_learner)
 
@@ -107,6 +94,24 @@ def main(cfg: Config) -> None:
 
     if cfg.trainer.logger:
         logger.log_metrics(runtime)
+
+
+def init_sheaf_learner(cfg):
+    if cfg.sheaf_learner == SheafLearners.type_concat:
+        sheaf_learner = TypeConcatSheafLearner
+    elif cfg.sheaf_learner == SheafLearners.local_concat:
+        sheaf_learner = LocalConcatSheafLearner
+    elif cfg.sheaf_learner == SheafLearners.type_ensemble:
+        sheaf_learner = TypeEnsembleSheafLearner
+    elif cfg.sheaf_learner == SheafLearners.node_type_concat:
+        sheaf_learner = NodeTypeConcatSheafLearner
+    elif cfg.sheaf_learner == SheafLearners.node_type:
+        sheaf_learner = NodeTypeSheafLearner
+    elif cfg.sheaf_learner == SheafLearners.edge_type:
+        sheaf_learner = EdgeTypeSheafLearner
+    else:
+        sheaf_learner = EdgeTypeConcatSheafLearner
+    return sheaf_learner
 
 
 def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:

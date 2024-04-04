@@ -74,7 +74,7 @@ class NodeClassifier(L.LightningModule):
 
         mask = torch.logical_and(target_mask, mask)
         y = batch.y[mask]
-        logits = self.encoder(batch.x, batch.edge_index)
+        logits = self.encoder(batch)
 
         y_hat = self.decoder(logits)[mask]
 
