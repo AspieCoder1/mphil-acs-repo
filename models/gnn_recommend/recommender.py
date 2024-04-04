@@ -13,8 +13,8 @@ from torch import nn
 from torch.nn.modules.loss import _Loss
 from torch_geometric.data import Data, HeteroData
 from torch_geometric.typing import Adj, Tensor, OptTensor
+from torch_geometric.utils import structured_negative_sampling
 from torchmetrics import MetricCollection
-from torch_geometric.nn import HeteroDictLinear
 
 from .metrics import LinkPredNDCG, LinkPredRecall
 
@@ -109,8 +109,10 @@ class _Recommender(torch.nn.Module):
         out = self.get_embedding(data)
         return out
 
-    def predict_link(self, data: DataOrHeteroData, prob: bool = False) -> Tensor:
-        pred = self(data).sigmoid()
+    def predict_link(
+        self, embed: Adj, edge_label_index: Adj, is_hetero: bool, prob: bool = False
+    ) -> Tensor:
+        pred = self.predict_link_embedding(embed, edge_label_index, is_hetero).sigmoid()
         return pred if prob else pred.round()
 
     def predict_link_embedding(
@@ -122,7 +124,7 @@ class _Recommender(torch.nn.Module):
         else:
             embed_src = embed[edge_label_index[0]]
             embed_dst = embed[edge_label_index[1]]
-        embed_cat = torch.concat([embed_src, embed_dst], dim=1)
+        embed_cat = torch.concat([embed_src, embed_dst], dim=-1)
         return self.score_func(embed_cat)
 
     def recommend(
@@ -208,34 +210,30 @@ class GNNRecommender(L.LightningModule):
         self.test_metrics = self.train_metrics.clone(prefix="test/")
 
     def common_step(self, batch: DataOrHeteroData) -> [Tensor, Tensor, Adj]:
+        is_hetero = False
         if isinstance(batch, HeteroData):
-            x_dict = self.recommender(batch)
-            pos_scores = self.recommender.predict_link_embedding(
-                x_dict, batch[self.target]["pos_edge_label_index"], True
-            )
-            neg_scores = self.recommender.predict_link_embedding(
-                x_dict, batch[self.target]["neg_edge_label_index"], True
-            )
-            pos_edge_index = batch[self.target]["pos_edge_label_index"]
+            is_hetero = True
+            pos_edge_index = batch[self.target]["edge_index"]
             max_src_index = batch[self.target[0]].num_nodes
             max_dst_index = batch[self.target[-1]].num_nodes
         else:
-            embed = self.recommender(batch)
-            pos_scores = self.recommender.predict_link_embedding(
-                embed, batch.pos_edge_label_index, False
-            )
-            neg_scores = self.recommender.predict_link_embedding(
-                embed, batch.neg_edge_label_index, False
-            )
-            pos_edge_index = batch.pos_edge_label_index
-            max_src_index = batch.num_nodes
-            max_dst_index = batch.num_nodes
+            pos_edge_index = batch.edge_index
+            max_src_index = max_dst_index = batch.num_nodes
 
-        scores = torch.cat((pos_scores, neg_scores), dim=0)
-        labels = torch.cat(
-            (torch.ones(pos_scores.shape), torch.zeros(neg_scores.shape)), dim=0
+        embed = self.recommender(batch)
+        src, pos_dst, neg_dst = structured_negative_sampling(pos_edge_index)
+        neg_edge_index = torch.cat([src, neg_dst], dim=0)
+
+        pos_scores = self.recommender.predict_link_embedding(
+            embed, pos_edge_index, is_hetero
         )
-        loss = self.recommender.link_pred_loss(scores, labels)
+        neg_scores = self.recommender.predict_link_embedding(
+            embed, neg_edge_index, is_hetero
+        )
+
+        loss = self.recommender.recommendation_loss(
+            pos_scores, neg_scores, lambda_reg=0.0
+        )
 
         rec_scores = self.recommender.recommend(
             batch,
