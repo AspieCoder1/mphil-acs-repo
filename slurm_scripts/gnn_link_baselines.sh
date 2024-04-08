@@ -5,8 +5,8 @@
 #
 
 #SBATCH -J gnnlp_baselines
-#SBATCH --output=slurm_output/gnnlp_baselines/out/%A_%a.out
-#SBATCH --error=slurm_output/gnnlp_baselines/err/%A_%a.err
+#SBATCH --output=slurm_output/gnn_link_baselines/out/%A_%a.out
+#SBATCH --error=slurm_output/gnn_link_baselines/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL3-GPU
 #SBATCH --time=1:00:00
 #SBATCH -a 0-179%10
