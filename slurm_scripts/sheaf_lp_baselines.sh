@@ -9,7 +9,7 @@
 #SBATCH --error=slurm_output/sheaf_link_baselines/err/%a.err
 #SBATCH -A COMPUTERLAB-SL3-GPU
 #SBATCH --time=01:00:00
-#SBATCH -a 0-419
+#SBATCH -a 0-629
 #SBATCH -p ampere
 #SBATCH --nodes 1
 #SBATCH --gres=gpu:1
@@ -18,7 +18,7 @@
 
 MODEL_PARAMS=(diag_sheaf bundle_sheaf general_sheaf)
 SHEAF_LEARNERS=(local_concat type_concat type_ensemble node_type_concat edge_type_concat node_type edge_type)
-DATASETS=(last_fm amazon_books)
+DATASETS=(last_fm amazon_books movie_lens)
 
 N_TRIALS=10
 N_DATASETS=${#DATASETS[@]}
