@@ -1,11 +1,10 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
-import lightning
+import lightning as L
 import torch
 from torch_geometric.data import Data
 from torch_geometric.data.lightning import LightningNodeData
 from torch_geometric.transforms import RandomNodeSplit
-import lightning as L
 
 from core.trainer import TrainerArgs
 from models.sheaf_hgnn.config import HGNNSheafTypes, SheafHGNNConfig, SheafModelTypes

@@ -131,9 +131,9 @@ class AmazonBooksDataModule(LinkPredBase):
         return data
 
 
-class MovieLensDataset(LinkPredBase):
+class MovieLensDatamodule(LinkPredBase):
     def __init__(self, data_dir: str = DATA_DIR, is_homogeneous: bool = False):
-        super(MovieLensDataset, self).__init__(
+        super(MovieLensDatamodule, self).__init__(
             data_dir=f"{data_dir}/movie_lens",
             target=("user", "rates", "movie"),
             rev_target=("movie", "rated_by", "user"),
