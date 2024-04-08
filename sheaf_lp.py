@@ -44,6 +44,8 @@ def main(cfg: Config):
     cfg.model_args.graph_size = dm.graph_size
     cfg.model_args.input_dim = dm.in_channels
     cfg.model_args.output_dim = 64
+    cfg.model_args.num_edge_types = dm.num_edge_types
+    cfg.model_args.num_node_types = dm.num_node_types
 
     model_cls = get_inductive_sheaf_model(cfg.model.type)
     sheaf_learner = init_sheaf_learner(cfg)

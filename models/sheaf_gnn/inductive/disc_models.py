@@ -6,6 +6,7 @@ from models.sheaf_gnn.transductive.disc_models import (
     DiscreteBundleSheafDiffusion,
     DiscreteGeneralSheafDiffusion,
 )
+from torch_geometric.data import Data
 
 
 class InductiveDiscreteDiagSheafDiffusion(DiscreteDiagSheafDiffusion):
@@ -15,7 +16,7 @@ class InductiveDiscreteDiagSheafDiffusion(DiscreteDiagSheafDiffusion):
             edge_index=None, args=args, sheaf_learner=sheaf_learner
         )
 
-    def forward(self, data):
+    def forward(self, data: Data):
         self.update_edge_index(data.edge_index)
         return super(InductiveDiscreteDiagSheafDiffusion, self).forward(data)
 
@@ -27,7 +28,7 @@ class InductiveDiscreteBundleSheafDiffusion(DiscreteBundleSheafDiffusion):
             edge_index=None, args=args, sheaf_learner=sheaf_learner
         )
 
-    def forward(self, data):
+    def forward(self, data: Data):
         self.update_edge_index(data.edge_index)
         return super(InductiveDiscreteBundleSheafDiffusion, self).forward(data)
 
@@ -39,6 +40,6 @@ class InductiveDiscreteGeneralSheafDiffusion(DiscreteGeneralSheafDiffusion):
             edge_index=None, args=args, sheaf_learner=sheaf_learner
         )
 
-    def forward(self, data):
+    def forward(self, data: Data):
         self.update_edge_index(data.edge_index)
         return super(InductiveDiscreteGeneralSheafDiffusion, self).forward(data)

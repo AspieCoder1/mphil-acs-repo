@@ -58,8 +58,6 @@ def main(cfg: Config) -> None:
     cfg.model_args.input_dim = datamodule.in_channels
     cfg.model_args.output_dim = datamodule.num_classes
     cfg.model_args.graph_size = datamodule.graph_size
-    cfg.model_args.input_dim = datamodule.in_channels
-    cfg.model_args.output_dim = datamodule.num_classes
     cfg.model_args.num_edge_types = datamodule.num_edge_types
     cfg.model_args.num_node_types = datamodule.num_node_types
     edge_index = datamodule.edge_index.to(cfg.model_args.device)

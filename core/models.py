@@ -21,6 +21,7 @@ from models.sheaf_gnn.inductive import (
     InductiveDiscreteBundleSheafDiffusion,
     InductiveDiscreteGeneralSheafDiffusion,
 )
+from models.sheaf_gnn.inductive.disc_models import InductiveSheafDiffusion
 from models.sheaf_gnn.sheaf_base import (
     SheafDiffusion as SheafDiffusionInductive,
 )
@@ -102,7 +103,7 @@ def get_sheaf_model(model: ModelTypes) -> Type[DiscreteSheafDiffusion]:
     #     return GeneralSheafDiffusion
 
 
-def get_inductive_sheaf_model(model: ModelTypes) -> Type[SheafDiffusionInductive]:
+def get_inductive_sheaf_model(model: ModelTypes) -> Type[DiscreteSheafDiffusion]:
     if model == ModelTypes.DiagSheaf:
         return InductiveDiscreteDiagSheafDiffusion
     if model == ModelTypes.BundleSheaf:

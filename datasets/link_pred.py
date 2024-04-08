@@ -51,6 +51,7 @@ class LinkPredBase(L.LightningDataModule):
         self.graph_size = 0
         self.task = "binary"
         self.num_node_types: int = 0
+        self.num_edge_types: int = 0
 
     def download_data(self) -> HeteroData: ...
 
@@ -60,6 +61,7 @@ class LinkPredBase(L.LightningDataModule):
         self.metadata = data.metadata()
         self.num_nodes = data.num_nodes
         self.num_node_types = len(data.node_types)
+        self.num_edge_types = len(data.edge_types)
 
         self.in_channels = {
             node_type: data[node_type].num_features for node_type in data.node_types
@@ -69,6 +71,8 @@ class LinkPredBase(L.LightningDataModule):
             data = data.to_homogeneous()
             self.graph_size = data.x.size(0)
             self.in_channels = data.num_features
+            self.num_node_types = data.num_node_types
+            self.num_edge_types = data.num_edge_types
 
         split = T.RandomLinkSplit(
             edge_types=None if self.is_homogeneous else self.target,
