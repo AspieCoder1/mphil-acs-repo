@@ -63,7 +63,7 @@ def main(cfg: Config):
         logger = WandbLogger(
             project="gnn-baselines", log_model=True, entity="acs-thesis-lb2027"
         )
-        logger.experiment.config["model"] = cfg.model.type
+        logger.experiment.config["model"] = f"{cfg.model.type}-{cfg.sheaf_learner}"
         logger.experiment.config["dataset"] = cfg.dataset.name
         logger.experiment.tags = cfg.tags
         checkpoint_name = logger.version
