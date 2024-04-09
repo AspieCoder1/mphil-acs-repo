@@ -21,10 +21,6 @@ from models.sheaf_gnn.inductive import (
     InductiveDiscreteBundleSheafDiffusion,
     InductiveDiscreteGeneralSheafDiffusion,
 )
-from models.sheaf_gnn.inductive.disc_models import InductiveSheafDiffusion
-from models.sheaf_gnn.sheaf_base import (
-    SheafDiffusion as SheafDiffusionInductive,
-)
 
 
 class Models(UppercaseStrEnum):
