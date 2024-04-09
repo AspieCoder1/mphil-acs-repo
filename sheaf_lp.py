@@ -51,12 +51,17 @@ def main(cfg: Config):
     sheaf_learner = init_sheaf_learner(cfg)
     model = model_cls(None, cfg.model_args, sheaf_learner=sheaf_learner)
 
+    print(dm.node_type_names)
+
     sheaf_lp = GNNRecommender(
         model=model,
         batch_size=dm.batch_size,
         hidden_channels=model.hidden_dim,
+        edge_target=dm.target,
         homogeneous=True,
         use_rec_metrics=cfg.rec_metrics,
+        node_type_names=dm.node_type_names,
+        edge_type_names=dm.edge_type_names,
     )
 
     logger: Optional[WandbLogger] = None

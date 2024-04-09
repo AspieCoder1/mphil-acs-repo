@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass, field
 from datetime import timedelta
-from typing import Tuple
+from typing import Tuple, Optional
 
 import hydra
 import lightning as L
@@ -76,7 +76,9 @@ def main(cfg: Config) -> None:
     )
 
     # 4) init trainer
-    trainer, timer, logger = init_trainer(cfg)
+    trainer, timer, logger = init_trainer(
+        cfg, edge_type_names=datamodule.edge_type_names
+    )
 
     # 5) train the model
     trainer.fit(sheaf_nc, datamodule)
@@ -112,7 +114,9 @@ def init_sheaf_learner(cfg):
     return sheaf_learner
 
 
-def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:
+def init_trainer(
+    cfg: Config, edge_type_names: Optional[list[str]] = None
+) -> Tuple[L.Trainer, Timer, WandbLogger]:
     logger = None
     checkpoint_name = "test_run"
 
@@ -144,7 +148,10 @@ def init_trainer(cfg: Config) -> Tuple[L.Trainer, Timer, WandbLogger]:
     if cfg.plot_maps:
         callbacks.append(
             RestrictionMapUMAP(
-                log_every_n_epoch=50, model=cfg.model.type, dataset=cfg.dataset.name
+                log_every_n_epoch=50,
+                model=cfg.model.type,
+                dataset=cfg.dataset.name,
+                edge_type_names=edge_type_names,
             )
         )
 

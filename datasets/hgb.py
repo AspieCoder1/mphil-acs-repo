@@ -41,6 +41,8 @@ class HGBBaseDataModule(L.LightningDataModule):
         self.graph_size: Optional[int] = None
         self.num_node_types: Optional[int] = None
         self.num_edge_types: Optional[int] = None
+        self.node_type_names: Optional[list[str]] = None
+        self.edge_type_names: Optional[list[str]] = None
 
     def prepare_data(self) -> None:
         transform = T.Compose(
@@ -73,6 +75,8 @@ class HGBBaseDataModule(L.LightningDataModule):
             self.in_channels = data.num_features
             self.num_node_types = data.num_node_types
             self.num_edge_types = data.num_edge_types
+            self.node_type_names = data._node_type_names
+            self.edge_type_names = data._edge_type_names
 
         self.pyg_datamodule = LightningNodeData(
             data,

@@ -56,6 +56,8 @@ def main(cfg: Config):
         batch_size=datamodule.batch_size,
         hidden_channels=cfg.hidden_dim,
         use_rec_metrics=cfg.rec_metrics,
+        node_type_names=datamodule.node_type_names,
+        edge_type_names=datamodule.edge_type_names,
     )
 
     logger = None

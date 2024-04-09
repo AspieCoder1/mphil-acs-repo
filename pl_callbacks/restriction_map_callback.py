@@ -76,10 +76,17 @@ class RestrictionMapCallback(L.Callback):
 
 
 class RestrictionMapUMAP(L.Callback):
-    def __init__(self, log_every_n_epoch: int, dataset: NCDatasets, model: ModelTypes):
+    def __init__(
+        self,
+        log_every_n_epoch: int,
+        dataset: NCDatasets,
+        model: ModelTypes,
+        edge_type_names: list[str],
+    ):
         self.log_every_n_epoch: int = log_every_n_epoch
         self.dataset = dataset
         self.model = model
+        self.edge_type_names = edge_type_names
 
     def on_train_batch_end(
         self,
@@ -128,25 +135,14 @@ class RestrictionMapUMAP(L.Callback):
         if not os.path.exists(f"umap-plots/{self.model}/{self.dataset}"):
             os.makedirs(f"umap-plots/{self.model}/{self.dataset}", exist_ok=True)
 
-        unique_vals, unique_indices = np.unique(edge_types, return_index=True)
-        src, dst = batch.edge_index[:, unique_indices]
-        src_types = batch.node_type[src]
-        dst_types = batch.node_type[dst]
-
-        edge_type_to_label = {
-            edge_type: rf"{src_types[i]} \to {dst_types[i]}"
-            for i, edge_type in enumerate(unique_vals)
-        }
-        print(edge_type_to_label)
-
-        for edge_type in unique_vals:
-            edge_mask = edge_types == edge_type
+        for i, edge_type in enumerate(self.edge_type_names):
+            edge_mask = edge_types == i
             embs = embeddings[edge_mask]
 
             ax.scatter(
                 embs[:, 0],
                 embs[:, 1],
-                label=edge_type_to_label[edge_type],
+                label=rf"{edge_type[0]}$\to${edge_type[-1]}",
                 s=3,
                 rasterized=True,
             )

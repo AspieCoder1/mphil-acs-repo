@@ -3,7 +3,7 @@
 #
 #  Adapted from https://medium.com/stanford-cs224w/spotify-track-neural-recommender-system-51d266e31e16
 
-from typing import Union
+from typing import Union, Optional
 
 import lightning as L
 import torch
@@ -97,7 +97,6 @@ class _Recommender(torch.nn.Module):
     ):
         super().__init__()
         self.encoder = encoder
-
         self.target = target
         self.is_hetero = is_hetero
         self.score_func = nn.Linear(2 * hidden_dim, 1)
@@ -194,6 +193,8 @@ class GNNRecommender(L.LightningModule):
         batch_size: int = 1,
         hidden_channels: int = 64,
         use_rec_metrics: bool = True,
+        node_type_names: Optional[list[str]] = None,
+        edge_type_names: Optional[list[str]] = None,
     ):
         super(GNNRecommender, self).__init__()
         self.recommender: _Recommender = _Recommender(
@@ -223,17 +224,24 @@ class GNNRecommender(L.LightningModule):
             )
         self.val_metrics = self.train_metrics.clone(prefix="val/")
         self.test_metrics = self.train_metrics.clone(prefix="test/")
+        self.scr_type = None
+        self.dst_type = None
+
+        if node_type_names and edge_type_names:
+            self.src_type = node_type_names.index(edge_target[0])
+            self.dst_type = node_type_names.index(edge_target[-1])
 
     def common_step(self, batch: DataOrHeteroData) -> [Tensor, Tensor, Adj]:
         is_hetero = False
         if isinstance(batch, HeteroData):
             is_hetero = True
             pos_edge_index = batch[self.target]["edge_index"]
-            max_src_index = batch[self.target[0]].num_nodes
-            max_dst_index = batch[self.target[-1]].num_nodes
+            src_index = torch.arange(0, batch[self.target[0]].num_nodes)
+            dst_index = torch.arange(0, batch[self.target[-1]].num_nodes)
         else:
             pos_edge_index = batch.edge_index
-            max_src_index = max_dst_index = batch.num_nodes
+            src_index = torch.argwhere(batch.node_type == self.src_type).squeeze()
+            dst_index = torch.argwhere(batch.node_type == self.dst_type).squeeze()
 
         embed = self.recommender(batch)
         x_i, pos_j, neg_j = structured_negative_sampling(pos_edge_index)
@@ -253,8 +261,8 @@ class GNNRecommender(L.LightningModule):
         if self.use_rec_metrics:
             rec_scores = self.recommender.recommend(
                 batch,
-                src_index=torch.arange(0, max_src_index),
-                dst_index=torch.arange(0, max_dst_index),
+                src_index=src_index,
+                dst_index=dst_index,
                 k=20,
             )
             return loss, rec_scores, pos_edge_index
