@@ -14,7 +14,7 @@ from core.datasets import get_dataset_lp
 from core.models import get_baseline_model, Models
 from core.sheaf_configs import SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
-from models.gnn_recommend.recommender import GNNRecommender
+from models.recommender.recommender import GNNRecommender
 from node_classification import ModelConfig
 
 

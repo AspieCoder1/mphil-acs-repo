@@ -194,7 +194,7 @@ class GNNRecommender(L.LightningModule):
         hidden_channels: int = 64,
         use_rec_metrics: bool = True,
         node_type_names: Optional[list[str]] = None,
-        edge_type_names: Optional[list[str]] = None,
+        edge_type_names: Optional[list[tuple[str, str, str]]] = None,
     ):
         super(GNNRecommender, self).__init__()
         self.recommender: _Recommender = _Recommender(
@@ -226,10 +226,12 @@ class GNNRecommender(L.LightningModule):
         self.test_metrics = self.train_metrics.clone(prefix="test/")
         self.scr_type = None
         self.dst_type = None
+        self.edge_type = None
 
         if node_type_names and edge_type_names:
             self.src_type = node_type_names.index(edge_target[0])
             self.dst_type = node_type_names.index(edge_target[-1])
+            self.edge_type = edge_type_names.index(edge_target)
 
     def common_step(self, batch: DataOrHeteroData) -> [Tensor, Tensor, Adj]:
         is_hetero = False
@@ -239,7 +241,7 @@ class GNNRecommender(L.LightningModule):
             src_index = torch.arange(0, batch[self.target[0]].num_nodes)
             dst_index = torch.arange(0, batch[self.target[-1]].num_nodes)
         else:
-            pos_edge_index = batch.edge_index
+            pos_edge_index = batch.edge_index[:, batch.edge_type == self.edge_type]
             src_index = torch.argwhere(batch.node_type == self.src_type).squeeze()
             dst_index = torch.argwhere(batch.node_type == self.dst_type).squeeze()
 

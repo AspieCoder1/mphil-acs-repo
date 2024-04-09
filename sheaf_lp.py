@@ -15,7 +15,7 @@ from core.datasets import get_dataset_lp, LinkPredDatasets
 from core.models import get_inductive_sheaf_model
 from core.sheaf_configs import SheafModelCfg, SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
-from models.gnn_recommend.recommender import GNNRecommender
+from models.recommender.recommender import GNNRecommender
 from models.sheaf_gnn.config import IndSheafModelArguments, SheafLearners
 from sheaf_nc import init_sheaf_learner
 
