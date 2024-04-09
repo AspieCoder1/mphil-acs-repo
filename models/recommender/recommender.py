@@ -238,11 +238,11 @@ class GNNRecommender(L.LightningModule):
         if isinstance(batch, HeteroData):
             is_hetero = True
             pos_edge_index = batch[self.target]["edge_index"]
-            src_index = torch.arange(0, batch[self.target[0]].num_nodes)
+            src_index = torch.unique(pos_edge_index[0])
             dst_index = torch.arange(0, batch[self.target[-1]].num_nodes)
         else:
             pos_edge_index = batch.edge_index[:, batch.edge_type == self.edge_type]
-            src_index = torch.argwhere(batch.node_type == self.src_type).squeeze()
+            src_index = torch.unique(pos_edge_index[0])
             dst_index = torch.argwhere(batch.node_type == self.dst_type).squeeze()
 
         embed = self.recommender(batch)
@@ -267,7 +267,9 @@ class GNNRecommender(L.LightningModule):
                 dst_index=dst_index,
                 k=20,
             )
-            return loss, rec_scores, pos_edge_index
+            scores = torch.empty((pos_edge_index.shape[0], 20))
+            scores = rec_scores[pos_edge_index[0]]
+            return loss, scores, pos_edge_index
 
         scores = torch.column_stack([pos_scores, neg_scores])
         labels = torch.column_stack(
