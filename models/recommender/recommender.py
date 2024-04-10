@@ -238,12 +238,14 @@ class GNNRecommender(L.LightningModule):
         if isinstance(batch, HeteroData):
             is_hetero = True
             pos_edge_index = batch[self.target]["edge_index"]
-            src_index = torch.unique(pos_edge_index[0])
             dst_index = torch.arange(0, batch[self.target[-1]].num_nodes)
         else:
             pos_edge_index = batch.edge_index[:, batch.edge_type == self.edge_type]
-            src_index = torch.unique(pos_edge_index[0])
             dst_index = torch.argwhere(batch.node_type == self.dst_type).squeeze()
+
+        src_index, inverse_src_index = torch.unique(
+            pos_edge_index[0], return_inverse=True
+        )
 
         embed = self.recommender(batch)
         x_i, pos_j, neg_j = structured_negative_sampling(pos_edge_index)
@@ -267,8 +269,7 @@ class GNNRecommender(L.LightningModule):
                 dst_index=dst_index,
                 k=20,
             )
-            scores = torch.empty((pos_edge_index.shape[0], 20))
-            scores = rec_scores[pos_edge_index[0]]
+            scores = rec_scores[inverse_src_index]
             return loss, scores, pos_edge_index
 
         scores = torch.column_stack([pos_scores, neg_scores])
