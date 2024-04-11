@@ -38,10 +38,7 @@ class DTIDatasets(InMemoryDataset):
     ):
         super(DTIDatasets, self).__init__(root_dir, transform, pre_transform)
         self.dataset = dataset
-
-    @property
-    def edge_type_map(self):
-        return {
+        self.edge_type_map = {
             ("drug", "disease"): "drug_treats",
             ("drug", "protein"): "drug_interacts_with",
             ("protein", "drug"): "protein_interacts_with",
@@ -49,10 +46,7 @@ class DTIDatasets(InMemoryDataset):
             ("disease", "drug"): "disease_treated_by",
             ("disease", "protein"): "disease_linked_to",
         }
-
-    @property
-    def edge_type_names(self):
-        return [
+        self.edge_type_names = [
             "drug_treats",
             "drug_targets",
             "protein_interacts_with",
@@ -60,10 +54,7 @@ class DTIDatasets(InMemoryDataset):
             "disease_treated_by",
             "disease_linked_to",
         ]
-
-    @property
-    def node_type_names(self):
-        return ["drug", "protein", "disease"]
+        self.node_type_names = ["drug", "protein", "disease"]
 
     @property
     def raw_file_names(self) -> Union[str, List[str], Tuple]:
@@ -111,36 +102,40 @@ class DTIDatasets(InMemoryDataset):
                 max_idx, _ = torch.max(hyperedge_idxs[-1], dim=1, keepdim=True)
                 max_idx += 1
 
-            H = torch.Tensor(np.genfromtxt(f"{path}")).to_sparse()
+            incidence_matrix = torch.Tensor(np.genfromtxt(f"{path}")).to_sparse()
 
             filename = Path(path).stem
             print(filename)
 
             src, dst = filename.split("_")
-            hyperedge_idx = H.indices()
+            hyperedge_idx = incidence_matrix.indices()
             hyperedge_idx += max_idx
 
             max_idx, _ = torch.max(hyperedge_idx, dim=1, keepdim=True)
             max_idx += 1
-            hyperedge_idx_T = H.T.coalesce().indices() + max_idx
+            hyperedge_idx_inverse = incidence_matrix.T.coalesce().indices() + max_idx
 
-            hyperedge_idxs.extend([hyperedge_idx, hyperedge_idx_T])
+            hyperedge_idxs.extend([hyperedge_idx, hyperedge_idx_inverse])
 
             edge_type = self.edge_type_names.index(self.edge_type_map[(src, dst)])
             node_type = self.node_type_names.index(src)
-            edge_type_T = self.edge_type_names.index(self.edge_type_map[(dst, src)])
-            node_type_T = self.node_type_names.index(dst)
+            edge_type_inverse = self.edge_type_names.index(
+                self.edge_type_map[(dst, src)]
+            )
+            node_type_inverse = self.node_type_names.index(dst)
 
             types = torch.ones((hyperedge_idx.shape[0], 1))
 
-            edge_types.extend([edge_type * types, edge_type_T * types])
-            node_types.extend([node_type * types, node_type_T * types])
+            edge_types.extend([edge_type * types, edge_type_inverse * types])
+            node_types.extend([node_type * types, node_type_inverse * types])
 
         hyperedge_index = torch.cat(hyperedge_idxs, dim=1)
         node_types = torch.cat(node_types, dim=1)
         hyperedge_types = torch.cat(edge_types, dim=1)
 
         return hyperedge_index, node_types, hyperedge_types
+
+    def process(self): ...
 
 
 if __name__ == "__main__":
