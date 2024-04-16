@@ -185,6 +185,7 @@ class DTIDataset(InMemoryDataset):
         hyperedge_index = torch.cat(hyperedge_idxs, dim=1)
         hyperedge_types = torch.cat(edge_types, dim=0)
         node_types = torch.cat(node_types, dim=0)
+        print(hyperedge_index[1].unique().shape, self.num_nodes)
         print(hyperedge_index[0].unique().shape, self.num_nodes)
         print(hyperedge_index.shape)
         return hyperedge_index, hyperedge_types, node_types
