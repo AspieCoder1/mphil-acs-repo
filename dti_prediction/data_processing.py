@@ -138,7 +138,9 @@ class DTIDatasets(InMemoryDataset):
             hyperedge_idx += offset
             current_hyperedge_idx += hyperedge_idx.shape[1]
             hyperedge_type = self.edge_type_names.index(self.edge_type_map[(src, dst)])
-            hyperedge_types = hyperedge_type * torch.ones(hyperedge_idx.shape[1])
+            hyperedge_types = hyperedge_type * torch.ones(
+                torch.unique(hyperedge_idx[1]).shape[0]
+            )
 
             # Handle transpose
             hyperedge_idx_inverse = incidence_matrix.T.coalesce().indices()
@@ -155,7 +157,7 @@ class DTIDatasets(InMemoryDataset):
                 self.edge_type_map[(dst, src)]
             )
             inverse_hyperedge_types = inverse_hyperedge_type * torch.ones(
-                hyperedge_idx_inverse.shape[1]
+                torch.unique(hyperedge_idx[1]).shape[0]
             )
 
             hyperedge_idxs.extend([hyperedge_idx, hyperedge_idx_inverse])
@@ -171,4 +173,9 @@ class DTIDatasets(InMemoryDataset):
 
         return hyperedge_index, hyperedge_types, node_types
 
-    def process(self): ...
+    def process(self):
+        hyperedge_index, hyperedge_types, node_types = self.generate_hyperedge_index()
+        incidence_graph = self.generate_incidence_graph(hyperedge_index)
+        features = self.generate_node_features(incidence_graph)
+        node_features = features[:, :self.num_nodes]
+        hyeredge_features = features[:, self.num_nodes:]
