@@ -2,7 +2,6 @@
 #  License: MIT
 
 import os.path as osp
-from abc import ABC, abstractmethod
 from collections import defaultdict
 from pathlib import Path
 from typing import Union, List, Tuple, Literal
@@ -12,22 +11,6 @@ import torch
 from torch_geometric.data import InMemoryDataset, download_url, extract_zip
 from torch_geometric.nn.models import Node2Vec
 from torch_geometric.typing import Adj, FeatureTensorType
-
-
-class PreprocessDataset(ABC):
-    def __init__(self): ...
-
-    @abstractmethod
-    def generate_hyperedge_index(self):
-        raise NotImplementedError
-
-    @abstractmethod
-    def generate_incidence_graph(self):
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_feature_matrix(self):
-        raise NotImplementedError
 
 
 class DTIDataset(InMemoryDataset):
