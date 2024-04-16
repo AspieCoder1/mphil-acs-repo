@@ -4,12 +4,13 @@
 import os.path as osp
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Union, List, Tuple, Literal
+from typing import Union, List, Tuple, Literal, Mapping
 
 import numpy as np
 import torch
-from torch_geometric.data import InMemoryDataset
-from torch_geometric.typing import Adj
+from torch_geometric.data import InMemoryDataset, download_url, extract_zip
+from torch_geometric.nn.models import Node2Vec
+from torch_geometric.typing import Adj, FeatureTensorType
 
 
 class PreprocessDataset(ABC):
@@ -55,14 +56,29 @@ class DTIDatasets(InMemoryDataset):
             "disease_linked_to",
         ]
         self.node_type_names = ["drug", "protein", "disease"]
+        self.nodes_per_type: Mapping[str, int] = {}
+        self.file_ids: Mapping[str, str] = {
+            "deepDTnet_20": "1RGS2K58Gjr5IxPJTE4G-MHl0S6Wk6UgZ",
+            "KEGG_MED": "1_XOT7Czd560UvkxpJM1-L5t9GXDPLhQr",
+            "DTINet_17": "1pLoNyznbcTaxBHW8cSNPUU6oN3WCAh3l",
+        }
 
     @property
     def raw_file_names(self) -> Union[str, List[str], Tuple]:
         return ["drug_disease.txt", "drug_protein.txt", "protein_disease.txt"]
 
     @property
+    def num_nodes(self):
+        return sum(self.nodes_per_type.values())
+
+    @property
     def raw_dir(self) -> str:
         return osp.join(self.root_dir, self.dataset, "raw")
+
+    def download(self):
+        url = f"https://drive.google.com/uc?export=download&id={self.file_ids[self.dataset]}"
+        path = download_url(url=url, folder=self.raw_dir, filename="data.zip")
+        extract_zip(self.raw_dir, path)
 
     def generate_incidence_graph(self, hyperedge_index: Adj) -> Adj:
         """
@@ -77,10 +93,15 @@ class DTIDatasets(InMemoryDataset):
         Returns:
             Adj: incidence graph of the input hypergraph.
         """
-        max_node_idx, _ = torch.max(hyperedge_index, dim=1, keepdim=True)
-        max_node_idx[0] = 0
+        offset = torch.Tensor([[0], [self.num_nodes]])
+        return hyperedge_index + offset
 
-        return hyperedge_index + max_node_idx
+    def generate_node_features(self, incidence_graph: Adj) -> FeatureTensorType:
+        model = Node2Vec(
+            incidence_graph, embedding_dim=128, walk_length=5, context_size=10
+        )
+
+        return model()
 
     def generate_hyperedge_index(self) -> [Adj, torch.Tensor, torch.Tensor]:
         """
@@ -94,14 +115,15 @@ class DTIDatasets(InMemoryDataset):
         """
         current_node_idx = 0
         current_hyperedge_idx = 0
-        node_idx_start = {}
-        num_nodes = {}
-        hyperedge_idxs = []
-        edge_types = []
+        node_idx_start: Mapping[str, int] = {}
+        hyperedge_idxs: list[Adj] = []
+        edge_types: list[torch.Tensor] = []
         for path in self.raw_paths:
             filename = Path(path).stem
             src, dst = filename.split("_")
-            incidence_matrix = torch.Tensor(np.genfromtxt(f"{path}")).to_sparse()
+            incidence_matrix = torch.Tensor(
+                np.genfromtxt(f"{self.raw_dir}/{path}")
+            ).to_sparse()
 
             # Handle initial direction
             hyperedge_idx = incidence_matrix.indices()
@@ -109,7 +131,7 @@ class DTIDatasets(InMemoryDataset):
             if src not in node_idx_start:
                 node_idx_start[src] = current_node_idx
                 current_node_idx += incidence_matrix.shape[0]
-                num_nodes[src] = incidence_matrix.shape[0]
+                self.nodes_per_type[src] = incidence_matrix.shape[0]
             offset = torch.Tensor([[node_idx_start[src]], [current_hyperedge_idx]]).to(
                 torch.long
             )
@@ -123,7 +145,7 @@ class DTIDatasets(InMemoryDataset):
             if dst not in node_idx_start:
                 node_idx_start[dst] = current_node_idx
                 current_node_idx += incidence_matrix.shape[1]
-                num_nodes[dst] = incidence_matrix.shape[1]
+                self.nodes_per_type[dst] = incidence_matrix.shape[1]
             offset = torch.Tensor([[node_idx_start[src]], [current_hyperedge_idx]]).to(
                 torch.long
             )
@@ -140,7 +162,7 @@ class DTIDatasets(InMemoryDataset):
             edge_types.extend([hyperedge_types, inverse_hyperedge_types])
 
         node_types = []
-        for k, v in num_nodes.items():
+        for k, v in self.nodes_per_type.items():
             node_types.append(self.node_type_names.index(k) * torch.ones(v))
 
         hyperedge_index = torch.cat(hyperedge_idxs, dim=1)
@@ -150,4 +172,3 @@ class DTIDatasets(InMemoryDataset):
         return hyperedge_index, hyperedge_types, node_types
 
     def process(self): ...
-
