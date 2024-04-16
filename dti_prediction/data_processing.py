@@ -3,6 +3,7 @@
 
 import os.path as osp
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from pathlib import Path
 from typing import Union, List, Tuple, Literal, Mapping
 
@@ -29,15 +30,16 @@ class PreprocessDataset(ABC):
         raise NotImplementedError
 
 
-class DTIDatasets(InMemoryDataset):
+class DTIDataset(InMemoryDataset):
     def __init__(
         self,
         root_dir,
         transform=None,
         pre_transform=None,
+        pre_filter=None,
         dataset: Literal["deepDTnet_20", "KEGG_MED", "DTINet_17"] = "deepDTNet_20",
     ):
-        super(DTIDatasets, self).__init__(root_dir, transform, pre_transform)
+        # super(DTIDataset, self).__init__(root_dir, transform, pre_transform)
         self.dataset = dataset
         self.edge_type_map = {
             ("drug", "disease"): "drug_treats",
@@ -56,12 +58,16 @@ class DTIDatasets(InMemoryDataset):
             "disease_linked_to",
         ]
         self.node_type_names = ["drug", "protein", "disease"]
-        self.nodes_per_type: Mapping[str, int] = {}
+        self.nodes_per_type: dict[str, int] = {}
+        self.hyperedges_per_type: dict[str, int] = defaultdict(lambda: 0)
         self.file_ids: Mapping[str, str] = {
             "deepDTnet_20": "1RGS2K58Gjr5IxPJTE4G-MHl0S6Wk6UgZ",
             "KEGG_MED": "1_XOT7Czd560UvkxpJM1-L5t9GXDPLhQr",
             "DTINet_17": "1pLoNyznbcTaxBHW8cSNPUU6oN3WCAh3l",
         }
+        self.transform = transform
+        self.pre_transform = pre_transform
+        super().__init__(root_dir, transform, pre_transform, pre_filter)
 
     @property
     def raw_file_names(self) -> Union[str, List[str], Tuple]:
@@ -72,13 +78,29 @@ class DTIDatasets(InMemoryDataset):
         return sum(self.nodes_per_type.values())
 
     @property
+    def num_hyperedges(self):
+        return sum(self.hyperedges_per_type.values())
+
+    @property
     def raw_dir(self) -> str:
-        return osp.join(self.root_dir, self.dataset, "raw")
+        return osp.join(self.root, self.dataset, "raw")
+
+    @property
+    def raw_paths(self) -> List[str]:
+        return [osp.join(self.raw_dir, filename) for filename in self.raw_file_names]
+
+    @property
+    def processed_file_names(self) -> Union[str, List[str], Tuple]:
+        return "data.pt"
+
+    @property
+    def processed_dir(self) -> str:
+        return osp.join(self.root, self.dataset, "processed")
 
     def download(self):
         url = f"https://drive.google.com/uc?export=download&id={self.file_ids[self.dataset]}"
         path = download_url(url=url, folder=self.raw_dir, filename="data.zip")
-        extract_zip(self.raw_dir, path)
+        extract_zip(path, self.raw_dir)
 
     def generate_incidence_graph(self, hyperedge_index: Adj) -> Adj:
         """
@@ -94,11 +116,11 @@ class DTIDatasets(InMemoryDataset):
             Adj: incidence graph of the input hypergraph.
         """
         offset = torch.Tensor([[0], [self.num_nodes]])
-        return hyperedge_index + offset
+        return (hyperedge_index + offset).to(torch.long)
 
     def generate_node_features(self, incidence_graph: Adj) -> FeatureTensorType:
         model = Node2Vec(
-            incidence_graph, embedding_dim=128, walk_length=5, context_size=10
+            incidence_graph, embedding_dim=128, walk_length=5, context_size=1
         )
 
         return model()
@@ -118,7 +140,7 @@ class DTIDatasets(InMemoryDataset):
         node_idx_start: Mapping[str, int] = {}
         hyperedge_idxs: list[Adj] = []
         edge_types: list[torch.Tensor] = []
-        for path in self.raw_paths:
+        for path in self.raw_file_names:
             filename = Path(path).stem
             src, dst = filename.split("_")
             incidence_matrix = torch.Tensor(
@@ -141,6 +163,9 @@ class DTIDatasets(InMemoryDataset):
             hyperedge_types = hyperedge_type * torch.ones(
                 torch.unique(hyperedge_idx[1]).shape[0]
             )
+            self.hyperedges_per_type[
+                self.edge_type_names[hyperedge_type]
+            ] += incidence_matrix.shape[1]
 
             # Handle transpose
             hyperedge_idx_inverse = incidence_matrix.T.coalesce().indices()
@@ -159,6 +184,9 @@ class DTIDatasets(InMemoryDataset):
             inverse_hyperedge_types = inverse_hyperedge_type * torch.ones(
                 torch.unique(hyperedge_idx[1]).shape[0]
             )
+            self.hyperedges_per_type[
+                self.edge_type_names[inverse_hyperedge_type]
+            ] += incidence_matrix.shape[0]
 
             hyperedge_idxs.extend([hyperedge_idx, hyperedge_idx_inverse])
             edge_types.extend([hyperedge_types, inverse_hyperedge_types])
@@ -177,5 +205,17 @@ class DTIDatasets(InMemoryDataset):
         hyperedge_index, hyperedge_types, node_types = self.generate_hyperedge_index()
         incidence_graph = self.generate_incidence_graph(hyperedge_index)
         features = self.generate_node_features(incidence_graph)
-        node_features = features[:, :self.num_nodes]
-        hyeredge_features = features[:, self.num_nodes:]
+        node_features = features[torch.arange(self.num_nodes)]
+        hyperedge_features = features[torch.unique(incidence_graph[1])]
+        print(hyperedge_types.shape)
+
+    def print_summary(self):
+        print(self.num_nodes)
+        print(self.nodes_per_type)
+        print(dict(self.hyperedges_per_type))
+        print(self.num_hyperedges)
+
+
+if __name__ == "__main__":
+    dataset = DTIDataset(root_dir="data", dataset="deepDTnet_20")
+    dataset.print_summary()
