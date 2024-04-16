@@ -126,7 +126,8 @@ class _Recommender(torch.nn.Module):
         else:
             embed_src = embed[edge_label_index[0]]
             embed_dst = embed[edge_label_index[1]]
-        return embed_src @ embed_dst.t()
+        embed_concat = torch.cat((embed_src, embed_dst), dim=-1)
+        return self.score_func(embed_concat)
 
     def recommend(
         self,
@@ -146,18 +147,20 @@ class _Recommender(torch.nn.Module):
             out_src = out_src[src_index]
             out_dst = out_dst[dst_index]
 
-        # num_dst = out_dst.shape[0]
-        #
-        # preds = []
-        # for src_chunk in out_src.chunk(100):
-        #     num_src = src_chunk.shape[0]
-        #     src_tiled = src_chunk.unsqueeze(1).tile((1, num_dst, 1))
-        #     dst_tiled = out_dst.unsqueeze(0).tile((num_src, 1, 1))
-        #     pred = self.score_func(
-        #         torch.concat([src_tiled, dst_tiled], dim=-1)
-        #     ).squeeze(-1)
-        #     preds.append(pred)
-        preds = out_src @ out_dst.t()
+        num_dst = out_dst.shape[0]
+
+        preds = []
+        for i, src_chunk in enumerate(out_src.chunk(50)):
+            num_src = src_chunk.shape[0]
+            src_tiled = src_chunk.unsqueeze(1).tile((1, num_dst, 1))
+            dst_tiled = out_dst.unsqueeze(0).tile((num_src, 1, 1))
+            pred = self.score_func(
+                torch.concat([src_tiled, dst_tiled], dim=-1)
+            ).squeeze(-1)
+            preds.append(pred)
+        print("finished chunks")
+
+        preds = torch.row_stack(preds)
         top_index = preds.topk(k, dim=-1).indices
 
         top_index = dst_index[top_index.view(-1)].view(*top_index.size())
@@ -227,7 +230,7 @@ class GNNRecommender(L.LightningModule):
                 },
                 prefix="train/",
             )
-        self.val_metrics = self.train_metrics.clone(prefix="val/")
+        self.val_metrics = self.train_metrics.clone(prefix="valid/")
         self.test_metrics = self.train_metrics.clone(prefix="test/")
         self.scr_type = None
         self.dst_type = None
@@ -310,7 +313,7 @@ class GNNRecommender(L.LightningModule):
             on_epoch=True,
             batch_size=self.batch_size,
         )
-        self.log("val/loss", loss, batch_size=1)
+        self.log("valid/loss", loss, batch_size=1)
 
         return loss
 
