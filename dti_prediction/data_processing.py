@@ -112,9 +112,7 @@ class DTIDataset(InMemoryDataset):
         # hyperedge_index, hyperedge_types, node_types = self.generate_hyperedge_index()
         self.nodes_per_type = hyperedge_idx.nodes_per_type
         self.hyperedges_per_type = hyperedge_idx.hyperedges_per_type
-        incidence_graph = utils.generate_incidence_graph(
-            hyperedge_idx.hyperedge_index, self.num_nodes
-        )
+        incidence_graph = utils.generate_incidence_graph(hyperedge_idx.hyperedge_index)
         features = utils.generate_node_features(incidence_graph)
 
         max_node_idx = torch.max(incidence_graph[0]).item()
@@ -127,7 +125,6 @@ class DTIDataset(InMemoryDataset):
             edge_index=hyperedge_idx.hyperedge_index,
             hyperedge_attr=hyperedge_features,
         )
-
 
     def print_summary(self):
         print("======== Dataset summary ========")

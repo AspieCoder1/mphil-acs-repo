@@ -95,8 +95,9 @@ def generate_hyperedge_index(
     )
 
 
-def generate_incidence_graph(hyperedge_index: Adj, num_nodes: int):
-    offset = torch.Tensor([[0], [num_nodes]])
+def generate_incidence_graph(hyperedge_index: Adj):
+    max_node_idx = torch.max(hyperedge_index[0]).item() + 1
+    offset = torch.Tensor([[0], [max_node_idx]])
     return (hyperedge_index + offset).to(torch.long)
 
 

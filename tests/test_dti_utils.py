@@ -91,7 +91,7 @@ def test_correct_hyperedge_index_with_empty_row(incidence_matrices_empty_column)
 def test_generate_incidence_graph():
     hyperedge_index = torch.Tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
 
-    incidence_graph = utils.generate_incidence_graph(hyperedge_index, num_nodes=4)
+    incidence_graph = utils.generate_incidence_graph(hyperedge_index)
 
     expected_incidence_graph = torch.Tensor([[0, 1, 2, 3], [4, 4, 5, 5]]).to(torch.long)
 
@@ -99,14 +99,14 @@ def test_generate_incidence_graph():
 
 
 def test_generate_incidence_graph_realistic(hyperedge_index):
-    incidence_graph = utils.generate_incidence_graph(hyperedge_index, 6)
+    incidence_graph = utils.generate_incidence_graph(hyperedge_index)
     expected_incidence_graph = hyperedge_index + torch.Tensor([[0], [6]]).to(torch.long)
 
     assert torch.allclose(incidence_graph, expected_incidence_graph)
 
 
 def test_generate_node_features(hyperedge_index):
-    incidence_graph = utils.generate_incidence_graph(hyperedge_index, 6)
+    incidence_graph = utils.generate_incidence_graph(hyperedge_index)
     node_features = utils.generate_node_features(incidence_graph)
 
     assert node_features.shape == (18, 128)
