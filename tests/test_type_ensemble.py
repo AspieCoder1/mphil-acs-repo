@@ -13,8 +13,10 @@ def test_type_ensemble():
     node_type = torch.randint(low=0, high=4, size=(x.shape[0],))
 
     module = TypeEnsembleSheafLearner(5, (5,), "id", 4, 4)
+    module.eval()
 
-    out = module(x, edge_index, edge_type, node_type)
+    with torch.no_grad():
+        out = module(x, edge_index, edge_type, node_type)
 
     src, dst = edge_index
     x_src = torch.index_select(x, dim=0, index=src)

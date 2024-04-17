@@ -5,6 +5,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 
 import torch
+from torch_geometric.nn import Node2Vec
 from torch_geometric.typing import Adj
 
 
@@ -52,7 +53,9 @@ def generate_hyperedge_index(
         ]
 
         # Rows are hyperedges and columns are nodes
-        hyperedge_idx_inverse = incidence_matrix.to_sparse_coo().t().coalesce().indices()
+        hyperedge_idx_inverse = (
+            incidence_matrix.to_sparse_coo().t().coalesce().indices()
+        )
 
         if dst not in node_idx_start.keys():
             node_idx_start[dst] = current_node_idx
@@ -90,3 +93,14 @@ def generate_hyperedge_index(
         hyperedges_per_type=dict(hyperedges_per_type),
         nodes_per_type=nodes_per_type,
     )
+
+
+def generate_incidence_graph(hyperedge_index: Adj, num_nodes: int):
+    offset = torch.Tensor([[0], [num_nodes]])
+    return (hyperedge_index + offset).to(torch.long)
+
+
+def generate_node_features(incidence_graph: Adj):
+    model = Node2Vec(incidence_graph, embedding_dim=128, walk_length=5, context_size=1)
+
+    return model()
