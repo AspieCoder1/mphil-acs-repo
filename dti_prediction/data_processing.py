@@ -11,7 +11,7 @@ from torch_geometric.data import InMemoryDataset, download_url, extract_zip
 from torch_geometric.nn.models import Node2Vec
 from torch_geometric.typing import Adj, FeatureTensorType
 
-from . import utils
+import utils
 
 EDGE_TYPE_MAP = {
     ("drug", "disease"): "drug_treats",
@@ -123,22 +123,6 @@ class DTIDataset(InMemoryDataset):
         Returns:
             Adj: hyper edge index.
         """
-        current_node_idx = 0
-        current_hyperedge_idx = 0
-        node_idx_start: dict[str, int] = {}
-        hyperedge_idxs: list[Adj] = []
-        edge_types: list[torch.Tensor] = []
-
-        incidence_matrices: list[tuple[str, Adj]] = []
-
-        for path in self.raw_file_names:
-            filename = Path(path).stem
-
-            incidence_matrix = torch.Tensor(
-                np.genfromtxt(f"{self.raw_dir}/{path}")
-            ).to_sparse_coo()
-
-            incidence_matrices.append((filename, incidence_matrix))
 
         hyperedge_idx = utils.generate_hyperedge_index(
             incidence_matrices,
@@ -156,15 +140,37 @@ class DTIDataset(InMemoryDataset):
             hyperedge_idx.node_types,
         )
 
-    def process(self):
-        hyperedge_index, hyperedge_types, node_types = self.generate_hyperedge_index()
-        incidence_graph = self.generate_incidence_graph(hyperedge_index)
-        features = self.generate_node_features(incidence_graph)
-        node_features = features[: torch.unique(hyperedge_index[0])[-1]]
-        hyperedge_features = features[torch.unique(incidence_graph[1])]
+    def get_incidence_matrices(self):
+        incidence_matrices: list[tuple[str, Adj]] = []
+        for path in self.raw_file_names:
+            filename = Path(path).stem
 
-        print(node_features.shape)
-        print(hyperedge_features.shape)
+            incidence_matrix = torch.Tensor(
+                np.genfromtxt(f"{self.raw_dir}/{path}")
+            ).to_sparse_coo()
+
+            incidence_matrices.append((filename, incidence_matrix))
+        return incidence_matrices
+
+    def process(self):
+        incidence_matrices = self.get_incidence_matrices()
+        hyperedge_idx = utils.generate_hyperedge_index(
+            incidence_matrices,
+            self.edge_type_map,
+            self.edge_type_names,
+            self.node_type_names,
+        )
+        # hyperedge_index, hyperedge_types, node_types = self.generate_hyperedge_index()
+        self.nodes_per_type = hyperedge_idx.nodes_per_type
+        self.hyperedges_per_type = hyperedge_idx.hyperedges_per_type
+        incidence_graph = utils.generate_incidence_graph(
+            hyperedge_idx.hyperedge_index, self.num_nodes
+        )
+        features = utils.generate_node_features(incidence_graph)
+
+        print(features.shape)
+        print(self.num_nodes)
+        print(self.num_hyperedges)
 
     def print_summary(self):
         print("======== Dataset summary ========")
