@@ -43,7 +43,6 @@ class DTIDataset(InMemoryDataset):
         pre_filter=None,
         dataset: Literal["deepDTnet_20", "KEGG_MED", "DTINet_17"] = "deepDTNet_20",
     ):
-        # super(DTIDataset, self).__init__(root_dir, transform, pre_transform)
         self.dataset = dataset
         self.edge_type_map = EDGE_TYPE_MAP
         self.edge_type_names = EDGE_TYPE_NAMES
@@ -55,9 +54,8 @@ class DTIDataset(InMemoryDataset):
             "KEGG_MED": "1_XOT7Czd560UvkxpJM1-L5t9GXDPLhQr",
             "DTINet_17": "1pLoNyznbcTaxBHW8cSNPUU6oN3WCAh3l",
         }
-        self.transform = transform
-        self.pre_transform = pre_transform
         super().__init__(root_dir, transform, pre_transform, pre_filter)
+        self.load(self.processed_paths[0])
 
     @property
     def raw_file_names(self) -> Union[str, List[str], Tuple]:
@@ -122,7 +120,11 @@ class DTIDataset(InMemoryDataset):
             x=node_features,
             edge_index=hyperedge_idx.hyperedge_index,
             hyperedge_attr=hyperedge_features,
+            node_types=hyperedge_idx.node_types,
+            hyperedge_types=hyperedge_idx.hyperedge_types,
         )
+
+        self.save([data], self.processed_paths[0])
 
     def print_summary(self):
         print("======== Dataset summary ========")
@@ -134,4 +136,5 @@ class DTIDataset(InMemoryDataset):
 
 if __name__ == "__main__":
     dataset = DTIDataset(root_dir="data", dataset="deepDTnet_20")
-    dataset.print_summary()
+
+    print(dataset[0].x)
