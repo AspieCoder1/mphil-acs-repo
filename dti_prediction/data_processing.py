@@ -10,7 +10,10 @@ import torch
 from torch_geometric.data import InMemoryDataset, download_url, extract_zip, Data
 from torch_geometric.typing import Adj
 
-from . import utils
+try:
+    from . import utils
+except ImportError:
+    import utils
 
 EDGE_TYPE_MAP = {
     ("drug", "disease"): "drug_treats",
@@ -93,11 +96,7 @@ class DTIDataset(InMemoryDataset):
         incidence_matrices: list[tuple[str, Adj]] = []
         for path in self.raw_file_names:
             filename = Path(path).stem
-
-            incidence_matrix = torch.Tensor(
-                np.genfromtxt(f"{self.raw_dir}/{path}")
-            ).to_sparse_coo()
-
+            incidence_matrix = torch.Tensor(np.genfromtxt(f"{self.raw_dir}/{path}"))
             incidence_matrices.append((filename, incidence_matrix))
         return incidence_matrices
 
@@ -115,8 +114,7 @@ class DTIDataset(InMemoryDataset):
         incidence_graph = utils.generate_incidence_graph(hyperedge_idx.hyperedge_index)
         features = utils.generate_node_features(incidence_graph)
 
-        max_node_idx = torch.max(incidence_graph[0]).item()
-
+        max_node_idx = torch.max(hyperedge_idx.hyperedge_index[0]).item() + 1
         node_features = features[:max_node_idx]
         hyperedge_features = features[max_node_idx:]
 

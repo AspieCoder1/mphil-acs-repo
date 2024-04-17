@@ -34,8 +34,9 @@ def generate_hyperedge_index(
 
     for filename, incidence_matrix in incidence_matrics:
         src, dst = filename.split("_")  # data types stored in rows and cols
-        hyperedge_idx = incidence_matrix.to_sparse_coo().indices()
 
+        # Rows are nodes and hyperedges are columns
+        hyperedge_idx = incidence_matrix.to_sparse_coo().indices()
         if src not in node_idx_start.keys():
             node_idx_start[src] = current_node_idx
             nodes_per_type[src] = incidence_matrix.shape[0]
@@ -54,7 +55,7 @@ def generate_hyperedge_index(
 
         # Rows are hyperedges and columns are nodes
         hyperedge_idx_inverse = (
-            incidence_matrix.to_sparse_coo().t().coalesce().indices()
+            incidence_matrix.T.to_sparse_coo().coalesce().indices()
         )
 
         if dst not in node_idx_start.keys():
