@@ -2,7 +2,6 @@
 #  License: MIT
 
 import os.path as osp
-from collections import defaultdict
 from pathlib import Path
 from typing import Union, List, Tuple, Literal
 
@@ -11,6 +10,26 @@ import torch
 from torch_geometric.data import InMemoryDataset, download_url, extract_zip
 from torch_geometric.nn.models import Node2Vec
 from torch_geometric.typing import Adj, FeatureTensorType
+
+import utils
+
+EDGE_TYPE_MAP = {
+    ("drug", "disease"): "drug_treats",
+    ("drug", "protein"): "drug_targets",
+    ("protein", "drug"): "protein_interacts_with",
+    ("protein", "disease"): "protein_linked_to",
+    ("disease", "drug"): "disease_treated_by",
+    ("disease", "protein"): "disease_linked_to",
+}
+EDGE_TYPE_NAMES = [
+    "drug_treats",
+    "drug_targets",
+    "protein_interacts_with",
+    "protein_linked_to",
+    "disease_treated_by",
+    "disease_linked_to",
+]
+NODE_TYPE_NAMES = ["drug", "protein", "disease"]
 
 
 class DTIDataset(InMemoryDataset):
@@ -24,25 +43,11 @@ class DTIDataset(InMemoryDataset):
     ):
         # super(DTIDataset, self).__init__(root_dir, transform, pre_transform)
         self.dataset = dataset
-        self.edge_type_map = {
-            ("drug", "disease"): "drug_treats",
-            ("drug", "protein"): "drug_targets",
-            ("protein", "drug"): "protein_interacts_with",
-            ("protein", "disease"): "protein_linked_to",
-            ("disease", "drug"): "disease_treated_by",
-            ("disease", "protein"): "disease_linked_to",
-        }
-        self.edge_type_names = [
-            "drug_treats",
-            "drug_targets",
-            "protein_interacts_with",
-            "protein_linked_to",
-            "disease_treated_by",
-            "disease_linked_to",
-        ]
-        self.node_type_names = ["drug", "protein", "disease"]
+        self.edge_type_map = EDGE_TYPE_MAP
+        self.edge_type_names = EDGE_TYPE_NAMES
+        self.node_type_names = NODE_TYPE_NAMES
         self.nodes_per_type: dict[str, int] = {}
-        self.hyperedges_per_type: dict[str, int] = defaultdict(lambda: 0)
+        self.hyperedges_per_type: dict[str, int] = {}
         self.file_ids: dict[str, str] = {
             "deepDTnet_20": "1RGS2K58Gjr5IxPJTE4G-MHl0S6Wk6UgZ",
             "KEGG_MED": "1_XOT7Czd560UvkxpJM1-L5t9GXDPLhQr",
@@ -124,77 +129,38 @@ class DTIDataset(InMemoryDataset):
         hyperedge_idxs: list[Adj] = []
         edge_types: list[torch.Tensor] = []
 
+        incidence_matrices: list[tuple[str, Adj]] = []
+
         for path in self.raw_file_names:
             filename = Path(path).stem
-            src, dst = filename.split("_")  # data types stored in rows and cols
 
             incidence_matrix = torch.Tensor(
                 np.genfromtxt(f"{self.raw_dir}/{path}")
             ).to_sparse()
 
-            # Rows are nodes and columns are hyperedges
-            hyperedge_idx = incidence_matrix.indices()
-            if src not in node_idx_start.keys():
-                node_idx_start[src] = current_node_idx
-                self.nodes_per_type[src] = incidence_matrix.shape[0]
-                current_node_idx += incidence_matrix.shape[0]
+            incidence_matrices.append((filename, incidence_matrix))
 
-            offset = torch.Tensor([[node_idx_start[src]], [current_hyperedge_idx]]).to(
-                torch.long
-            )
-            hyperedge_idx += offset
-            current_hyperedge_idx += incidence_matrix.shape[1]
-            hyperedge_type = self.edge_type_names.index(self.edge_type_map[(src, dst)])
-            hyperedge_types = hyperedge_type * torch.ones(incidence_matrix.shape[1])
-            self.hyperedges_per_type[
-                self.edge_type_names[hyperedge_type]
-            ] += incidence_matrix.shape[1]
+        hyperedge_idx = utils.generate_hyperedge_index(
+            incidence_matrices,
+            self.edge_type_map,
+            self.edge_type_names,
+            self.node_type_names,
+        )
 
-            # Rows are hyperedges and columns are nodes
-            hyperedge_idx_inverse = torch.row_stack(
-                [hyperedge_idx[1], hyperedge_idx[0]]
-            )
+        self.hyperedges_per_type = hyperedge_idx.hyperedges_per_type
+        self.nodes_per_type = hyperedge_idx.nodes_per_type
 
-            if dst not in node_idx_start.keys():
-                node_idx_start[dst] = current_node_idx
-                self.nodes_per_type[dst] = incidence_matrix.shape[1]
-                current_node_idx += incidence_matrix.shape[1]
-
-            offset = torch.Tensor([[node_idx_start[dst]], [current_hyperedge_idx]]).to(
-                torch.long
-            )
-            hyperedge_idx_inverse += offset
-            current_hyperedge_idx += incidence_matrix.shape[0]
-            inverse_hyperedge_type = self.edge_type_names.index(
-                self.edge_type_map[(dst, src)]
-            )
-            inverse_hyperedge_types = inverse_hyperedge_type * torch.ones(
-                incidence_matrix.shape[0]
-            )
-            self.hyperedges_per_type[
-                self.edge_type_names[inverse_hyperedge_type]
-            ] += incidence_matrix.shape[0]
-
-            hyperedge_idxs.extend([hyperedge_idx, hyperedge_idx_inverse])
-            edge_types.extend([hyperedge_types, inverse_hyperedge_types])
-
-        node_types = []
-        for k, v in self.nodes_per_type.items():
-            node_types.append(self.node_type_names.index(k) * torch.ones(v))
-
-        hyperedge_index = torch.cat(hyperedge_idxs, dim=1)
-        hyperedge_types = torch.cat(edge_types, dim=0)
-        node_types = torch.cat(node_types, dim=0)
-        print(hyperedge_index[1].unique().shape, self.num_nodes)
-        print(hyperedge_index[0].unique().shape, self.num_nodes)
-        print(hyperedge_index.shape)
-        return hyperedge_index, hyperedge_types, node_types
+        return (
+            hyperedge_idx.hyperedge_index,
+            hyperedge_idx.hyperedge_types,
+            hyperedge_idx.node_types,
+        )
 
     def process(self):
         hyperedge_index, hyperedge_types, node_types = self.generate_hyperedge_index()
         incidence_graph = self.generate_incidence_graph(hyperedge_index)
         features = self.generate_node_features(incidence_graph)
-        node_features = features[:torch.unique(hyperedge_index[0])[-1]]
+        node_features = features[: torch.unique(hyperedge_index[0])[-1]]
         hyperedge_features = features[torch.unique(incidence_graph[1])]
 
         print(node_features.shape)
