@@ -7,11 +7,10 @@ from typing import Union, List, Tuple, Literal
 
 import numpy as np
 import torch
-from torch_geometric.data import InMemoryDataset, download_url, extract_zip
-from torch_geometric.nn.models import Node2Vec
-from torch_geometric.typing import Adj, FeatureTensorType
+from torch_geometric.data import InMemoryDataset, download_url, extract_zip, Data
+from torch_geometric.typing import Adj
 
-import utils
+from . import utils
 
 EDGE_TYPE_MAP = {
     ("drug", "disease"): "drug_treats",
@@ -90,56 +89,6 @@ class DTIDataset(InMemoryDataset):
         path = download_url(url=url, folder=self.raw_dir, filename="data.zip")
         extract_zip(path, self.raw_dir)
 
-    def generate_incidence_graph(self, hyperedge_index: Adj) -> Adj:
-        """
-        Generates the incidence graph of a hypergraph.
-
-        Given a `hyperedge_index` we convert the hypergraph into a bipartite incidence
-        graph representation.
-
-        Args:
-            hyperedge_index (Adj): edge index of the input hypergraph.
-
-        Returns:
-            Adj: incidence graph of the input hypergraph.
-        """
-        offset = torch.Tensor([[0], [self.num_nodes]])
-        return (hyperedge_index + offset).to(torch.long)
-
-    def generate_node_features(self, incidence_graph: Adj) -> FeatureTensorType:
-        model = Node2Vec(
-            incidence_graph, embedding_dim=128, walk_length=5, context_size=1
-        )
-
-        return model()
-
-    def generate_hyperedge_index(self) -> [Adj, torch.Tensor, torch.Tensor]:
-        """
-        Generates a heterogeneous hyperedge index from the incidence matrices.
-
-        The returned hyperedge index is a tensor [V; E] where the first row gives the
-        node index and the second row gives the hyperedge index.
-
-        Returns:
-            Adj: hyper edge index.
-        """
-
-        hyperedge_idx = utils.generate_hyperedge_index(
-            incidence_matrices,
-            self.edge_type_map,
-            self.edge_type_names,
-            self.node_type_names,
-        )
-
-        self.hyperedges_per_type = hyperedge_idx.hyperedges_per_type
-        self.nodes_per_type = hyperedge_idx.nodes_per_type
-
-        return (
-            hyperedge_idx.hyperedge_index,
-            hyperedge_idx.hyperedge_types,
-            hyperedge_idx.node_types,
-        )
-
     def get_incidence_matrices(self):
         incidence_matrices: list[tuple[str, Adj]] = []
         for path in self.raw_file_names:
@@ -168,9 +117,17 @@ class DTIDataset(InMemoryDataset):
         )
         features = utils.generate_node_features(incidence_graph)
 
-        print(features.shape)
-        print(self.num_nodes)
-        print(self.num_hyperedges)
+        max_node_idx = torch.max(incidence_graph[0]).item()
+
+        node_features = features[:max_node_idx]
+        hyperedge_features = features[max_node_idx:]
+
+        data = Data(
+            x=node_features,
+            edge_index=hyperedge_idx.hyperedge_index,
+            hyperedge_attr=hyperedge_features,
+        )
+
 
     def print_summary(self):
         print("======== Dataset summary ========")
