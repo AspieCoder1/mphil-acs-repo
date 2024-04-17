@@ -33,7 +33,8 @@ def generate_hyperedge_index(
 
     for filename, incidence_matrix in incidence_matrics:
         src, dst = filename.split("_")  # data types stored in rows and cols
-        hyperedge_idx = incidence_matrix.indices()
+        hyperedge_idx = incidence_matrix.to_sparse_coo().indices()
+
         if src not in node_idx_start.keys():
             node_idx_start[src] = current_node_idx
             nodes_per_type[src] = incidence_matrix.shape[0]
@@ -46,15 +47,12 @@ def generate_hyperedge_index(
         current_hyperedge_idx += incidence_matrix.shape[1]
         hyperedge_type = edge_type_names.index(edge_type_map[(src, dst)])
         hyperedge_types = hyperedge_type * torch.ones(incidence_matrix.shape[1])
-        print(edge_type_names)
-        print(hyperedge_type)
-        print(hyperedges_per_type)
         hyperedges_per_type[edge_type_names[hyperedge_type]] += incidence_matrix.shape[
             1
         ]
 
         # Rows are hyperedges and columns are nodes
-        hyperedge_idx_inverse = torch.row_stack([hyperedge_idx[1], hyperedge_idx[0]])
+        hyperedge_idx_inverse = incidence_matrix.to_sparse_coo().t().coalesce().indices()
 
         if dst not in node_idx_start.keys():
             node_idx_start[dst] = current_node_idx

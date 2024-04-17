@@ -11,7 +11,7 @@ from torch_geometric.data import InMemoryDataset, download_url, extract_zip
 from torch_geometric.nn.models import Node2Vec
 from torch_geometric.typing import Adj, FeatureTensorType
 
-import utils
+from . import utils
 
 EDGE_TYPE_MAP = {
     ("drug", "disease"): "drug_treats",
@@ -136,7 +136,7 @@ class DTIDataset(InMemoryDataset):
 
             incidence_matrix = torch.Tensor(
                 np.genfromtxt(f"{self.raw_dir}/{path}")
-            ).to_sparse()
+            ).to_sparse_coo()
 
             incidence_matrices.append((filename, incidence_matrix))
 
