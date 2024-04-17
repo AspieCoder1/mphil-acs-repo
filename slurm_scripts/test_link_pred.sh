@@ -5,8 +5,8 @@
 #
 
 #SBATCH -J gnnlp_debug
-#SBATCH --output=slurm_output/%J.out
-#SBATCH --error=slurm_output/%J.err
+#SBATCH --output=slurm_output/gnnlp_debug/%j.out
+#SBATCH --error=slurm_output/gnnlp_debug/%j.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=1:00:00
 #SBATCH -p ampere
