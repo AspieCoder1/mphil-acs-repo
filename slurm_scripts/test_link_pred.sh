@@ -13,4 +13,8 @@
 #SBATCH --nodes 1
 #SBATCH --gres=gpu:1
 
+
+export WANDB_CACHE_DIR=".wandb"
+export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
+source ~/venv/bin/activate
 srun python link_prediction.py trainer.devices=1 +tags=["${MODEL}","${DATASET}",lp,gnn,exp2,recsys,debug]
