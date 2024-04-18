@@ -1,6 +1,7 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 import torch
+
 from models.sheaf_gnn.sheaf_models import TypeEnsembleSheafLearner
 
 
