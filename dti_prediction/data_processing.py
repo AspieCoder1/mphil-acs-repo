@@ -43,6 +43,7 @@ class DTIDataset(InMemoryDataset):
         pre_filter: Optional[Callable] = None,
         force_reload: bool = False,
         dataset: Literal["deepDTnet_20", "KEGG_MED", "DTINet_17"] = "deepDTNet_20",
+        split: int = 0,
     ):
         self.dataset = dataset
         self.edge_type_map = EDGE_TYPE_MAP
@@ -50,6 +51,7 @@ class DTIDataset(InMemoryDataset):
         self.node_type_names = NODE_TYPE_NAMES
         self.nodes_per_type: dict[str, int] = {}
         self.hyperedges_per_type: dict[str, int] = {}
+        self.split = split
         self.file_ids: dict[str, str] = {
             "deepDTnet_20": "1RGS2K58Gjr5IxPJTE4G-MHl0S6Wk6UgZ",
             "KEGG_MED": "1_XOT7Czd560UvkxpJM1-L5t9GXDPLhQr",
@@ -58,7 +60,7 @@ class DTIDataset(InMemoryDataset):
         super().__init__(
             root_dir, transform, pre_transform, pre_filter, force_reload=force_reload
         )
-        path = osp.join(self.processed_dir, f"data.pt")
+        path = osp.join(self.processed_dir, f"data_{self.split}.pt")
         self.load(path)
 
     @property
@@ -83,7 +85,7 @@ class DTIDataset(InMemoryDataset):
 
     @property
     def processed_file_names(self) -> Union[str, List[str], Tuple]:
-        return "data.pt"
+        return f"data_{self.split}.pt"
 
     @property
     def processed_dir(self) -> str:
@@ -121,6 +123,22 @@ class DTIDataset(InMemoryDataset):
         max_node_idx = torch.max(hyperedge_idx.hyperedge_index[0]).item() + 1
         node_features = features[:max_node_idx]
         hyperedge_features = features[max_node_idx:]
+
+        idx_offset = torch.Tensor(
+            [
+                [hyperedge_idx.node_start_idx["drug"]],
+                [hyperedge_idx.node_start_idx["protein"]],
+            ]
+        )
+        train_idx = (
+            torch.Tensor(np.genfromtxt(f"{self.raw_dir}/train_{self.split}.txt")).T
+            + idx_offset
+        )
+        test_idx = (
+            torch.Tensor(np.genfromtxt(f"{self.raw_dir}/test_{self.split}.txt")).T
+            + idx_offset
+        )
+
         data = Data(
             x=node_features,
             edge_index=hyperedge_idx.hyperedge_index,
@@ -128,14 +146,14 @@ class DTIDataset(InMemoryDataset):
         data.hyperedge_attr = hyperedge_features
         data.node_types = hyperedge_idx.node_types
         data.hyperedge_types = hyperedge_idx.hyperedge_types
-        # data.num_nodes = self.num_nodes
         data.num_hyperedges = self.num_hyperedges
         data.n_x = self.num_nodes
-        print(data)
+        data.train_idx = train_idx
+        data.test_idx = test_idx
 
         data = data if self.pre_transform is None else self.pre_transform(data)
 
-        self.save([data], osp.join(self.processed_dir, "data.pt"))
+        self.save([data], osp.join(self.processed_dir, f"data_{self.split}.pt"))
 
     def print_summary(self):
         print("======== Dataset summary ========")
@@ -146,7 +164,9 @@ class DTIDataset(InMemoryDataset):
 
 
 if __name__ == "__main__":
-    dataset = DTIDataset(root_dir="data", dataset="deepDTnet_20", force_reload=True)
+    dataset = DTIDataset(
+        root_dir="data", dataset="deepDTnet_20", force_reload=True, split=0
+    )
     print(dataset[0])
     print(dataset[0].x)
     print(dataset[0].num_nodes)
