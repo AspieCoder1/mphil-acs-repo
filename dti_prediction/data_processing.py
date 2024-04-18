@@ -3,7 +3,7 @@
 
 import os.path as osp
 from pathlib import Path
-from typing import Union, List, Tuple, Literal
+from typing import Union, List, Tuple, Literal, Optional, Callable
 
 import numpy as np
 import torch
@@ -38,9 +38,10 @@ class DTIDataset(InMemoryDataset):
     def __init__(
         self,
         root_dir,
-        transform=None,
-        pre_transform=None,
-        pre_filter=None,
+        transform: Optional[Callable] = None,
+        pre_transform: Optional[Callable] = None,
+        pre_filter: Optional[Callable] = None,
+        force_reload: bool = False,
         dataset: Literal["deepDTnet_20", "KEGG_MED", "DTINet_17"] = "deepDTNet_20",
     ):
         self.dataset = dataset
@@ -54,8 +55,11 @@ class DTIDataset(InMemoryDataset):
             "KEGG_MED": "1_XOT7Czd560UvkxpJM1-L5t9GXDPLhQr",
             "DTINet_17": "1pLoNyznbcTaxBHW8cSNPUU6oN3WCAh3l",
         }
-        super().__init__(root_dir, transform, pre_transform, pre_filter)
-        self.load(self.processed_paths[0])
+        super().__init__(
+            root_dir, transform, pre_transform, pre_filter, force_reload=force_reload
+        )
+        path = osp.join(self.processed_dir, f"data.pt")
+        self.load(path)
 
     @property
     def raw_file_names(self) -> Union[str, List[str], Tuple]:
@@ -110,21 +114,28 @@ class DTIDataset(InMemoryDataset):
         self.nodes_per_type = hyperedge_idx.nodes_per_type
         self.hyperedges_per_type = hyperedge_idx.hyperedges_per_type
         incidence_graph = utils.generate_incidence_graph(hyperedge_idx.hyperedge_index)
-        features = utils.generate_node_features(incidence_graph)
+        features = (
+            utils.generate_node_features(incidence_graph).detach().to(torch.float)
+        )
 
         max_node_idx = torch.max(hyperedge_idx.hyperedge_index[0]).item() + 1
         node_features = features[:max_node_idx]
         hyperedge_features = features[max_node_idx:]
-
         data = Data(
             x=node_features,
             edge_index=hyperedge_idx.hyperedge_index,
-            hyperedge_attr=hyperedge_features,
-            node_types=hyperedge_idx.node_types,
-            hyperedge_types=hyperedge_idx.hyperedge_types,
         )
+        data.hyperedge_attr = hyperedge_features
+        data.node_types = hyperedge_idx.node_types
+        data.hyperedge_types = hyperedge_idx.hyperedge_types
+        # data.num_nodes = self.num_nodes
+        data.num_hyperedges = self.num_hyperedges
+        data.n_x = self.num_nodes
+        print(data)
 
-        self.save([data], self.processed_paths[0])
+        data = data if self.pre_transform is None else self.pre_transform(data)
+
+        self.save([data], osp.join(self.processed_dir, "data.pt"))
 
     def print_summary(self):
         print("======== Dataset summary ========")
@@ -135,6 +146,7 @@ class DTIDataset(InMemoryDataset):
 
 
 if __name__ == "__main__":
-    dataset = DTIDataset(root_dir="data", dataset="deepDTnet_20")
+    dataset = DTIDataset(root_dir="data", dataset="deepDTnet_20", force_reload=True)
+    print(dataset[0])
 
     print(dataset[0].x)
