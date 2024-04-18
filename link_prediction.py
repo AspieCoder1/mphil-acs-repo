@@ -47,8 +47,6 @@ def main(cfg: Config):
         cfg.model.type, datamodule, hidden_channels=cfg.hidden_dim
     )
 
-    print(is_homogeneous)
-
     link_predictor = GNNRecommender(
         model,
         edge_target=datamodule.target,
