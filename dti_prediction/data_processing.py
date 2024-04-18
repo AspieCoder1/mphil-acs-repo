@@ -45,6 +45,18 @@ class DTIDataset(InMemoryDataset):
         dataset: Literal["deepDTnet_20", "KEGG_MED", "DTINet_17"] = "deepDTNet_20",
         split: int = 0,
     ):
+        """
+        DTI dataset for use on Hypergraph Neural Networks.
+
+        Args:
+            root_dir: root location to save dataset.
+            transform: transformation applied to data
+            pre_transform: initial transformations applied before preprocessing
+            pre_filter: filtering to apply before processing
+            force_reload: reprocess data if already processed
+            dataset: dataset to load in
+            split: split to use must be between 0 and 9 (inclusive).
+        """
         self.dataset = dataset
         self.edge_type_map = EDGE_TYPE_MAP
         self.edge_type_names = EDGE_TYPE_NAMES
