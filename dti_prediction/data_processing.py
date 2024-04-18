@@ -148,5 +148,5 @@ class DTIDataset(InMemoryDataset):
 if __name__ == "__main__":
     dataset = DTIDataset(root_dir="data", dataset="deepDTnet_20", force_reload=True)
     print(dataset[0])
-
     print(dataset[0].x)
+    print(dataset[0].num_nodes)
