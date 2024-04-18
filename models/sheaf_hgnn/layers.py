@@ -11,24 +11,22 @@ This script contains layers used in AllSet and all other tested methods.
 """
 
 import math
-import torch
-
-import torch.nn as nn
-import torch.nn.functional as F
-
-from torch import Tensor
-from torch.nn import Linear
-from torch.nn import Parameter
-from torch_geometric.nn.conv import MessagePassing
-from torch_geometric.utils import softmax
-from torch_scatter import scatter_add, scatter
-from torch_geometric.nn.inits import glorot, zeros
-from torch_geometric.typing import Adj, Size, OptTensor
 from typing import Optional
 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch_sparse
+from torch import Tensor
+from torch.nn import Linear, Parameter
+from torch_geometric.nn.conv import MessagePassing
+from torch_geometric.nn.inits import glorot, zeros
+from torch_geometric.typing import Adj, Size, OptTensor
+from torch_geometric.utils import softmax
+from torch_scatter import scatter_add, scatter
+from torch_sparse import SparseTensor
 
 from . import utils
-import torch_sparse
 
 
 # This part is for PMA.
@@ -922,7 +920,7 @@ class PMA(MessagePassing):
         """
         #         ipdb.set_trace()
         if aggr is None:
-            raise ValeuError("aggr was not passed!")
+            raise ValueError("aggr was not passed!")
         return scatter(inputs, index, dim=self.node_dim, reduce=aggr)
 
     def __repr__(self):
@@ -1395,5 +1393,5 @@ class HalfNLHconv(MessagePassing):
         """
         #         ipdb.set_trace()
         if aggr is None:
-            raise ValeuError("aggr was not passed!")
+            raise ValueError("aggr was not passed!")
         return scatter(inputs, index, dim=self.node_dim, reduce=aggr)
