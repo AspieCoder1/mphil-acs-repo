@@ -77,14 +77,15 @@ def main(cfg: Config):
     timer = Timer()
 
     trainer = L.Trainer(
+        profiler=cfg.trainer.profiler,
         accelerator=cfg.trainer.accelerator,
         devices=cfg.trainer.devices,
         num_nodes=cfg.trainer.num_nodes,
         strategy=cfg.trainer.strategy,
         fast_dev_run=cfg.trainer.fast_dev_run,
         logger=logger,
-        precision="bf16",
-        max_epochs=500,
+        precision="bf16-mixed",
+        max_epochs=cfg.trainer.max_epochs,
         log_every_n_steps=1,
         callbacks=[
             EarlyStopping("valid/loss", patience=cfg.trainer.patience),
