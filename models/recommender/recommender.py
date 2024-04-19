@@ -149,15 +149,18 @@ class _Recommender(torch.nn.Module):
 
         num_dst = out_dst.shape[0]
 
-        preds = []
-        for i, src_chunk in enumerate(out_src.chunk(50)):
+        preds = None
+        for i, src_chunk in enumerate(out_src.chunk(10)):
             num_src = src_chunk.shape[0]
             src_tiled = src_chunk.unsqueeze(1).tile((1, num_dst, 1))
             dst_tiled = out_dst.unsqueeze(0).tile((num_src, 1, 1))
             pred = self.score_func(
                 torch.concat([src_tiled, dst_tiled], dim=-1)
             ).squeeze(-1)
-            preds.append(pred)
+            if preds is None:
+                preds = pred
+            else:
+                preds = torch.cat((preds, pred), dim=1)
             del pred, src_tiled, dst_tiled
             torch.cuda.empty_cache()
         print("finished chunks")

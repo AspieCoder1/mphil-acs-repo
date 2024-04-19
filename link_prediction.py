@@ -77,7 +77,7 @@ def main(cfg: Config):
         strategy=cfg.trainer.strategy,
         fast_dev_run=cfg.trainer.fast_dev_run,
         log_every_n_steps=1,
-        max_epochs=500,
+        max_epochs=cfg.trainer.max_epochs,
         precision="bf16",
         logger=logger,
         callbacks=[
