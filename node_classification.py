@@ -40,10 +40,6 @@ cs.store("config", Config)
 
 @hydra.main(version_base=None, config_path="configs", config_name="nc_config")
 def main(cfg: Config):
-    torch.set_float32_matmul_precision("high")
-
-    print(cfg.model.type)
-
     if cfg.model.type == Models.HGT:
         datamodule = get_dataset_hgt(cfg.dataset.name)
     elif cfg.model.type == Models.GCN or cfg.model.type == Models.GAT:

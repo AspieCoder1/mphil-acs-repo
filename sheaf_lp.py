@@ -37,7 +37,6 @@ cs.store("base_config", Config)
 
 @hydra.main(version_base="1.2", config_path="configs", config_name="sheaf_config_lp")
 def main(cfg: Config):
-    torch.set_float32_matmul_precision("high")
     dm = get_dataset_lp(LinkPredDatasets.LastFM, True)
     dm.prepare_data()
 
@@ -85,7 +84,7 @@ def main(cfg: Config):
         fast_dev_run=cfg.trainer.fast_dev_run,
         logger=logger,
         precision="bf16-mixed",
-        max_epochs=cfg.trainer.max_epochs,
+        max_epochs=500,
         log_every_n_steps=1,
         callbacks=[
             EarlyStopping("val/loss", patience=cfg.trainer.patience),

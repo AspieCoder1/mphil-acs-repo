@@ -34,8 +34,6 @@ cs.store("config", Config)
 
 @hydra.main(version_base=None, config_path="configs", config_name="lp_config")
 def main(cfg: Config):
-    torch.set_float32_matmul_precision("high")
-
     is_homogeneous = False
     if cfg.model.type == Models.GCN or cfg.model.type == Models.GAT:
         is_homogeneous = True

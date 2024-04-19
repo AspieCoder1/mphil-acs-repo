@@ -7,7 +7,6 @@ from typing import Tuple, Optional
 
 import hydra
 import lightning as L
-import torch
 from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint, Timer
 from lightning.pytorch.loggers import WandbLogger
@@ -47,7 +46,6 @@ cs.store("base_config", Config)
 
 @hydra.main(version_base="1.2", config_path="configs", config_name="sheaf_config")
 def main(cfg: Config) -> None:
-    torch.set_float32_matmul_precision("high")
     # 1) get the datamodule
     # The data  must be homogeneous due to how code is configured
     datamodule = get_dataset_nc(cfg.dataset.name, True)
