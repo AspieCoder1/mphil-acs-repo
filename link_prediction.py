@@ -78,6 +78,7 @@ def main(cfg: Config):
         fast_dev_run=cfg.trainer.fast_dev_run,
         log_every_n_steps=1,
         max_epochs=500,
+        precision="bf16",
         logger=logger,
         callbacks=[
             EarlyStopping("valid/loss", patience=cfg.trainer.patience),

@@ -126,8 +126,8 @@ class _Recommender(torch.nn.Module):
         else:
             embed_src = embed[edge_label_index[0]]
             embed_dst = embed[edge_label_index[1]]
-        # embed_concat = torch.cat((embed_src, embed_dst), dim=-1)
-        return (embed_src * embed_dst).sum(dim=-1)
+        embed_concat = torch.cat((embed_src, embed_dst), dim=-1)
+        return self.score_func(embed_concat)
 
     def recommend(
         self,
@@ -147,21 +147,22 @@ class _Recommender(torch.nn.Module):
             out_src = out_src[src_index]
             out_dst = out_dst[dst_index]
 
-        # num_dst = out_dst.shape[0]
-        #
-        # preds = []
-        # for i, src_chunk in enumerate(out_src.chunk(50)):
-        #     num_src = src_chunk.shape[0]
-        #     src_tiled = src_chunk.unsqueeze(1).tile((1, num_dst, 1))
-        #     dst_tiled = out_dst.unsqueeze(0).tile((num_src, 1, 1))
-        #     pred = self.score_func(
-        #         torch.concat([src_tiled, dst_tiled], dim=-1)
-        #     ).squeeze(-1)
-        #     preds.append(pred)
-        # print("finished chunks")
+        num_dst = out_dst.shape[0]
 
-        # preds = torch.row_stack(preds)
-        preds = out_src @ out_dst.t()
+        preds = []
+        for i, src_chunk in enumerate(out_src.chunk(50)):
+            num_src = src_chunk.shape[0]
+            src_tiled = src_chunk.unsqueeze(1).tile((1, num_dst, 1))
+            dst_tiled = out_dst.unsqueeze(0).tile((num_src, 1, 1))
+            pred = self.score_func(
+                torch.concat([src_tiled, dst_tiled], dim=-1)
+            ).squeeze(-1)
+            preds.append(pred)
+            del pred, src_tiled, dst_tiled
+            torch.cuda.empty_cache()
+        print("finished chunks")
+
+        preds = torch.row_stack(preds)
         top_index = preds.topk(k, dim=-1).indices
 
         top_index = dst_index[top_index.view(-1)].view(*top_index.size())
