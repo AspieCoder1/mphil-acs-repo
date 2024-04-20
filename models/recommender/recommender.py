@@ -12,12 +12,12 @@ from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn
 from torch.nn.modules.loss import _Loss
 from torch_geometric.data import Data, HeteroData
+from torch_geometric.metrics import LinkPredNDCG, LinkPredRecall
 from torch_geometric.typing import Adj, Tensor, OptTensor
 from torch_geometric.utils import structured_negative_sampling
 from torchmetrics import MetricCollection
 from torchmetrics.classification import BinaryAccuracy, BinaryAUROC, BinaryF1Score
 
-from .metrics import LinkPredNDCG, LinkPredRecall
 from ..sheaf_gnn import DiscreteSheafDiffusion
 
 DataOrHeteroData = Union[Data, HeteroData]
@@ -160,12 +160,10 @@ class _Recommender(torch.nn.Module):
             if preds is None:
                 preds = pred
             else:
-                preds = torch.cat((preds, pred), dim=1)
+                preds = torch.cat((preds, pred), dim=0)
             del pred, src_tiled, dst_tiled
             torch.cuda.empty_cache()
-        print("finished chunks")
 
-        preds = torch.row_stack(preds)
         top_index = preds.topk(k, dim=-1).indices
 
         top_index = dst_index[top_index.view(-1)].view(*top_index.size())
