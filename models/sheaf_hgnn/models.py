@@ -160,9 +160,15 @@ class SheafHyperGNN(nn.Module):
 
         # if we are at the first epoch, initialise the attribute, otherwise use the previous ones
         if self.hyperedge_attr is None:
-            self.hyperedge_attr = self.init_hyperedge_attr(
-                self.init_hedge, num_edges=num_edges, x=x, hyperedge_index=edge_index
-            )
+            if data.hyperedge_attr:
+                self.hyperedge_attr = data.hyperedge_attr
+            else:
+                self.hyperedge_attr = self.init_hyperedge_attr(
+                    self.init_hedge,
+                    num_edges=num_edges,
+                    x=x,
+                    hyperedge_index=edge_index,
+                )
 
         # expand the input N x num_features -> Nd x num_features such that we can apply the propagation
         x = self.lin(x)
@@ -466,9 +472,15 @@ class SheafHyperGCN(nn.Module):
         edge_index = data.edge_index
 
         if self.hyperedge_attr is None:
-            self.hyperedge_attr = self.init_hyperedge_attr(
-                self.init_hedge, num_edges=num_edges, x=H, hyperedge_index=edge_index
-            )
+            if data.hyperedge_attr:
+                self.hyperedge_attr = data.hyperedge_attr
+            else:
+                self.hyperedge_attr = self.init_hyperedge_attr(
+                    self.init_hedge,
+                    num_edges=num_edges,
+                    x=H,
+                    hyperedge_index=edge_index,
+                )
 
         H = self.lin(H)
         hyperedge_attr = self.lin(self.hyperedge_attr)
