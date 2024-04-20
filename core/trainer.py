@@ -2,6 +2,7 @@
 #  License: MIT
 
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -15,4 +16,4 @@ class TrainerArgs:
     log_every_n_steps: int = 1
     max_epochs: int = 100
     logger: bool = True
-    profiler: str = None
+    profiler: Optional[str] = None
