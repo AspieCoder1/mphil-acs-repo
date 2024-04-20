@@ -20,14 +20,14 @@ class VSHAE(nn.Module):
         super(VSHAE, self).__init__()
         self.encoder = SheafHyperGNN(args=args, sheaf_type=sheaf_type)
         self.mu_encoder = nn.Linear(self.encoder.out_dim, 128)
-        self.logstd_decoder = nn.Linear(self.encoder.out_dim, 128)
+        self.logstd_encoder = nn.Linear(self.encoder.out_dim, 128)
         self.mu = nn.Parameter(Tensor([0]))
         self.logstd = nn.Parameter(Tensor([0]))
 
     def reset_parameters(self):
         self.encoder.reset_parameters()
         self.mu_encoder.reset_parameters()
-        self.logstd_decoder.reset_parameters()
+        self.logstd_encoder.reset_parameters()
 
     def reparametrise(self, mu: Tensor, logstd: Tensor) -> Tensor:
         if self.training:
@@ -38,7 +38,7 @@ class VSHAE(nn.Module):
     def forward(self, data: Data):
         H = self.encoder(data)
         self.mu = F.elu(self.mu_encoder(H))
-        self.logstd = F.elu(self.logstd_decoder(H))
+        self.logstd = F.elu(self.logstd_encoder(H))
         self.logstd = self.logstd.clamp(max=MAX_LOGSTD)
         return self.reparametrise(self.mu, self.logstd)
 
