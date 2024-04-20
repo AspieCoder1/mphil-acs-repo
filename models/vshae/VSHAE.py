@@ -60,6 +60,7 @@ class SheafHyperGNNModule(L.LightningModule):
     def __init__(self, args: SheafHGNNConfig, sheaf_type: HGNNSheafTypes):
         super(SheafHyperGNNModule, self).__init__()
         self.model = SheafHyperGNN(args=args, sheaf_type=sheaf_type)
+        self.score_func = nn.Linear(2 * self.model.out_dim, 1)
 
         self.train_metrics = MetricCollection(
             {
@@ -78,7 +79,9 @@ class SheafHyperGNNModule(L.LightningModule):
 
         pos_neg_idx = torch.cat([pos_idx, neg_idx])
         logits = self.model(data)
-        preds = (logits[pos_neg_idx[0]].T @ logits[pos_neg_idx[1]]).squeeze()
+
+        x_cat = torch.cat([logits[pos_neg_idx[0]], logits[pos_neg_idx[1]]], dim=-1)
+        preds = self.score_func(x_cat)
         targets = torch.cat(
             [torch.ones(pos_idx.shape[0]), torch.zeros(neg_idx.shape[0])]
         )
