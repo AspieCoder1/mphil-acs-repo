@@ -6,6 +6,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn, Tensor
 from torch_geometric.data import Data
+from torch_geometric.utils import negative_sampling
 from torchmetrics import MetricCollection
 from torchmetrics.classification import BinaryAUROC, BinaryAveragePrecision
 
@@ -42,10 +43,8 @@ class VSHAE(nn.Module):
         self.logstd = self.logstd.clamp(max=MAX_LOGSTD)
         return self.reparametrise(self.mu, self.logstd)
 
-    def loss(self, logits, targets, gamma: int = 2.0):
+    def loss(self, logits, targets):
         BCE_loss = F.binary_cross_entropy_with_logits(logits, targets)
-        pt = torch.exp(BCE_loss)
-        focal_loss = (1 - pt) ** gamma * BCE_loss
         kl_divergence = -0.5 * torch.mean(
             torch.sum(
                 torch.sum(
@@ -54,7 +53,51 @@ class VSHAE(nn.Module):
             )
         )
 
-        return focal_loss + kl_divergence
+        return BCE_loss + kl_divergence
+
+
+class SheafHyperGNNModule(L.LightningModule):
+    def __init__(self, args: SheafHGNNConfig, sheaf_type: HGNNSheafTypes):
+        super(SheafHyperGNNModule, self).__init__()
+        self.model = SheafHyperGNN(args=args, sheaf_type=sheaf_type)
+
+        self.train_metrics = MetricCollection(
+            {
+                "AUROC": BinaryAUROC(),
+                "AUPR": BinaryAveragePrecision(),
+            },
+            prefix="train/",
+        )
+        self.val_metrics = self.train_metrics.clone(prefix="valid/")
+        self.test_metrics = self.train_metrics.clone(prefix="test/")
+
+    def common_step(self, data: Data, pos_idx: Tensor):
+        neg_idx = negative_sampling(
+            pos_idx, num_nodes=(data.num_nodes, data.num_hyperedges)
+        )
+
+        pos_neg_idx = torch.cat([pos_idx, neg_idx])
+        logits = self.model(data)
+        preds = (logits[pos_neg_idx[0]].T @ logits[pos_neg_idx[1]]).squeeze()
+        targets = torch.cat(
+            [torch.ones(pos_idx.shape[0]), torch.zeros(neg_idx.shape[0])]
+        )
+
+        loss = F.binary_cross_entropy_with_logits(preds, targets)
+
+        return loss, preds, targets
+
+    def training_step(self, batch: Data, batch_idx):
+        train_idx = batch.train_idx
+        loss, preds, targets = self.common_step(batch, train_idx)
+        train_metrics = self.train_metrics(preds, targets)
+
+        self.log_dict(
+            train_metrics, prog_bar=False, on_epoch=True, on_step=False, batch_size=1
+        )
+        self.log(
+            "train/loss", loss, prog_bar=True, on_epoch=True, on_step=True, batch_size=1
+        )
 
 
 class VSHAEModule(L.LightningModule):
@@ -72,10 +115,17 @@ class VSHAEModule(L.LightningModule):
         self.val_metrics = self.train_metrics.clone(prefix="valid/")
         self.test_metrics = self.train_metrics.clone(prefix="test/")
 
-    def common_step(self, data: Data, idx: Tensor):
+    def common_step(self, data: Data, pos_idx: Tensor):
+        neg_idx = negative_sampling(
+            pos_idx, num_nodes=(data.num_nodes, data.num_hyperedges)
+        )
+
+        pos_neg_idx = torch.cat([pos_idx, neg_idx])
         logits = self.model(data)
-        preds = (logits[idx[0]].T @ logits[idx[1]]).squeeze()
-        targets = torch.ones(idx.shape[0])
+        preds = (logits[pos_neg_idx[0]].T @ logits[pos_neg_idx[1]]).squeeze()
+        targets = torch.cat(
+            [torch.ones(pos_idx.shape[0]), torch.zeros(neg_idx.shape[0])]
+        )
 
         loss = self.model.loss(preds, targets)
 
