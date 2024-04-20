@@ -80,6 +80,7 @@ class SheafHyperGNN(nn.Module):
             Normalization="ln",
             InputNorm=False,
         )
+        self.use_lin2 = args.use_lin2
 
         # define the model and sheaf generator according to the type of sheaf wanted
         # The diuffusion does not change, however tha implementation for diag and ortho is more efficient
@@ -129,6 +130,7 @@ class SheafHyperGNN(nn.Module):
             if self.dynamic_sheaf:
                 self.sheaf_builder.append(ModelSheaf(args))
 
+        self.out_dim = self.MLP_hidden * self.d
         self.lin2 = Linear(self.MLP_hidden * self.d, args.num_classes, bias=False)
 
     def reset_parameters(self):
@@ -211,8 +213,8 @@ class SheafHyperGNN(nn.Module):
             num_edges=num_edges,
         )
         x = x.view(num_nodes, -1)  # Nd x out_channels -> Nx(d*out_channels)
-
-        x = self.lin2(x)  # Nx(d*out_channels)-> N x num_classes
+        if self.use_lin2:
+            x = self.lin2(x)  # Nx(d*out_channels)-> N x num_classes
         return x
 
 
@@ -311,7 +313,8 @@ class SheafHyperGCN(nn.Module):
         self.sheaf_builder = nn.ModuleList()
         self.sheaf_builder.append(ModelSheaf(args, args.MLP_hidden))
 
-        self.lin2 = Linear(h[-1] * self.d, args.num_classes, bias=False)
+        self.out_dim = h[-1] * self.d
+        self.lin2 = Linear(self.out_dim, args.num_classes, bias=False)
 
         if self.dynamic_sheaf:
             for i in range(1, l):
@@ -530,5 +533,6 @@ class SheafHyperGCN(nn.Module):
                 H = F.dropout(H, do, training=self.training)
 
         H = H.view(self.num_nodes, -1)  # Nd x out_channels -> Nx(d*out_channels)
-        H = self.lin2(H)  # Nx(d*out_channels)-> N x num_classes
+        if self.use_lin2:
+            H = self.lin2(H)  # Nx(d*out_channels)-> N x num_classes
         return H

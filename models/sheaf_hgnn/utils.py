@@ -14,13 +14,20 @@ class HyperGraphConvolution(Module):
     Simple GCN layer, similar to https://arxiv.org/abs/1609.02907
     """
 
-    def __init__(self, a, b, reapproximate=True, cuda=None):
+    def __init__(self, in_features, out_features, reapproximate=True, cuda=None):
+        """
+
+        Args:
+            in_features: number of input features
+            out_features: number of output features
+            reapproximate: reapproximate the adjacency structure of hypergraph
+        """
         super(HyperGraphConvolution, self).__init__()
-        self.a, self.b = a, b
+        self.a, self.b = in_features, out_features
         self.reapproximate = reapproximate
 
-        self.W = Parameter(torch.FloatTensor(a, b))
-        self.bias = Parameter(torch.FloatTensor(b))
+        self.W = Parameter(torch.FloatTensor(in_features, out_features))
+        self.bias = Parameter(torch.FloatTensor(out_features))
         self.reset_parameters()
 
     def reset_parameters(self):

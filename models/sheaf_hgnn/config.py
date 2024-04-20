@@ -60,6 +60,7 @@ class SheafHGNNConfig:
     rank: int
     HyperGCN_mediators: bool
     cuda: int
+    use_lin2: bool = False
 
 
 @dataclass
