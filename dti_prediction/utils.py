@@ -8,6 +8,7 @@ from typing import Optional
 import torch
 from torch_geometric.nn import Node2Vec
 from torch_geometric.typing import Adj
+from torch_geometric.utils import to_undirected
 
 
 @dataclass(slots=True)
@@ -104,6 +105,7 @@ def generate_incidence_graph(hyperedge_index: Adj):
 
 
 def generate_node_features(incidence_graph: Adj):
+    incidence_graph = to_undirected(incidence_graph)
     model = Node2Vec(incidence_graph, embedding_dim=128, walk_length=5, context_size=1)
 
     return model()
