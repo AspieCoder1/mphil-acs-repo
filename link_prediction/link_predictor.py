@@ -10,7 +10,7 @@ from torch_geometric.data import HeteroData
 from torchmetrics import MetricCollection
 from torchmetrics.classification import BinaryAccuracy, BinaryF1Score, BinaryAUROC
 
-from models.node_classifier import CommonStepOutput
+from node_classification.node_classifier import CommonStepOutput
 
 
 class EdgeDecoder(nn.Module):

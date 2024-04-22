@@ -17,7 +17,7 @@ from torchmetrics.classification import (
 )
 from torchmetrics.collections import MetricCollection
 
-from models.node_classifier import CommonStepOutput
+from node_classification.node_classifier import CommonStepOutput
 
 
 class EdgeDecoder(nn.Module):

@@ -8,7 +8,7 @@ from lightning.pytorch.utilities.types import STEP_OUTPUT
 from torch_geometric.data import Data
 
 from .node_classifier import NodeClassifier
-from .sheaf_gnn.transductive.disc_models import DiscreteSheafDiffusion
+from models.sheaf_gnn.transductive.disc_models import DiscreteSheafDiffusion
 
 
 class SheafNCSStepOutput(NamedTuple):

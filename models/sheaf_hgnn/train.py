@@ -8,6 +8,7 @@ import os.path as osp
 import time
 
 import matplotlib.pyplot as plt
+import torch.nn.functional as F
 from tqdm import tqdm
 
 from convert_datasets_to_pygDataset import dataset_Hypergraph
@@ -17,7 +18,6 @@ from .models import (
     SheafHyperGNN,
     SheafHyperGCN,
 )
-import torch.nn.functional as F
 
 # import math
 
@@ -248,14 +248,6 @@ def eval_acc(y_true, y_pred, name):
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-
-# --- Main part of the training ---
-# # Part 0: Parse arguments
-
-
-"""
-
-"""
 
 if __name__ == "__main__":
     start_time = time.time()

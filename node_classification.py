@@ -5,7 +5,6 @@ from dataclasses import dataclass
 
 import hydra
 import lightning as L
-import torch
 from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint, Timer
 from lightning.pytorch.loggers import WandbLogger
@@ -13,7 +12,7 @@ from lightning.pytorch.loggers import WandbLogger
 from core.datasets import NCDatasets, get_dataset_nc, get_dataset_hgt
 from core.models import Models, get_baseline_model
 from core.trainer import TrainerArgs
-from models import NodeClassifier
+from node_classification import NodeClassifier
 
 
 @dataclass

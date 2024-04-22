@@ -20,7 +20,7 @@ from umap import UMAP
 
 from core.datasets import NCDatasets
 from core.sheaf_configs import ModelTypes
-from models.sheaf_node_classifier import TrainStepOutput
+from node_classification.sheaf_node_classifier import TrainStepOutput
 
 
 class ProcessesRestrictionMaps(Protocol):

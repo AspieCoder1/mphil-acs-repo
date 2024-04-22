@@ -13,7 +13,7 @@ from core.models import get_sheaf_model
 from core.sheaf_configs import ModelTypes
 from models.sheaf_gnn.orthogonal import Orthogonal
 from models.sheaf_gnn.sheaf_base import SheafDiffusion
-from models.sheaf_node_classifier import SheafNodeClassifier
+from node_classification.sheaf_node_classifier import SheafNodeClassifier
 from sheaf_nc import Config
 
 cs = ConfigStore.instance()
