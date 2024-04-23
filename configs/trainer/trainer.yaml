@@ -1,8 +1,7 @@
-  _target_: lightning.Trainer
+_target_: lightning.Trainer
 accelerator: gpu
 devices: 1
 num_nodes: 1
-patience: 100
 strategy: auto
 fast_dev_run: false
 log_every_n_steps: 10

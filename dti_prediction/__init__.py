@@ -2,4 +2,4 @@
 #  License: MIT
 
 from . import utils
-from .data_processing import DTIDataset, EDGE_TYPE_MAP, EDGE_TYPE_NAMES, NODE_TYPE_NAMES
+from .data_processing import DTIData, EDGE_TYPE_MAP, EDGE_TYPE_NAMES, NODE_TYPE_NAMES, DTIDataModule

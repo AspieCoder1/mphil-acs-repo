@@ -1,0 +1,8 @@
+defaults:
+  - _self_
+  - dataset: kegg
+  - logger: wandb
+  - trainer: trainer
+
+logger:
+  wandb:

@@ -3,13 +3,12 @@
 
 import os.path as osp
 from pathlib import Path
-from typing import Union, List, Tuple, Optional, Callable
+from typing import Union, List, Tuple, Optional, Callable, Literal
 
 import lightning as L
 import numpy as np
 import torch
 from lightning.pytorch.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADERS
-from strenum import StrEnum
 from torch_geometric.data import InMemoryDataset, download_url, extract_zip, Data
 from torch_geometric.typing import Adj
 
@@ -37,17 +36,20 @@ EDGE_TYPE_NAMES = [
 NODE_TYPE_NAMES = ["drug", "protein", "disease"]
 
 
-class DTIDatasets(StrEnum):
-    deepDTnet = "deepDTnet_20"
-    KEGG = "KEGG_MED"
-    DTINet = "DTINet_17"
+# class DTIDatasets(StrEnum):
+#     deepDTnet = "deepDTnet_20"
+#     KEGG = "KEGG_MED"
+#     DTINet = "DTINet_17"
+
+
+DTIDatasets = Literal["deepDTnet_20", "KEGG_MED", "DTINet_17"]
 
 
 class DTIData(InMemoryDataset):
     def __init__(
         self,
         root_dir,
-        dataset: DTIDatasets = DTIDatasets.deepDTnet,
+        dataset: DTIDatasets = "deepDTnet_20",
         split: int = 0,
         transform: Optional[Callable] = None,
         pre_transform: Optional[Callable] = None,
@@ -88,7 +90,7 @@ class DTIData(InMemoryDataset):
 
     @property
     def raw_dir(self) -> str:
-        return osp.join(self.root, self.dataset.value, "raw")
+        return osp.join(self.root, self.dataset, "raw")
 
     @property
     def raw_file_names(self) -> Union[str, List[str], Tuple]:
@@ -104,10 +106,10 @@ class DTIData(InMemoryDataset):
 
     @property
     def processed_dir(self) -> str:
-        return osp.join(self.root, self.dataset.value, "processed")
+        return osp.join(self.root, self.dataset, "processed")
 
     def download(self):
-        url = f"https://drive.google.com/uc?export=download&id={self.file_ids[self.dataset.value]}"
+        url = f"https://drive.google.com/uc?export=download&id={self.file_ids[self.dataset]}"
         path = download_url(url=url, folder=self.raw_dir, filename="data.zip")
         extract_zip(path, self.raw_dir)
 
@@ -189,7 +191,7 @@ class DTIData(InMemoryDataset):
 class DTIDataModule(L.LightningDataModule):
     def __init__(
         self,
-        dataset: DTIDatasets = DTIDatasets.deepDTnet,
+        dataset: DTIDatasets = "deepDTnet_20",
         split: int = 0,
     ):
         super(DTIDataModule).__init__()

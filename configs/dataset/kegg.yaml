@@ -1,0 +1,3 @@
+_target_: dti_prediction.DTIDataModule
+dataset: KEGG_MED
+split: 0
