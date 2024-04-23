@@ -211,9 +211,6 @@ class DTIDataModule(L.LightningDataModule):
 
 
 if __name__ == "__main__":
-
-    # data = DTIData(root_dir="data")[0]
-
     dm = DTIDataModule()
     dm.prepare_data()
     data = dm.train_dataloader()
