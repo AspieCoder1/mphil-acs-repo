@@ -1,5 +1,4 @@
 # @package _global_
-
-callback:
+callbacks:
   early_stopping:
-    patience: 50
+    patience: 75

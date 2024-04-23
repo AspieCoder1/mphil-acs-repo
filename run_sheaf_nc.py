@@ -35,10 +35,10 @@ def main(cfg: DictConfig) -> None:
     model_args.graph_size = datamodule.graph_size
     model_args.input_dim = datamodule.in_channels
     model_args.output_dim = datamodule.num_classes
-    model_args.graph_size = datamodule.graph_size
     model_args.num_edge_types = datamodule.num_edge_types
     model_args.num_node_types = datamodule.num_node_types
     edge_index = datamodule.edge_index.to(cfg.model_args.device)
+
 
     # 3) Initialise models
     model_cls = get_sheaf_model(cfg.model.type)
