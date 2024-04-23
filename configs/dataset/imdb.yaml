@@ -1,1 +1,1 @@
-name: IMDB
+_target_: datasets.hgb.IMDBDataModule

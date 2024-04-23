@@ -20,26 +20,11 @@ from node_classification import NodeClassifier
 from utils.instantiators import instantiate_loggers, instantiate_callbacks
 
 
-# @dataclass
-# class Config:
-#     trainer: TrainerArgs = field(default_factory=TrainerArgs)
-#     tags: list[str] = field(default_factory=list)
-#     model: SheafModelCfg = field(default_factory=SheafModelCfg)
-#     dataset: SheafNCDatasetCfg = field(default_factory=SheafNCDatasetCfg)
-#     model_args: SheafModelArguments = field(default_factory=SheafModelArguments)
-#     sheaf_learner: SheafLearners = SheafLearners.type_ensemble
-#     plot_maps: bool = False
-#
-#
-# cs = ConfigStore.instance()
-# cs.store("base_config", Config)
-
-
 @hydra.main(version_base="1.2", config_path="configs", config_name="sheaf_config")
 def main(cfg: DictConfig) -> None:
     # 1) get the datamodule
     # The data  must be homogeneous due to how code is configured
-    datamodule = get_dataset_nc(cfg.dataset.name, True)
+    datamodule = hydra.utils.instantiate(cfg.dataset)
     datamodule.prepare_data()
 
     model_args = hydra.utils.instantiate(cfg.model_args)

@@ -1,1 +1,1 @@
-name: DBLP
+_target_: datasets.hgb.DBLPDataModule

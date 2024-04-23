@@ -1,0 +1,15 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=example
+
+defaults:
+  - override /data: acm
+  - override /trainer: trainer
+  - override /
+
+data:
+  homogenous: true
+
+trainer:
+

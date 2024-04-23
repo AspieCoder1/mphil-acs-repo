@@ -2,7 +2,7 @@ defaults:
   - model: diag_sheaf
   - dataset: dblp
   - trainer: trainer
-  - logger: null
+  - logger: wandb
   - model_args: ${model}_${dataset}
 #  - hydra: slurm_submit
 #  - override hydra/launcher: submitit_slurm
@@ -12,3 +12,20 @@ defaults:
 #  - sheaf
 #  - node_classification
 sheaf_learner: 'local_concat'
+tags: [ GNN, sheaf, node_classification ]
+
+dataset:
+  homogeneous: true
+
+callbacks:
+  early_stopping:
+    monitor: 'valid/loss'
+  model_checkpoint:
+    dirpath: checkpoints/sheafnc_checkpoints/{checkpoint_name}
+    filename: DiagSheaf-DBLP
+    monitor: valid/accuracy
+    mode: max
+    save_top_k: 1
+
+trainer:
+  log_every_n_steps: 1
