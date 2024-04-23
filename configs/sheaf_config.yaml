@@ -1,12 +1,14 @@
 defaults:
+  - _self_
   - model: diag_sheaf
   - dataset: dblp
   - trainer: trainer
   - logger: wandb
   - model_args: ${model}_${dataset}
+  - callbacks: default
 #  - hydra: slurm_submit
 #  - override hydra/launcher: submitit_slurm
-  - _self_
+
 #tags:
 #  - GNN
 #  - sheaf

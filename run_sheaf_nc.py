@@ -2,9 +2,11 @@
 #  License: MIT
 
 import hydra
+from lightning import Trainer, Callback
+from lightning.pytorch.callbacks import Timer
+from lightning.pytorch.loggers import Logger
 from omegaconf import DictConfig
 
-from core.datasets import get_dataset_nc
 from core.models import get_sheaf_model
 from models.sheaf_gnn.config import SheafLearners
 from models.sheaf_gnn.sheaf_models import (
@@ -16,7 +18,7 @@ from models.sheaf_gnn.sheaf_models import (
     NodeTypeSheafLearner,
     EdgeTypeSheafLearner,
 )
-from node_classification import NodeClassifier
+from node_classification import SheafNodeClassifier
 from utils.instantiators import instantiate_loggers, instantiate_callbacks
 
 
@@ -44,25 +46,20 @@ def main(cfg: DictConfig) -> None:
 
     model = model_cls(edge_index, model_args, sheaf_learner=sheaf_learner)
 
-    sheaf_nc = NodeClassifier(
+    sheaf_nc = SheafNodeClassifier(
         model,
-        hidden_channels=model.hidden_dim,
         out_channels=datamodule.num_classes,
         target=datamodule.target,
         task=datamodule.task,
         homogeneous_model=True,
-        sheaf_model=True,
     )
 
-    logger = instantiate_loggers(cfg.get("logger"))
-    callbacks = instantiate_callbacks(cfg.get("callbacks"))
+    logger: list[Logger] = instantiate_loggers(cfg.get("logger"))
+    callbacks: list[Callback] = instantiate_callbacks(cfg.get("callbacks"))
 
-    # 4) init trainer
-    # trainer, timer, logger = init_trainer(
-    #     cfg, edge_type_names=datamodule.edge_type_names
-    # )
-
-    trainer = hydra.utils.instantiate(cfg.trainer, logger=logger, callbacks=callbacks)
+    trainer: Trainer = hydra.utils.instantiate(
+        cfg.trainer, logger=logger, callbacks=callbacks
+    )
 
     # 5) train the model
     trainer.fit(sheaf_nc, datamodule)
@@ -70,14 +67,18 @@ def main(cfg: DictConfig) -> None:
     # 6) test the model
     trainer.test(sheaf_nc, datamodule)
 
-    # runtime = {
-    #     "train/runtime": timer.time_elapsed("train"),
-    #     "valid/runtime": timer.time_elapsed("validate"),
-    #     "test/runtime": timer.time_elapsed("test"),
-    # }
-    #
-    # if cfg.trainer.logger:
-    #     logger.log_metrics(runtime)
+    timer = next(filter(lambda x: isinstance(x, Timer), callbacks))
+
+    runtime = {
+        "train/runtime": timer.time_elapsed("train"),
+        "valid/runtime": timer.time_elapsed("validate"),
+        "test/runtime": timer.time_elapsed("test"),
+    }
+
+    if len(logger) > 0:
+        logger[0].log_metrics(runtime)
+    else:
+        print(runtime)
 
 
 def init_sheaf_learner(cfg):
