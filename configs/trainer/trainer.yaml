@@ -1,3 +1,4 @@
+  _target_: lightning.Trainer
 accelerator: gpu
 devices: 1
 num_nodes: 1
