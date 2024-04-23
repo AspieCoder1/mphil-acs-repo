@@ -27,6 +27,7 @@ class DiscreteSheafDiffusion(SheafDiffusion):
     ):
         super(DiscreteSheafDiffusion, self).__init__(edge_index, args)
         self.sheaf_learner = init_sheaf_learner(sheaf_learner)
+        self.sheaf_type = sheaf_learner
 
     @abstractmethod
     def process_restriction_maps(self, maps): ...
@@ -154,6 +155,9 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
 
     def process_restriction_maps(self, maps):
         return maps
+
+    def __str__(self):
+        return f"DiagSheaf-{self.sheaf_type}"
 
 
 class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
@@ -305,6 +309,9 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
         maps = transform(maps)
         return torch.flatten(maps, start_dim=1, end_dim=-1)
 
+    def __str__(self):
+        return f"BundleSheaf-{self.sheaf_type}"
+
 
 class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
 
@@ -436,3 +443,6 @@ class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
 
     def process_restriction_maps(self, maps):
         return torch.flatten(maps, start_dim=1, end_dim=-1)
+
+    def __str__(self):
+        return f"GeneralSheaf-{self.sheaf_type}"

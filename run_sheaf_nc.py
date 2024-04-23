@@ -41,12 +41,11 @@ def main(cfg: DictConfig) -> None:
     )
 
     logger: List[Logger] = instantiate_loggers(cfg.get("logger"))
-    print(logger)
 
     if logger:
         assert isinstance(logger[0], WandbLogger)
-        logger[0].experiment.config["model"] = repr(cfg.model)
-        logger[0].experiment.config["dataset"] = repr(cfg.dataset)
+        logger[0].experiment.config["model"] = f"{model}"
+        logger[0].experiment.config["dataset"] = f"{datamodule}"
 
     callbacks: list[Callback] = instantiate_callbacks(cfg.get("callbacks"))
 
@@ -69,7 +68,7 @@ def main(cfg: DictConfig) -> None:
     }
 
     if logger:
-        logger[0].log_metrics(runtime)
+        trainer.logger.log_metrics(runtime)
     else:
         print(runtime)
 

@@ -77,6 +77,9 @@ class LocalConcatSheafLearner(SheafLearner):
         else:
             return maps.view(-1, self.out_shape[0])
 
+    def __str__(self):
+        return "local_concat"
+
 
 class LocalConcatSheafLearnerVariant(SheafLearner):
     """Learns a sheaf by concatenating the local node features and passing them through a linear layer + activation."""
@@ -135,6 +138,9 @@ class LocalConcatSheafLearnerVariant(SheafLearner):
             return maps.view(-1, self.out_shape[0], self.out_shape[1])
         else:
             return maps.view(-1, self.out_shape[0])
+
+    def __str__(self):
+        return "local_concat"
 
 
 class AttentionSheafLearner(SheafLearner):
@@ -284,6 +290,9 @@ class TypeConcatSheafLearner(SheafLearner):
         else:
             return maps.view(-1, self.out_shape[0])
 
+    def __str__(self):
+        return "type_concat"
+
 
 class TypeEnsembleSheafLearner(SheafLearner):
     def __init__(
@@ -361,6 +370,9 @@ class TypeEnsembleSheafLearner(SheafLearner):
         else:
             return maps.view(-1, self.out_shape[0])
 
+    def __str__(self):
+        return "type_ensemble"
+
 
 class EdgeTypeConcatSheafLearner(SheafLearner):
     def __init__(
@@ -416,6 +428,9 @@ class EdgeTypeConcatSheafLearner(SheafLearner):
             return maps.view(-1, self.out_shape[0], self.out_shape[1])
         else:
             return maps.view(-1, self.out_shape[0])
+
+    def __str__(self):
+        return "edge_type_concat"
 
 
 class NodeTypeConcatSheafLearner(SheafLearner):
@@ -475,6 +490,9 @@ class NodeTypeConcatSheafLearner(SheafLearner):
         else:
             return maps.view(-1, self.out_shape[0])
 
+    def __str__(self):
+        return "node_type_concat"
+
 
 class NodeTypeSheafLearner(SheafLearner):
     def __init__(
@@ -530,6 +548,9 @@ class NodeTypeSheafLearner(SheafLearner):
         else:
             return maps.view(-1, self.out_shape[0])
 
+    def __str__(self):
+        return "node_type"
+
 
 class EdgeTypeSheafLearner(SheafLearner):
     def __init__(
@@ -578,3 +599,6 @@ class EdgeTypeSheafLearner(SheafLearner):
             return maps.view(-1, self.out_shape[0], self.out_shape[1])
         else:
             return maps.view(-1, self.out_shape[0])
+
+    def __str__(self):
+        return "edge_type"
