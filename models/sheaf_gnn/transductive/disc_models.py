@@ -1,7 +1,6 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  Adapted from: https://github.com/twitter-research/neural-sheaf-diffusion
 from abc import abstractmethod
-from typing import Type, Union
 
 import torch
 import torch.nn.functional as F
@@ -13,11 +12,10 @@ from models.sheaf_gnn import laplacian_builders as lb
 from models.sheaf_gnn.orthogonal import Orthogonal
 from models.sheaf_gnn.sheaf_base import SheafDiffusion
 from models.sheaf_gnn.sheaf_models import (
-    LocalConcatSheafLearner,
     EdgeWeightLearner,
     LocalConcatSheafLearnerVariant,
-    TypeConcatSheafLearner,
 )
+from ..utils import init_sheaf_learner
 
 
 class DiscreteSheafDiffusion(SheafDiffusion):
@@ -25,12 +23,10 @@ class DiscreteSheafDiffusion(SheafDiffusion):
         self,
         edge_index,
         args,
-        sheaf_learner: Type[
-            Union[LocalConcatSheafLearner, TypeConcatSheafLearner]
-        ] = LocalConcatSheafLearner,
+        sheaf_learner: str = "local_concat",
     ):
         super(DiscreteSheafDiffusion, self).__init__(edge_index, args)
-        self.sheaf_learner = sheaf_learner
+        self.sheaf_learner = init_sheaf_learner(sheaf_learner)
 
     @abstractmethod
     def process_restriction_maps(self, maps): ...

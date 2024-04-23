@@ -2,3 +2,13 @@
 callbacks:
   early_stopping:
     patience: 50
+
+model:
+  args:
+    device: cuda
+    d: 5
+    dropout: 0.5011287684530217
+    hidden_channels: 16
+    initial_dropout: 0.5788760676185676
+    input_dropout: 0.8470817077646783
+    layers: 5

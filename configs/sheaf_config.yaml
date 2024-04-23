@@ -1,11 +1,11 @@
+# @package _global_
 defaults:
-  - model: bundle_sheaf
+  - _self_
+  - model: diag_sheaf
   - dataset: dblp
   - trainer: trainer
   - logger: wandb
-  - model_args: ${model}_${dataset}
-  - callbacks: default
-  - _self_
+  - callbacks: sheaf_nc
   - experiment: null
 
 #tags:
@@ -29,3 +29,7 @@ callbacks:
 
 trainer:
   log_every_n_steps: 1
+
+logger:
+  wandb:
+    group: BundleSheaf-ACM-${sheaf_learner}

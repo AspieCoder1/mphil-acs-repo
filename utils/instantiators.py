@@ -1,10 +1,10 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
-from typing import List
+from typing import List, Optional
 
 import hydra
 from lightning import Callback
-from lightning.pytorch.loggers import Logger
+from lightning.pytorch.loggers import WandbLogger, Logger
 from omegaconf import DictConfig
 
 

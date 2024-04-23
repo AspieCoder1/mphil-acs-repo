@@ -6,7 +6,6 @@ from typing import Optional
 
 import hydra
 import lightning as L
-import torch
 from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint, Timer
 from lightning.pytorch.loggers import WandbLogger
@@ -17,7 +16,7 @@ from core.sheaf_configs import SheafModelCfg, SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
 from models.recommender.recommender import GNNRecommender
 from models.sheaf_gnn.config import IndSheafModelArguments, SheafLearners
-from run_sheaf_nc import init_sheaf_learner
+from models.sheaf_gnn.utils import init_sheaf_learner
 
 
 @dataclass

@@ -1,1 +1,5 @@
-type: 'GeneralSheaf'
+_target_: models.sheaf_gnn.DiscreteGeneralSheafDiffusion
+args:
+  _target_: models.sheaf_gnn.config.SheafModelArguments
+#edge_index:
+sheaf_learner: '${sheaf_learner}'
