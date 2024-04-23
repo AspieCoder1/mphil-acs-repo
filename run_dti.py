@@ -2,7 +2,7 @@
 #  License: MIT
 
 import hydra
-from lightning import LightningDataModule, Callback, Trainer
+from lightning import LightningDataModule, Callback, Trainer, LightningModule
 from omegaconf import DictConfig
 from pytorch_lightning.loggers import Logger
 
@@ -17,6 +17,8 @@ def main(cfg: DictConfig) -> None:
     dm.prepare_data()
 
     # initialise model
+    model: LightningModule = hydra.utils.instantiate(cfg.model)
+    print(model)
 
     # initialise loggers
     logger: list[Logger] = instantiate_loggers(cfg.get("logger"))
@@ -32,8 +34,6 @@ def main(cfg: DictConfig) -> None:
     )
 
     print(trainer)
-
-    return None
 
 
 if __name__ == "__main__":

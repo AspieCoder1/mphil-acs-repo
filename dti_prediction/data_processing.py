@@ -36,12 +36,6 @@ EDGE_TYPE_NAMES = [
 NODE_TYPE_NAMES = ["drug", "protein", "disease"]
 
 
-# class DTIDatasets(StrEnum):
-#     deepDTnet = "deepDTnet_20"
-#     KEGG = "KEGG_MED"
-#     DTINet = "DTINet_17"
-
-
 DTIDatasets = Literal["deepDTnet_20", "KEGG_MED", "DTINet_17"]
 
 

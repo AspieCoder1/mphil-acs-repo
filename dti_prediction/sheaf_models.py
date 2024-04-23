@@ -9,13 +9,13 @@ from torch_geometric.utils import negative_sampling
 from torchmetrics import MetricCollection
 from torchmetrics.classification import BinaryAUROC, BinaryAveragePrecision
 
-from models.sheaf_hgnn.config import SheafHGNNConfig, HGNNSheafTypes
+from models.sheaf_hgnn.config import SheafHGNNConfig
 from models.sheaf_hgnn.models import SheafHyperGNN
 from models.vshae.VSHAE import VSHAE
 
 
 class SheafHyperGNNModule(L.LightningModule):
-    def __init__(self, args: SheafHGNNConfig, sheaf_type: HGNNSheafTypes):
+    def __init__(self, args: SheafHGNNConfig, sheaf_type: str):
         super(SheafHyperGNNModule, self).__init__()
         self.model = SheafHyperGNN(args=args, sheaf_type=sheaf_type)
         self.score_func = nn.Linear(2 * self.model.out_dim, 1)
@@ -62,7 +62,7 @@ class SheafHyperGNNModule(L.LightningModule):
 
 
 class VSHAEModule(L.LightningModule):
-    def __init__(self, args: SheafHGNNConfig, sheaf_type: HGNNSheafTypes):
+    def __init__(self, args: SheafHGNNConfig, sheaf_type: str):
         super(VSHAEModule, self).__init__()
         self.model = VSHAE(args=args, sheaf_type=sheaf_type)
 

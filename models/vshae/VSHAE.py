@@ -6,14 +6,14 @@ import torch.nn.functional as F
 from torch import nn, Tensor
 from torch_geometric.data import Data
 
-from ..sheaf_hgnn.models import SheafHyperGNN, SheafHGNNConfig, HGNNSheafTypes
+from ..sheaf_hgnn.models import SheafHyperGNN, SheafHGNNConfig
 
 EPS = 1e-15
 MAX_LOGSTD = 10
 
 
 class VSHAE(nn.Module):
-    def __init__(self, args: SheafHGNNConfig, sheaf_type: HGNNSheafTypes):
+    def __init__(self, args: SheafHGNNConfig, sheaf_type: str):
         super(VSHAE, self).__init__()
         self.encoder = SheafHyperGNN(args=args, sheaf_type=sheaf_type)
         self.mu_encoder = nn.Linear(self.encoder.out_dim, 128)

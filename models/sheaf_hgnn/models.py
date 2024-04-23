@@ -12,7 +12,7 @@ This script contains all models in our paper.
 
 from torch_scatter import scatter_mean
 
-from .config import SheafHGNNConfig, HGNNSheafTypes
+from .config import SheafHGNNConfig
 
 #  This part is for HyperGCN
 from .hgcn_sheaf_laplacians import *
@@ -38,7 +38,7 @@ class SheafHyperGNN(nn.Module):
 
     """
 
-    def __init__(self, args: SheafHGNNConfig, sheaf_type: HGNNSheafTypes):
+    def __init__(self, args: SheafHGNNConfig, sheaf_type: str):
         super(SheafHyperGNN, self).__init__()
 
         self.num_layers = args.All_num_layers
@@ -84,13 +84,13 @@ class SheafHyperGNN(nn.Module):
 
         # define the model and sheaf generator according to the type of sheaf wanted
         # The diuffusion does not change, however tha implementation for diag and ortho is more efficient
-        if sheaf_type == HGNNSheafTypes.DiagSheafs:
+        if sheaf_type == "DiagSheafs":
             ModelSheaf, ModelConv = SheafBuilderDiag, HyperDiffusionDiagSheafConv
-        elif sheaf_type == HGNNSheafTypes.OrthoSheafs:
+        elif sheaf_type == "OrthoSheafs":
             ModelSheaf, ModelConv = SheafBuilderOrtho, HyperDiffusionOrthoSheafConv
-        elif sheaf_type == HGNNSheafTypes.GeneralSheafs:
+        elif sheaf_type == "GeneralSheafs":
             ModelSheaf, ModelConv = SheafBuilderGeneral, HyperDiffusionGeneralSheafConv
-        elif sheaf_type == HGNNSheafTypes.LowRankSheafs:
+        elif sheaf_type == "LowRankSheafs":
             ModelSheaf, ModelConv = SheafBuilderLowRank, HyperDiffusionGeneralSheafConv
 
         self.convs = nn.ModuleList()
@@ -227,7 +227,7 @@ class SheafHyperGCN(nn.Module):
         num_layers,
         num_classses,
         args: SheafHGNNConfig,
-        sheaf_type: HGNNSheafTypes,
+        sheaf_type: str,
     ):
         super(SheafHyperGCN, self).__init__()
         d, l, c = num_features, num_layers, num_classses
@@ -275,13 +275,13 @@ class SheafHyperGCN(nn.Module):
         self.residual = args.residual_HCHA
 
         # sheaf_type = 'OrthoSheafs'
-        if sheaf_type == HGNNSheafTypes.DiagSheafs:
+        if sheaf_type == "DiagSheafs":
             ModelSheaf, self.Laplacian = HGCNSheafBuilderDiag, SheafLaplacianDiag
-        elif sheaf_type == HGNNSheafTypes.OrthoSheafs:
+        elif sheaf_type == "OrthoSheafs":
             ModelSheaf, self.Laplacian = HGCNSheafBuilderOrtho, SheafLaplacianOrtho
-        elif sheaf_type == HGNNSheafTypes.GeneralSheafs:
+        elif sheaf_type == "GeneralSheafs":
             ModelSheaf, self.Laplacian = HGCNSheafBuilderGeneral, SheafLaplacianGeneral
-        elif sheaf_type == HGNNSheafTypes.LowRankSheafs:
+        elif sheaf_type == "LowRankSheafs":
             ModelSheaf, self.Laplacian = HGCNSheafBuilderLowRank, SheafLaplacianGeneral
 
         if self.left_proj:

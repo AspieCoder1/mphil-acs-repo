@@ -50,11 +50,11 @@ class SheafHGNNConfig:
     residual_HCHA: bool
     heads: int
     init_hedge: str
-    sheaf_normtype: SheafNormTypes
-    sheaf_act: SheafActivations
+    sheaf_normtype: str
+    sheaf_act: str
     sheaf_left_proj: bool
     dynamic_sheaf: bool
-    sheaf_pred_block: SheafPredictionBlockTypes
+    sheaf_pred_block: str
     sheaf_dropout: float
     sheaf_special_head: bool
     rank: int

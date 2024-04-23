@@ -3,6 +3,7 @@ defaults:
   - dataset: kegg
   - logger: wandb
   - trainer: trainer
+  - model: vshae
 
-logger:
-  wandb:
+#logger:
+#  wandb:
