@@ -1,5 +1,5 @@
 name: DiagSheaf-IMDB
-program: sheaf_nc.py
+program: run_sheaf_nc.py
 method: bayes
 metric:
   goal: maximize

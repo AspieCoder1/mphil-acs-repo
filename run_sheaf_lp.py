@@ -17,7 +17,7 @@ from core.sheaf_configs import SheafModelCfg, SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
 from models.recommender.recommender import GNNRecommender
 from models.sheaf_gnn.config import IndSheafModelArguments, SheafLearners
-from sheaf_nc import init_sheaf_learner
+from run_sheaf_nc import init_sheaf_learner
 
 
 @dataclass

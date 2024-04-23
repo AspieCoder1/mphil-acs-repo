@@ -1,5 +1,5 @@
 name: GeneralSheaf-IMDB
-program: sheaf_nc.py
+program: run_sheaf_nc.py
 method: random
 metric:
   goal: maximize

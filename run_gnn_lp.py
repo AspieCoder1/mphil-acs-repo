@@ -15,7 +15,7 @@ from core.models import get_baseline_model, Models
 from core.sheaf_configs import SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
 from models.recommender.recommender import GNNRecommender
-from node_classification import ModelConfig
+from run_gnn_nc import ModelConfig
 
 
 @dataclass
