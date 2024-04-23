@@ -3,10 +3,13 @@
 
 import os.path as osp
 from pathlib import Path
-from typing import Union, List, Tuple, Literal, Optional, Callable
+from typing import Union, List, Tuple, Optional, Callable
 
+import lightning as L
 import numpy as np
 import torch
+from lightning.pytorch.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADERS
+from strenum import StrEnum
 from torch_geometric.data import InMemoryDataset, download_url, extract_zip, Data
 from torch_geometric.typing import Adj
 
@@ -34,16 +37,22 @@ EDGE_TYPE_NAMES = [
 NODE_TYPE_NAMES = ["drug", "protein", "disease"]
 
 
-class DTIDataset(InMemoryDataset):
+class DTIDatasets(StrEnum):
+    deepDTnet = "deepDTnet_20"
+    KEGG = "KEGG_MED"
+    DTINet = "DTINet_17"
+
+
+class DTIData(InMemoryDataset):
     def __init__(
         self,
         root_dir,
+        dataset: DTIDatasets = DTIDatasets.deepDTnet,
+        split: int = 0,
         transform: Optional[Callable] = None,
         pre_transform: Optional[Callable] = None,
         pre_filter: Optional[Callable] = None,
         force_reload: bool = False,
-        dataset: Literal["deepDTnet_20", "KEGG_MED", "DTINet_17"] = "deepDTNet_20",
-        split: int = 0,
     ):
         """
         DTI dataset for use on Hypergraph Neural Networks.
@@ -69,27 +78,21 @@ class DTIDataset(InMemoryDataset):
             "KEGG_MED": "1_XOT7Czd560UvkxpJM1-L5t9GXDPLhQr",
             "DTINet_17": "1pLoNyznbcTaxBHW8cSNPUU6oN3WCAh3l",
         }
+
         super().__init__(
             root_dir, transform, pre_transform, pre_filter, force_reload=force_reload
         )
+
         path = osp.join(self.processed_dir, f"data_{self.split}.pt")
         self.load(path)
 
     @property
+    def raw_dir(self) -> str:
+        return osp.join(self.root, self.dataset.value, "raw")
+
+    @property
     def raw_file_names(self) -> Union[str, List[str], Tuple]:
         return ["drug_disease.txt", "drug_protein.txt", "protein_disease.txt"]
-
-    @property
-    def num_nodes(self):
-        return sum(self.nodes_per_type.values())
-
-    @property
-    def num_hyperedges(self):
-        return sum(self.hyperedges_per_type.values())
-
-    @property
-    def raw_dir(self) -> str:
-        return osp.join(self.root, self.dataset, "raw")
 
     @property
     def raw_paths(self) -> List[str]:
@@ -101,10 +104,10 @@ class DTIDataset(InMemoryDataset):
 
     @property
     def processed_dir(self) -> str:
-        return osp.join(self.root, self.dataset, "processed")
+        return osp.join(self.root, self.dataset.value, "processed")
 
     def download(self):
-        url = f"https://drive.google.com/uc?export=download&id={self.file_ids[self.dataset]}"
+        url = f"https://drive.google.com/uc?export=download&id={self.file_ids[self.dataset.value]}"
         path = download_url(url=url, folder=self.raw_dir, filename="data.zip")
         extract_zip(path, self.raw_dir)
 
@@ -167,6 +170,14 @@ class DTIDataset(InMemoryDataset):
 
         self.save([data], osp.join(self.processed_dir, f"data_{self.split}.pt"))
 
+    @property
+    def num_nodes(self):
+        return sum(self.nodes_per_type.values())
+
+    @property
+    def num_hyperedges(self):
+        return sum(self.hyperedges_per_type.values())
+
     def print_summary(self):
         print("======== Dataset summary ========")
         print(f"Number of nodes: {self.num_nodes}")
@@ -175,10 +186,37 @@ class DTIDataset(InMemoryDataset):
         print(f"Hyperedge per type: {dict(self.hyperedges_per_type)}")
 
 
+class DTIDataModule(L.LightningDataModule):
+    def __init__(
+        self,
+        dataset: DTIDatasets = DTIDatasets.deepDTnet,
+        split: int = 0,
+    ):
+        super(DTIDataModule).__init__()
+        self.dataset = dataset
+        self.split = split
+
+    def prepare_data(self) -> None:
+        print(self.dataset)
+        self.dataset = DTIData(root_dir="data", dataset=self.dataset, split=self.split)
+
+    def train_dataloader(self) -> TRAIN_DATALOADERS:
+        return self.dataset[0]
+
+    def test_dataloader(self) -> EVAL_DATALOADERS:
+        return self.dataset[0]
+
+    def val_dataloader(self) -> EVAL_DATALOADERS:
+        return self.dataset[0]
+
+
 if __name__ == "__main__":
-    dataset = DTIDataset(
-        root_dir="data", dataset="deepDTnet_20", force_reload=True, split=0
-    )
-    print(dataset[0])
-    print(dataset[0].x)
-    print(dataset[0].num_nodes)
+
+    # data = DTIData(root_dir="data")[0]
+
+    dm = DTIDataModule()
+    dm.prepare_data()
+    data = dm.train_dataloader()
+    print(data)
+    print(data.x)
+    print(data.num_nodes)
