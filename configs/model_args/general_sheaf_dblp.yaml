@@ -1,3 +1,4 @@
+_target_: models.sheaf_gnn.config.SheafModelArguments
 device: cuda
 d: 4
 dropout: 0.09737414490518748

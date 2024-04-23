@@ -191,19 +191,20 @@ class DTIDataModule(L.LightningDataModule):
         super(DTIDataModule).__init__()
         self.dataset = dataset
         self.split = split
+        self.data = None
 
     def prepare_data(self) -> None:
-        print(self.dataset)
-        self.dataset = DTIData(root_dir="data", dataset=self.dataset, split=self.split)
+        dataset = DTIData(root_dir="data", dataset=self.dataset, split=self.split)
+        self.data = dataset[0]
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
-        return self.dataset[0]
+        return self.data
 
     def test_dataloader(self) -> EVAL_DATALOADERS:
-        return self.dataset[0]
+        return self.data
 
     def val_dataloader(self) -> EVAL_DATALOADERS:
-        return self.dataset[0]
+        return self.data
 
 
 if __name__ == "__main__":

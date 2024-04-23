@@ -1,14 +1,14 @@
 defaults:
-  - base_config
   - model: diag_sheaf
   - dataset: dblp
-  - trainer: ${model}_${dataset}
+  - trainer: trainer
+  - logger: null
   - model_args: ${model}_${dataset}
-  - hydra: slurm_submit
-  - override hydra/launcher: submitit_slurm
+#  - hydra: slurm_submit
+#  - override hydra/launcher: submitit_slurm
   - _self_
-tags:
-  - GNN
-  - sheaf
-  - node_classification
-
+#tags:
+#  - GNN
+#  - sheaf
+#  - node_classification
+sheaf_learner: 'local_concat'

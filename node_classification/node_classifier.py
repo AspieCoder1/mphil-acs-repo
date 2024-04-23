@@ -30,11 +30,13 @@ class NodeClassifier(L.LightningModule):
         target: str = "author",
         task: Literal["binary", "multiclass", "multilabel"] = "multilabel",
         homogeneous_model: bool = False,
+        sheaf_model: bool = False,
     ):
         super().__init__()
         self.encoder = model
         self.decoder = Linear(hidden_channels, out_channels)
         self.homogeneous = homogeneous_model
+        self.sheaf = sheaf_model
 
         metrics_params = {
             "task": task,
@@ -74,7 +76,11 @@ class NodeClassifier(L.LightningModule):
 
         mask = torch.logical_and(target_mask, mask)
         y = batch.y[mask]
-        logits = self.encoder(batch)
+
+        if self.sheaf:
+            logits, _ = self.encoder(batch)
+        else:
+            logits = self.encoder(batch)
 
         y_hat = self.decoder(logits)[mask]
 
