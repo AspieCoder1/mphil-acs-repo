@@ -7,7 +7,7 @@ early_stopping:
 
 model_checkpoint:
   dirpath: checkpoints/sheafnc_checkpoints
-  filename: '${model}-${dataset}'
+#  filename: '${model}-${dataset}'
   mode: 'max'
   save_top_k: 1
   monitor: 'valid/accuracy'
