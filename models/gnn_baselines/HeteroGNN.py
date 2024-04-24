@@ -14,6 +14,7 @@ class HeteroGNN(nn.Module):
         hidden_channels: int = 256,
         num_layers: int = 3,
         target: str = "author",
+        **_kwargs
     ):
 
         super().__init__()
@@ -55,3 +56,6 @@ class HeteroGNN(nn.Module):
             x_dict = conv(x_dict, data.edge_index_dict)
 
         return x_dict
+
+    def __repr__(self):
+        return 'HGCN'

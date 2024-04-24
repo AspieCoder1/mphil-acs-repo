@@ -1,1 +1,2 @@
-type: RGCN
+_target_: models.gnn_baselines.RGCN
+hidden_channels: 256

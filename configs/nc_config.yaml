@@ -1,12 +1,31 @@
+# @package _global_
 defaults:
-  - config
-  - trainer: trainer
-  - hydra: slurm_submit
-  - dataset: dblp
-  - model: gcn
-  - override hydra/launcher: submitit_slurm
   - _self_
-tags:
-  - GNN
-  - baseline
-  - nc
+  - model: gcn
+  - dataset: dblp
+  - trainer: trainer
+  - logger: wandb
+  - callbacks: sheaf_nc
+  - experiment: null
+
+#tags:
+#  - GNN
+#  - sheaf
+#  - node_classification
+tags: [ GNN, node_classification, exp1_1, test ]
+
+dataset:
+  homogeneous: true
+
+
+callbacks:
+  early_stopping:
+    monitor: 'valid/loss'
+  model_checkpoint:
+    dirpath: checkpoints/sheafnc_checkpoints/
+    monitor: valid/accuracy
+    mode: max
+    save_top_k: 1
+
+trainer:
+  log_every_n_steps: 1

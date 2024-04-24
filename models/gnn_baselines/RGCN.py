@@ -1,21 +1,16 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 
-from typing import Literal
-
-import lightning as L
-import torch
 import torch.nn.functional as F
-from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn
-from torch_geometric.data import Batch, HeteroData
+from torch_geometric.data import HeteroData
 from torch_geometric.nn import RGCNConv
-from torchmetrics import F1Score, AUROC
-from torchmetrics.classification import Accuracy
 
 
 class RGCN(nn.Module):
-    def __init__(self, hidden_channels: int, num_nodes: int, num_relations: int):
+    def __init__(
+        self, hidden_channels: int, num_nodes: int, num_relations: int, **_kwargs
+    ):
         super().__init__()
         self.conv1 = RGCNConv(num_nodes, hidden_channels, num_relations)
         self.conv2 = RGCNConv(hidden_channels, hidden_channels, num_relations)
@@ -33,3 +28,6 @@ class RGCN(nn.Module):
         data.update({"x": x})
         data = data.to_heterogeneous(node_type_names=node_type_names)
         return data.x_dict
+
+    def __repr__(self):
+        return "RGCN"

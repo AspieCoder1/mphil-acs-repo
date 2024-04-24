@@ -1,17 +1,13 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 
-from typing import Literal, NamedTuple, Optional
+from typing import NamedTuple, Optional
 
-import lightning as L
 import torch
-import torch.nn.functional as F
-from lightning.pytorch.utilities.types import OptimizerLRScheduler
-from lightning.pytorch.utilities.types import STEP_OUTPUT
+from omegaconf import DictConfig
 from torch import nn
-from torch_geometric.data import Batch, HeteroData
+from torch_geometric.data import HeteroData
 from torch_geometric.nn import HANConv
-from torchmetrics.classification import Accuracy, F1Score, AUROC
 
 
 class CommonStepOutput(NamedTuple):
@@ -26,8 +22,12 @@ class HAN(nn.Module):
         metadata: tuple[list[str], list[tuple[str, str, str]]],
         hidden_channels: int = 256,
         in_channels: Optional[dict[str, int]] = None,
+        **_kwargs
     ):
         super().__init__()
+
+        if isinstance(in_channels, DictConfig):
+            in_channels = dict(in_channels)
 
         if in_channels is None:
             in_channels = -1
@@ -64,3 +64,6 @@ class HAN(nn.Module):
             x_dict = layer(x_dict, data.edge_index_dict)
 
         return x_dict
+
+    def __repr__(self):
+        return "HAN"

@@ -9,7 +9,7 @@ from strenum import UppercaseStrEnum
 from core.sheaf_configs import ModelTypes
 from datasets.hgb import HGBBaseDataModule
 from datasets.link_pred import LinkPredBase
-from models.gnn_baselines import HAN, HGT, HeteroGNN, RGCN, GCN, GAT
+from models.gnn_baselines import HAN, HGT, RGCN, GCN, GAT
 from models.sheaf_gnn import (
     DiscreteDiagSheafDiffusion,
     DiscreteBundleSheafDiffusion,
@@ -26,7 +26,6 @@ from models.sheaf_gnn.inductive import (
 class Models(UppercaseStrEnum):
     HAN = auto()
     HGT = auto()
-    HGCN = auto()
     RGCN = auto()
     GCN = auto()
     GAT = auto()
@@ -52,17 +51,6 @@ def get_baseline_model(
                 datamodule.metadata,
                 in_channels=datamodule.in_channels,
                 hidden_channels=hidden_channels,
-            ),
-            False,
-        )
-    elif model == Models.HGCN:
-        return (
-            HeteroGNN(
-                datamodule.metadata,
-                in_channels=datamodule.in_channels,
-                hidden_channels=hidden_channels,
-                target=datamodule.target,
-                num_layers=3,
             ),
             False,
         )

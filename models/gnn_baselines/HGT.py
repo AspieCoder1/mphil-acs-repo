@@ -14,6 +14,7 @@ class HGT(nn.Module):
         metadata: tuple[list[str], list[tuple[str, str, str]]],
         hidden_channels: int = 256,
         in_channels: Optional[dict[str, int]] = None,
+        **_kwargs
     ):
         super().__init__()
         if in_channels is None:
@@ -51,3 +52,6 @@ class HGT(nn.Module):
             x_dict = layer(x_dict, data.edge_index_dict)
 
         return x_dict
+
+    def __repr__(self):
+        return 'HGT'

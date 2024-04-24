@@ -2,17 +2,22 @@
 #  License: MIT
 
 from dataclasses import dataclass
+from typing import Union, List
 
 import hydra
-import lightning as L
 from hydra.core.config_store import ConfigStore
-from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint, Timer
-from lightning.pytorch.loggers import WandbLogger
+from lightning import Callback, Trainer
+from lightning.pytorch.callbacks import Timer
+from lightning.pytorch.loggers import Logger, WandbLogger
+from omegaconf import DictConfig
 
-from core.datasets import NCDatasets, get_dataset_nc, get_dataset_hgt
-from core.models import Models, get_baseline_model
+from core.datasets import NCDatasets
+from core.models import Models
 from core.trainer import TrainerArgs
+from datasets.hgb import HGBBaseDataModule
+from datasets.hgt import HGTBaseDataModule
 from node_classification import NodeClassifier
+from utils.instantiators import instantiate_loggers, instantiate_callbacks
 
 
 @dataclass
@@ -38,20 +43,20 @@ cs.store("config", Config)
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="nc_config")
-def main(cfg: Config):
-    if cfg.model.type == Models.HGT:
-        datamodule = get_dataset_hgt(cfg.dataset.name)
-    elif cfg.model.type == Models.GCN or cfg.model.type == Models.GAT:
-        print("Should print")
-        datamodule = get_dataset_nc(cfg.dataset.name, homogeneous=True)
-    else:
-        print("Should not print")
-        datamodule = get_dataset_nc(cfg.dataset.name)
+def main(cfg: DictConfig):
+    datamodule: Union[HGTBaseDataModule, HGBBaseDataModule] = hydra.utils.instantiate(
+        cfg.dataset
+    )
 
     datamodule.prepare_data()
-    print(datamodule.in_channels)
 
-    model, is_homogeneous = get_baseline_model(cfg.model.type, datamodule)
+    model = hydra.utils.instantiate(
+        cfg.model,
+        in_channels=datamodule.in_channels,
+        num_nodes=datamodule.num_nodes,
+        num_relations=len(datamodule.metadata[1]),
+        metadata=datamodule.metadata,
+    )
 
     classifier = NodeClassifier(
         model,
@@ -59,45 +64,30 @@ def main(cfg: Config):
         target=datamodule.target,
         out_channels=datamodule.num_classes,
         task=datamodule.task,
-        homogeneous_model=is_homogeneous,
+        homogeneous_model=cfg.dataset.homogeneous,
     )
 
-    logger = None
-    timer = Timer()
-    checkpoint_name = "test_run"
+    print(f'{model}-{datamodule}')
 
-    if cfg.trainer.logger:
-        logger = WandbLogger(
-            project="gnn-baselines",
-            log_model=True,
-            save_dir="~/rds/hpc-work/.wandb",
-            entity="acs-thesis-lb2027",
-        )
-        logger.experiment.config["model"] = cfg.model.type
-        logger.experiment.config["dataset"] = cfg.dataset.name
-        logger.experiment.tags = cfg.tags
-        checkpoint_name = logger.version
+    logger: List[Logger] = instantiate_loggers(cfg.get("logger"))
+    if logger:
+        assert isinstance(logger[0], WandbLogger)
+        logger[0].experiment.config["model"] = f"{model}"
+        logger[0].experiment.config["dataset"] = f"{datamodule}"
 
-    trainer = L.Trainer(
-        accelerator=cfg.trainer.accelerator,
-        log_every_n_steps=1,
-        logger=logger,
-        devices=cfg.trainer.devices,
-        fast_dev_run=cfg.trainer.fast_dev_run,
-        max_epochs=200,
-        callbacks=[
-            EarlyStopping("valid/loss", patience=cfg.trainer.patience),
-            ModelCheckpoint(
-                dirpath=f"checkpoints/gnn_nc_checkpoints/{checkpoint_name}",
-                monitor="valid/accuracy",
-                mode="max",
-                save_top_k=1,
-            ),
-            timer,
-        ],
+    callbacks: List[Callback] = instantiate_callbacks(cfg.get("callbacks"))
+
+    trainer: Trainer = hydra.utils.instantiate(
+        cfg.trainer, logger=logger, callbacks=callbacks
     )
+
+    # 5) train the model
     trainer.fit(classifier, datamodule)
+
+    # 6) test the model
     trainer.test(classifier, datamodule)
+
+    timer = next(filter(lambda x: isinstance(x, Timer), callbacks))
 
     runtime = {
         "train/runtime": timer.time_elapsed("train"),
@@ -105,8 +95,8 @@ def main(cfg: Config):
         "test/runtime": timer.time_elapsed("test"),
     }
 
-    if cfg.trainer.logger:
-        logger.log_metrics(runtime)
+    if logger:
+        trainer.logger.log_metrics(runtime)
     else:
         print(runtime)
 

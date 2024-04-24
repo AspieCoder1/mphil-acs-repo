@@ -2,12 +2,14 @@
 #  License: MIT
 
 from torch import nn
-from torch_geometric.nn import GATConv, Sequential
 from torch_geometric.data import Data
+from torch_geometric.nn import GATConv, Sequential
 
 
 class GAT(nn.Module):
-    def __init__(self, hidden_channels: int = 256, n_heads=8, in_channels: int = 64):
+    def __init__(
+        self, hidden_channels: int = 256, n_heads=8, in_channels: int = 64, **_kwargs
+    ):
         super().__init__()
 
         self.conv = Sequential(
@@ -51,3 +53,6 @@ class GAT(nn.Module):
 
     def forward(self, data: Data):
         return self.conv(data.x, data.edge_index)
+
+    def __repr__(self):
+        return 'GAT'

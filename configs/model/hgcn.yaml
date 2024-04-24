@@ -1,1 +1,1 @@
-type: HGCN
+_target_: models.gnn_baselines.HeteroGCN

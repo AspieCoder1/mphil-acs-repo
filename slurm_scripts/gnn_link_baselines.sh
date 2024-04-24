@@ -9,14 +9,14 @@
 #SBATCH --error=slurm_output/gnn_link_baselines/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=1:00:00
-#SBATCH -a 0-179%10
+#SBATCH -a 0-149%10
 #SBATCH -p ampere
 #SBATCH --nodes 1
 #SBATCH --gres=gpu:1
 #SBATCH --gpu-bind=none
 #SBATCH --mail-type=ALL
 
-MODEL_PARAMS=( gat gcn han hgcn hgt rgcn )
+MODEL_PARAMS=( gat gcn han hgt rgcn )
 DATASETS=( last_fm amazon_books movie_lens )
 
 N_TRIALS=10
