@@ -1,1 +1,1 @@
-name: AmazonBooks
+_target_: datasets.link_pred.AmazonBooksDataModule

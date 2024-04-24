@@ -1,1 +1,1 @@
-name: LastFM
+_target_: datasets.link_pred.LastFMDataModule
