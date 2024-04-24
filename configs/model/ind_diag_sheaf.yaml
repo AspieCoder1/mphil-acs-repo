@@ -1,0 +1,6 @@
+_target_: models.sheaf_gnn.inductive.InductiveDiscreteDiagSheafDiffusion
+args:
+  _target_: models.sheaf_gnn.config.SheafModelArguments
+  output_dim: 64
+edge_index: null
+sheaf_learner: '${sheaf_learner}'

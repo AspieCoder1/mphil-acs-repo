@@ -41,7 +41,6 @@ def main(cfg: DictConfig) -> None:
     )
 
     logger: List[Logger] = instantiate_loggers(cfg.get("logger"))
-
     if logger:
         assert isinstance(logger[0], WandbLogger)
         logger[0].experiment.config["model"] = f"{model}"

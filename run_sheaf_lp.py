@@ -2,21 +2,20 @@
 #  License: MIT
 
 from dataclasses import field, dataclass
-from typing import Optional
+from typing import List
 
 import hydra
-import lightning as L
 from hydra.core.config_store import ConfigStore
-from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint, Timer
-from lightning.pytorch.loggers import WandbLogger
+from lightning import Trainer, Callback
+from lightning.pytorch.callbacks import Timer
+from lightning.pytorch.loggers import WandbLogger, Logger
+from omegaconf import DictConfig
 
-from core.datasets import get_dataset_lp, LinkPredDatasets
-from core.models import get_inductive_sheaf_model
 from core.sheaf_configs import SheafModelCfg, SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
 from models.recommender.recommender import GNNRecommender
 from models.sheaf_gnn.config import IndSheafModelArguments, SheafLearners
-from models.sheaf_gnn.utils import init_sheaf_learner
+from utils.instantiators import instantiate_callbacks, instantiate_loggers
 
 
 @dataclass
@@ -35,19 +34,24 @@ cs.store("base_config", Config)
 
 
 @hydra.main(version_base="1.2", config_path="configs", config_name="sheaf_config_lp")
-def main(cfg: Config):
-    dm = get_dataset_lp(LinkPredDatasets.LastFM, True)
+def main(cfg: DictConfig) -> None:
+    dm = hydra.utils.instantiate(cfg.dataset)
     dm.prepare_data()
 
     cfg.model_args.graph_size = dm.graph_size
     cfg.model_args.input_dim = dm.in_channels
-    cfg.model_args.output_dim = 64
     cfg.model_args.num_edge_types = dm.num_edge_types
     cfg.model_args.num_node_types = dm.num_node_types
 
-    model_cls = get_inductive_sheaf_model(cfg.model.type)
-    sheaf_learner = init_sheaf_learner(cfg)
-    model = model_cls(None, cfg.model_args, sheaf_learner=sheaf_learner)
+    model = hydra.utils.instantiate(
+        cfg.model,
+        args={
+            "graph_size": dm.graph_size,
+            "input_dim": dm.in_channels,
+            "num_edge_types": dm.num_edge_types,
+            "num_node_types": dm.num_node_types,
+        },
+    )
 
     print(dm.node_type_names)
 
@@ -57,50 +61,30 @@ def main(cfg: Config):
         hidden_channels=model.hidden_dim,
         edge_target=dm.target,
         homogeneous=True,
-        use_rec_metrics=cfg.rec_metrics,
+        use_rec_metrics=cfg.recsys_metrics,
         node_type_names=dm.node_type_names,
         edge_type_names=dm.edge_type_names,
     )
 
-    logger: Optional[WandbLogger] = None
-    checkpoint_name = "test_run"
-    if cfg.trainer.logger:
-        logger = WandbLogger(
-            project="gnn-baselines", log_model=True, entity="acs-thesis-lb2027"
-        )
-        logger.experiment.config["model"] = f"{cfg.model.type}-{cfg.sheaf_learner}"
-        logger.experiment.config["dataset"] = cfg.dataset.name
-        logger.experiment.tags = cfg.tags
-        checkpoint_name = logger.version
+    logger: List[Logger] = instantiate_loggers(cfg.get("logger"))
+    if logger:
+        assert isinstance(logger[0], WandbLogger)
+        logger[0].experiment.config["model"] = f"{model}"
+        logger[0].experiment.config["dataset"] = f"{dm}"
 
-    timer = Timer()
+    callbacks: List[Callback] = instantiate_callbacks(cfg.get("callbacks"))
 
-    trainer = L.Trainer(
-        profiler=cfg.trainer.profiler,
-        accelerator=cfg.trainer.accelerator,
-        devices=cfg.trainer.devices,
-        num_nodes=cfg.trainer.num_nodes,
-        strategy=cfg.trainer.strategy,
-        fast_dev_run=cfg.trainer.fast_dev_run,
-        logger=logger,
-        precision="bf16-mixed",
-        max_epochs=cfg.trainer.max_epochs,
-        log_every_n_steps=1,
-        callbacks=[
-            EarlyStopping("valid/loss", patience=cfg.trainer.patience),
-            ModelCheckpoint(
-                dirpath=f"checkpoints/sheaflp_checkpoints/{checkpoint_name}",
-                filename=cfg.model.type + "-" + cfg.dataset.name + "-{epoch}",
-                monitor="valid/loss",
-                mode="min",
-                save_top_k=1,
-            ),
-            timer,
-        ],
+    trainer: Trainer = hydra.utils.instantiate(
+        cfg.trainer, logger=logger, callbacks=callbacks
     )
 
+    # 5) train the model
     trainer.fit(sheaf_lp, dm)
+
+    # 6) test the model
     trainer.test(sheaf_lp, dm)
+
+    timer = next(filter(lambda x: isinstance(x, Timer), callbacks))
 
     runtime = {
         "train/runtime": timer.time_elapsed("train"),
@@ -108,8 +92,10 @@ def main(cfg: Config):
         "test/runtime": timer.time_elapsed("test"),
     }
 
-    if cfg.trainer.logger:
-        logger.log_metrics(runtime)
+    if logger:
+        trainer.logger.log_metrics(runtime)
+    else:
+        print(runtime)
 
 
 if __name__ == "__main__":

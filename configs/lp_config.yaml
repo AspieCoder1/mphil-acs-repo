@@ -5,9 +5,12 @@ defaults:
   - dataset: last_fm
   - callbacks: sheaf_nc
   - logger: wandb
+  - experiment: null
 
 dataset:
   homogeneous: true
 
 recsys_metrics: true
 hidden_dim: 256
+
+tags: [ GNN, link_prediction ]

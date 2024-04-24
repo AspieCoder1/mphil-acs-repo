@@ -1,11 +1,17 @@
 defaults:
-  - base_config
-  - trainer: trainer
-  - model: bundle_sheaf
-  - dataset: last_fm
-  - hydra: slurm_submit
-  - override hydra/launcher: submitit_slurm
   - _self_
+  - trainer: trainer
+  - model: ind_diag_sheaf
+  - dataset: last_fm
+  - callbacks: sheaf_nc
+  - logger: wandb
+  - experiment: null
+
+dataset:
+  homogeneous: true
+
+recsys_metrics: true
+hidden_dim: 256
 tags:
   - GNN
   - sheaf
