@@ -4,7 +4,6 @@
 from typing import Optional, Union
 
 import lightning as L
-import torch
 import torch_geometric.transforms as T
 from lightning.pytorch.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADERS
 from torch_geometric.data import HeteroData, Data
@@ -107,12 +106,12 @@ class LinkPredBase(L.LightningDataModule):
 
 
 class LastFMDataModule(LinkPredBase):
-    def __init__(self, data_dir: str = DATA_DIR, is_homogeneous: bool = False):
+    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
         super(LastFMDataModule, self).__init__(
             data_dir=f"{data_dir}/lastfm",
             target=("user", "to", "artist"),
             rev_target=("artist", "to", "user"),
-            is_homogeneous=is_homogeneous,
+            is_homogeneous=homogeneous,
         )
 
     def download_data(self) -> HeteroData:
@@ -125,6 +124,9 @@ class LastFMDataModule(LinkPredBase):
         del data[self.target]["test_neg_edge_index"]
 
         return data
+
+    def __repr__(self):
+        return "LastFM"
 
 
 class AmazonBooksDataModule(LinkPredBase):
@@ -140,6 +142,9 @@ class AmazonBooksDataModule(LinkPredBase):
         data = AmazonBook(self.data_dir, transform=self.transform)[0]
         return data
 
+    def __repr__(self):
+        return "AmazonBooks"
+
 
 class MovieLensDatamodule(LinkPredBase):
     def __init__(self, data_dir: str = DATA_DIR, is_homogeneous: bool = False):
@@ -149,40 +154,11 @@ class MovieLensDatamodule(LinkPredBase):
             rev_target=("movie", "rated_by", "user"),
             is_homogeneous=is_homogeneous,
         )
-        # self.data_dir = data_dir
-        # self.pyg_datamodule: Optional[LightningLinkData] = None
-        # self.edge_type = ("user", "rates", "movie")
-        # self.metadata = None
-        # self.train_split = None
-        # self.valid_split = None
-        # self.test_split = None
 
     def download_data(self) -> HeteroData:
         data = MovieLens(self.data_dir, transform=self.transform)[0]
         # del data[self.edge_type].edge_label
         return data
 
-    # def prepare_data(self) -> None:
-    #     transform = T.Compose(
-    #         [
-    #             T.Constant(),
-    #             T.ToUndirected(),
-    #             T.RandomLinkSplit(
-    #                 edge_types=self.edge_type,
-    #                 split_labels=True,
-    #                 neg_sampling_ratio=0.6,
-    #                 rev_edge_types=("movie", "rev_rates", "user"),
-    #             ),
-    #         ]
-    #     )
-    #     data = MovieLens(self.data_dir)[0]
-    #     del data[self.edge_type].edge_label
-    #     data = transform(data)
-    #
-    #     train_split, valid_split, test_split = data
-    #     self.train_split = train_split
-    #     self.valid_split = valid_split
-    #     self.test_split = test_split
-    #
-    #     self.metadata = train_split.metadata()
-    #     self.pyg_datamodule = LightningLinkData(train_split, loader="full")
+    def __repr__(self):
+        return "MovieLens"

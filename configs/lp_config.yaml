@@ -1,8 +1,13 @@
 defaults:
-  - config
+  - _self_
   - trainer: trainer
   - model: gcn
   - dataset: last_fm
-  - hydra: slurm_submit
-  - override hydra/launcher: submitit_slurm
-  - _self_
+  - callbacks: sheaf_nc
+  - logger: wandb
+
+dataset:
+  homogeneous: true
+
+recsys_metrics: true
+hidden_dim: 256
