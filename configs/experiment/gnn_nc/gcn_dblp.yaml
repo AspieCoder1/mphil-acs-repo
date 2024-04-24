@@ -1,1 +1,6 @@
-# @package _global_
+defaults:
+  - 'override /data: dblp'
+  - 'override /model: gcn'
+
+dataset:
+  homogeneous: true

@@ -1,1 +1,3 @@
-# @package _global_
+defaults:
+  - 'override /data: hgt_acm'
+  - 'override /model: hgt'

@@ -1,1 +1,3 @@
-# @package _global_
+defaults:
+  - 'override /data: imdb'
+  - 'override /model: han'
