@@ -2,5 +2,5 @@ _target_: models.sheaf_gnn.inductive.InductiveDiscreteGeneralSheafDiffusion
 args:
   _target_: models.sheaf_gnn.config.SheafModelArguments
   output_dim: 64
-edge_index: null
+_edge_index: null
 sheaf_learner: '${sheaf_learner}'

@@ -348,3 +348,6 @@ class GNNRecommender(L.LightningModule):
                 "monitor": "valid/loss",
             },
         }
+
+    def __repr__(self):
+        return 'GNNRecommender'

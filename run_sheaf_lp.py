@@ -38,11 +38,6 @@ def main(cfg: DictConfig) -> None:
     dm = hydra.utils.instantiate(cfg.dataset)
     dm.prepare_data()
 
-    cfg.model_args.graph_size = dm.graph_size
-    cfg.model_args.input_dim = dm.in_channels
-    cfg.model_args.num_edge_types = dm.num_edge_types
-    cfg.model_args.num_node_types = dm.num_node_types
-
     model = hydra.utils.instantiate(
         cfg.model,
         args={
@@ -52,8 +47,6 @@ def main(cfg: DictConfig) -> None:
             "num_node_types": dm.num_node_types,
         },
     )
-
-    print(dm.node_type_names)
 
     sheaf_lp = GNNRecommender(
         model=model,
@@ -65,6 +58,7 @@ def main(cfg: DictConfig) -> None:
         node_type_names=dm.node_type_names,
         edge_type_names=dm.edge_type_names,
     )
+
 
     logger: List[Logger] = instantiate_loggers(cfg.get("logger"))
     if logger:
