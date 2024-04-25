@@ -6,3 +6,5 @@ defaults:
 callbacks:
   model_checkpoint:
     filename: RGCN-DBLP
+
+tags: [ RGCN, DBLP, exp1_1, nc, gnn ]

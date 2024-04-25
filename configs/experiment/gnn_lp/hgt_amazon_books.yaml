@@ -2,3 +2,14 @@
 defaults:
   - override /data: amazon_books
   - override /model: hgt
+
+callbacks:
+  model_checkpoint:
+    filename: HGT-AmazonBooks
+
+tags:
+  - HGT
+  - AmazonBooks
+  - lp
+  - gnn
+  - exp2

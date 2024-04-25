@@ -2,3 +2,14 @@
 defaults:
   - override /data: movie_lens
   - override /model: han
+
+callbacks:
+  model_checkpoint:
+    filename: HAN-MovieLens
+
+tags:
+  - Han
+  - MovieLens
+  - lp
+  - gnn
+  - exp2

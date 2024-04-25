@@ -15,6 +15,6 @@ sheaf_learner: local_concat
 recsys_metrics: true
 hidden_dim: 256
 tags:
-  - GNN
   - sheaf
-  - link_prediction
+  - lp
+  - exp2

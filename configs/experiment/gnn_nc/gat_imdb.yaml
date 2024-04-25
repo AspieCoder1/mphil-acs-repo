@@ -6,3 +6,5 @@ defaults:
 callbacks:
   model_checkpoint:
     filename: GAT-IMDB
+
+tags: [ GAT, IMDB, exp1_1, nc, gnn ]

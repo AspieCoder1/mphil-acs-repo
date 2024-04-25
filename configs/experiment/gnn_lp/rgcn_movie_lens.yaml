@@ -2,3 +2,14 @@
 defaults:
   - override /data: movie_lens
   - override /model: rgcn
+
+callbacks:
+  model_checkpoint:
+    filename: RGCN-MovieLens
+
+tags:
+  - RGCN
+  - MovieLens
+  - lp
+  - gnn
+  - exp2

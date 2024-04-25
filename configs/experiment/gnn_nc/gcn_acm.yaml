@@ -6,3 +6,5 @@ defaults:
 callbacks:
   model_checkpoint:
     filename: GCN-ACM
+
+tags: [ GCN, ACM, exp1_1, nc, gnn ]

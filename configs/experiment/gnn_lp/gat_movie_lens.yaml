@@ -2,3 +2,14 @@
 defaults:
   - override /data: movie_lens
   - override /model: gat
+
+callbacks:
+  model_checkpoint:
+    filename: GAT-MovieLens
+
+tags:
+  - GAT
+  - MovieLens
+  - lp
+  - gnn
+  - exp2

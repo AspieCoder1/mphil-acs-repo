@@ -6,3 +6,5 @@ defaults:
 callbacks:
   model_checkpoint:
     filename: GAT-DBLP
+
+tags: [ GAT, DBLP, exp1_1, nc, gnn ]

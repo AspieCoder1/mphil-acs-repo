@@ -2,3 +2,5 @@
 defaults:
   - 'override /dataset: amazon_books'
   - 'override /model: diag_sheaf'
+
+tags: [ DiagSheaf, AmazonBooks, sheaf, lp, exp2 ]

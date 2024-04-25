@@ -2,3 +2,14 @@
 defaults:
   - override /data: last_fm
   - override /model: rgcn
+
+callbacks:
+  model_checkpoint:
+    filename: RGCN-LastFM
+
+tags:
+  - RGCN
+  - LastFM
+  - lp
+  - gnn
+  - exp2

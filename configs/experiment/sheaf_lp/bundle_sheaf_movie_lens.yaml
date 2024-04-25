@@ -2,3 +2,5 @@
 defaults:
   - 'override /dataset: movie_lens'
   - 'override /model: bundle_sheaf'
+
+tags: [ BundleSheaf, MovieLens, sheaf, lp, exp2 ]

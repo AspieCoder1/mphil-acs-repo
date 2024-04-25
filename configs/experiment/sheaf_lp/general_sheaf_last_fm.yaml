@@ -2,3 +2,5 @@
 defaults:
   - 'override /dataset: last_fm'
   - 'override /model: general_sheaf'
+
+tags: [ GeneralSheaf, LastFM, sheaf, lp, exp2 ]

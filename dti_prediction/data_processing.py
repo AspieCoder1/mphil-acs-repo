@@ -212,5 +212,5 @@ if __name__ == "__main__":
     dm.prepare_data()
     data = dm.train_dataloader()
     print(data)
-    print(data.x)
-    print(data.num_nodes)
+    print(data.x.shape)
+    print(data.hyperedge_attr.shape)

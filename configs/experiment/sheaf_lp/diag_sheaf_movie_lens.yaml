@@ -2,3 +2,5 @@
 defaults:
   - 'override /dataset: movie_lens'
   - 'override /model: diag_sheaf'
+
+tags: [ DiagSheaf, MovieLens, sheaf, lp, exp2 ]

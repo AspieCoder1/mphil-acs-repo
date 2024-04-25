@@ -2,3 +2,14 @@
 defaults:
   - override /data: lastfm
   - override /model: gat
+
+callbacks:
+  model_checkpoint:
+    filename: GAT-LastFM
+
+tags:
+  - GAT
+  - LastFM
+  - lp
+  - gnn
+  - exp2

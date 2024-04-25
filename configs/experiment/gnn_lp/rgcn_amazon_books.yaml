@@ -2,3 +2,14 @@
 defaults:
   - override /data: amazon_books
   - override /model: rgcn
+
+callbacks:
+  model_checkpoint:
+    filename: RGCN-AmazonBooks
+
+tags:
+  - RGCN
+  - AmazonBooks
+  - lp
+  - gnn
+  - exp2

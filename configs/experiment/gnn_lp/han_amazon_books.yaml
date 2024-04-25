@@ -2,3 +2,14 @@
 defaults:
   - override /data: amazon_books
   - override /model: han
+
+callbacks:
+  model_checkpoint:
+    filename: HAN-AmazonBooks
+
+tags:
+  - HAN
+  - AmazonBooks
+  - lp
+  - gnn
+  - exp2
