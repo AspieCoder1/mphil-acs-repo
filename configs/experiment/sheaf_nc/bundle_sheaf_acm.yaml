@@ -3,6 +3,10 @@ defaults:
   - override /dataset: acm
   - override /model: bundle_sheaf
 
+dataset:
+  homogeneous: true
+
+
 callbacks:
   early_stopping:
     patience: 50

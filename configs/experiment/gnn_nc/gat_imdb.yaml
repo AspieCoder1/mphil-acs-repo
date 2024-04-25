@@ -1,10 +1,13 @@
 # @package _global_
 defaults:
-  - 'override /dataset: imdb'
-  - 'override /model: gat'
+  - override /dataset: imdb
+  - override /model: gat
 
 callbacks:
   model_checkpoint:
     filename: GAT-IMDB
+
+dataset:
+  homogeneous: true
 
 tags: [ GAT, IMDB, exp1_1, nc, gnn ]

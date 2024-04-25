@@ -7,6 +7,9 @@ callbacks:
   model_checkpoint:
     filename: GCN-AmazonBooks
 
+dataset:
+  homogeneous: true
+
 tags:
   - GCN
   - AmazonBooks

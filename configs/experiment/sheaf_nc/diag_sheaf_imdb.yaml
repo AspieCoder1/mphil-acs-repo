@@ -3,6 +3,9 @@ defaults:
   - override /dataset: imdb
   - override /model: diag_sheaf
 
+dataset:
+  homogeneous: true
+
 model:
   args:
     device: cuda

@@ -1,11 +1,14 @@
 # @package _global_
 # @package _global_
 defaults:
-  - 'override /dataset: dblp'
-  - 'override /model: gcn'
+  - override /dataset: dblp
+  - override /model: gcn
 
 callbacks:
   model_checkpoint:
     filename: GCN-DBLP
+
+dataset:
+  homogeneous: true
 
 tags: [ GCN, DBLP, exp1_1, nc, gnn ]

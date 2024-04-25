@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - 'override /dataset: movie_lens'
-  - 'override /model: bundle_sheaf'
+  - override /dataset: movie_lens
+  - override /model: ind_bundle_sheaf
 
 tags: [ BundleSheaf, MovieLens, sheaf, lp, exp2 ]

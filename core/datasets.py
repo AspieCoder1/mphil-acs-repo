@@ -61,6 +61,6 @@ def get_dataset_lp(
     if dataset == LinkPredDatasets.LastFM:
         return LastFMDataModule(homogeneous=is_homogeneous)
     elif dataset == LinkPredDatasets.AmazonBooks:
-        return AmazonBooksDataModule(is_homogeneous=is_homogeneous)
+        return AmazonBooksDataModule(homogeneous=is_homogeneous)
     else:
-        return MovieLensDatamodule(is_homogeneous=is_homogeneous)
+        return MovieLensDatamodule(homogeneous=is_homogeneous)

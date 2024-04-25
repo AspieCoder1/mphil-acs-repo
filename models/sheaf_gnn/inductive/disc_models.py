@@ -1,17 +1,18 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  Adapted from: https://github.com/twitter-research/neural-sheaf-diffusion
 
+from torch_geometric.data import Data
+
 from models.sheaf_gnn.transductive.disc_models import (
     DiscreteDiagSheafDiffusion,
     DiscreteBundleSheafDiffusion,
     DiscreteGeneralSheafDiffusion,
 )
-from torch_geometric.data import Data
 
 
 class InductiveDiscreteDiagSheafDiffusion(DiscreteDiagSheafDiffusion):
 
-    def __init__(self, _edge_index, args, sheaf_learner):
+    def __init__(self, args, sheaf_learner):
         super(InductiveDiscreteDiagSheafDiffusion, self).__init__(
             edge_index=None, args=args, sheaf_learner=sheaf_learner
         )
@@ -23,7 +24,7 @@ class InductiveDiscreteDiagSheafDiffusion(DiscreteDiagSheafDiffusion):
 
 class InductiveDiscreteBundleSheafDiffusion(DiscreteBundleSheafDiffusion):
 
-    def __init__(self, _edge_index, args, sheaf_learner):
+    def __init__(self, args, sheaf_learner):
         super(InductiveDiscreteBundleSheafDiffusion, self).__init__(
             edge_index=None, args=args, sheaf_learner=sheaf_learner
         )
@@ -35,7 +36,7 @@ class InductiveDiscreteBundleSheafDiffusion(DiscreteBundleSheafDiffusion):
 
 class InductiveDiscreteGeneralSheafDiffusion(DiscreteGeneralSheafDiffusion):
 
-    def __init__(self, _edge_index, args, sheaf_learner):
+    def __init__(self, args, sheaf_learner):
         super(InductiveDiscreteGeneralSheafDiffusion, self).__init__(
             edge_index=None, args=args, sheaf_learner=sheaf_learner
         )

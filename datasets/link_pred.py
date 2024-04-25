@@ -130,12 +130,12 @@ class LastFMDataModule(LinkPredBase):
 
 
 class AmazonBooksDataModule(LinkPredBase):
-    def __init__(self, data_dir: str = DATA_DIR, is_homogeneous: bool = False):
+    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
         super(AmazonBooksDataModule, self).__init__(
             data_dir=f"{data_dir}/amazon_books",
             target=("user", "rates", "book"),
             rev_target=("book", "rated_by", "user"),
-            is_homogeneous=is_homogeneous,
+            is_homogeneous=homogeneous,
         )
 
     def download_data(self) -> HeteroData:
@@ -147,12 +147,12 @@ class AmazonBooksDataModule(LinkPredBase):
 
 
 class MovieLensDatamodule(LinkPredBase):
-    def __init__(self, data_dir: str = DATA_DIR, is_homogeneous: bool = False):
+    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
         super(MovieLensDatamodule, self).__init__(
             data_dir=f"{data_dir}/movie_lens",
             target=("user", "rates", "movie"),
             rev_target=("movie", "rated_by", "user"),
-            is_homogeneous=is_homogeneous,
+            is_homogeneous=homogeneous,
         )
 
     def download_data(self) -> HeteroData:

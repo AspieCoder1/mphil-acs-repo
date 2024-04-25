@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - 'override /dataset: amazon_books'
-  - 'override /model: diag_sheaf'
+  - override /dataset: amazon_books
+  - override /model: ind_diag_sheaf
 
 tags: [ DiagSheaf, AmazonBooks, sheaf, lp, exp2 ]

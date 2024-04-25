@@ -7,6 +7,9 @@ callbacks:
   model_checkpoint:
     filename: GCN-MovieLens
 
+dataset:
+  homogeneous: true
+
 tags:
   - GCN
   - MovieLens

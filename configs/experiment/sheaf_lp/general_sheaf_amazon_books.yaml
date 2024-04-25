@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - 'override /dataset: amazon_books'
-  - 'override /model: general_sheaf'
+  - override /dataset: amazon_books
+  - override /model: ind_general_sheaf
 
 tags: [ GeneralSheaf, AmazonBooks, sheaf, lp, exp2 ]

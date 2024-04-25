@@ -3,6 +3,10 @@ defaults:
   - override /dataset: dblp
   - override /model: bundle_sheaf
 
+dataset:
+  homogeneous: true
+
+
 model:
   args:
     device: cuda

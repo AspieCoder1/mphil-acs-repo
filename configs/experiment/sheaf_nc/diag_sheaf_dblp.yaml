@@ -3,6 +3,9 @@ defaults:
   - override /dataset: dblp
   - override /model: diag_sheaf
 
+dataset:
+  homogeneous: true
+
 callbacks:
   early_stopping:
     patience: 50

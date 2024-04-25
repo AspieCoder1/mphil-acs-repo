@@ -1,10 +1,13 @@
 # @package _global_
 defaults:
-  - 'override /dataset: acm'
-  - 'override /model: gat'
+  - override /dataset: acm
+  - override /model: gat
 
 callbacks:
   model_checkpoint:
     filename: GAT-ACM
+
+dataset:
+  homogeneous: true
 
 tags: [ GAT, ACM, exp1_1, nc, gnn ]

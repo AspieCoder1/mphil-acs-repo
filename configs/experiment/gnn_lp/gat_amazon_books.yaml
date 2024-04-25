@@ -7,6 +7,9 @@ callbacks:
   model_checkpoint:
     filename: GAT-AmazonBooks
 
+dataset:
+  homogeneous: true
+
 tags:
   - GAT
   - AmazonBooks

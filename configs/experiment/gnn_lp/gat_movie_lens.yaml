@@ -7,6 +7,9 @@ callbacks:
   model_checkpoint:
     filename: GAT-MovieLens
 
+dataset:
+  homogeneous: true
+
 tags:
   - GAT
   - MovieLens

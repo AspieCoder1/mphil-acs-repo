@@ -8,7 +8,7 @@ from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn
 from torch_geometric.data import HeteroData
 from torchmetrics import MetricCollection
-from torchmetrics.classification import BinaryAccuracy, BinaryF1Score, BinaryAUROC
+from torchmetrics.classification import BinaryAccuracy, BinaryF1Score, BinaryAUROC, BinaryAveragePrecision
 
 from node_classification.node_classifier import CommonStepOutput
 
@@ -50,8 +50,8 @@ class LinkPredictor(L.LightningModule):
         self.train_metrics = MetricCollection(
             {
                 "accuracy": BinaryAccuracy(),
-                "auroc": BinaryAUROC(),
-                "f1": BinaryF1Score(),
+                "AUROC": BinaryAUROC(),
+                "AUPR": BinaryAveragePrecision(),
             },
             prefix="train/",
         )
@@ -63,7 +63,7 @@ class LinkPredictor(L.LightningModule):
 
     def common_step(self, batch: HeteroData) -> CommonStepOutput:
         if self.homogeneous:
-            x_dict = self.encoder(batch.x_dict, batch.edge_index_dict)
+            x_dict = self.encoder(batch)
         else:
             x_dict = self.encoder(batch)
 

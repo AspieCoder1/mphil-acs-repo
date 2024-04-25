@@ -12,11 +12,14 @@ from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn
 from torch.nn.modules.loss import _Loss
 from torch_geometric.data import Data, HeteroData
-from torch_geometric.metrics import LinkPredNDCG, LinkPredRecall
 from torch_geometric.typing import Adj, Tensor, OptTensor
 from torch_geometric.utils import structured_negative_sampling
 from torchmetrics import MetricCollection
-from torchmetrics.classification import BinaryAccuracy, BinaryAUROC, BinaryF1Score
+from torchmetrics.classification import (
+    BinaryAccuracy,
+    BinaryAUROC,
+    BinaryAveragePrecision,
+)
 
 from ..sheaf_gnn import DiscreteSheafDiffusion
 
@@ -214,25 +217,14 @@ class GNNRecommender(L.LightningModule):
         self.homogeneous = homogeneous
         self.target = edge_target
         self.batch_size = batch_size
-        self.use_rec_metrics = use_rec_metrics
-        if use_rec_metrics:
-            self.train_metrics = MetricCollection(
-                {
-                    "NDCG@20": LinkPredNDCG(k=20),
-                    "Precision@20": LinkPredRecall(k=20),
-                    "Recall@20": LinkPredRecall(k=20),
-                },
-                prefix="train/",
-            )
-        else:
-            self.train_metrics = MetricCollection(
-                {
-                    "accuracy": BinaryAccuracy(),
-                    "auroc": BinaryAUROC(),
-                    "f1": BinaryF1Score(),
-                },
-                prefix="train/",
-            )
+        self.train_metrics = MetricCollection(
+            {
+                "accuracy": BinaryAccuracy(),
+                "AUROC": BinaryAUROC(),
+                "AUPR": BinaryAveragePrecision(),
+            },
+            prefix="train/",
+        )
         self.val_metrics = self.train_metrics.clone(prefix="valid/")
         self.test_metrics = self.train_metrics.clone(prefix="test/")
         self.scr_type = None
@@ -246,17 +238,12 @@ class GNNRecommender(L.LightningModule):
 
     def common_step(self, batch: DataOrHeteroData) -> [Tensor, Tensor, Adj]:
         is_hetero = False
+
         if isinstance(batch, HeteroData):
             is_hetero = True
             pos_edge_index = batch[self.target]["edge_index"]
-            dst_index = torch.arange(0, batch[self.target[-1]].num_nodes)
         else:
             pos_edge_index = batch.edge_index[:, batch.edge_type == self.edge_type]
-            dst_index = torch.argwhere(batch.node_type == self.dst_type).squeeze()
-
-        src_index, inverse_src_index = torch.unique(
-            pos_edge_index[0], return_inverse=True
-        )
 
         embed = self.recommender(batch)
         x_i, pos_j, neg_j = structured_negative_sampling(pos_edge_index)
@@ -273,20 +260,10 @@ class GNNRecommender(L.LightningModule):
             pos_scores, neg_scores, lambda_reg=0.0
         )
 
-        if self.use_rec_metrics:
-            rec_scores = self.recommender.recommend(
-                batch,
-                src_index=src_index,
-                dst_index=dst_index,
-                k=20,
-            )
-            scores = rec_scores[inverse_src_index]
-            return loss, scores, pos_edge_index
-
         scores = torch.column_stack([pos_scores, neg_scores])
         labels = torch.column_stack(
             [torch.ones(len(pos_scores)), torch.zeros(len(neg_scores))]
-        )
+        ).to(torch.long)
 
         return loss, scores, labels
 
@@ -350,4 +327,4 @@ class GNNRecommender(L.LightningModule):
         }
 
     def __repr__(self):
-        return 'GNNRecommender'
+        return "GNNRecommender"

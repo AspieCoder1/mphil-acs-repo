@@ -13,7 +13,7 @@ from torch_geometric.data import Data
 from torchmetrics.classification import (
     BinaryAUROC,
     BinaryAccuracy,
-    BinaryF1Score,
+    BinaryAveragePrecision,
 )
 from torchmetrics.collections import MetricCollection
 
@@ -49,8 +49,8 @@ class SheafLinkPredictor(L.LightningModule):
         self.train_metrics = MetricCollection(
             {
                 "accuracy": BinaryAccuracy(),
-                "auroc": BinaryAUROC(),
-                "f1": BinaryF1Score(),
+                "AUROC": BinaryAUROC(),
+                "AUPR": BinaryAveragePrecision(),
             },
             prefix="train/",
         )
@@ -67,7 +67,7 @@ class SheafLinkPredictor(L.LightningModule):
         y = batch.edge_label[label_idx]
 
         # (2) Compute the hidden representation of nodes
-        h = self.encoder(batch.x, batch.edge_index)
+        h = self.encoder(batch)
 
         # (3) reduced edge_index
         edge_index = batch.edge_label_index[:, label_idx]

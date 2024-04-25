@@ -2,5 +2,5 @@ _target_: models.sheaf_gnn.inductive.InductiveDiscreteBundleSheafDiffusion
 args:
   _target_: models.sheaf_gnn.config.SheafModelArguments
   output_dim: 64
-_edge_index: null
+  edge_weights: false
 sheaf_learner: '${sheaf_learner}'

@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - 'override /dataset: last_fm'
-  - 'override /model: diag_sheaf'
+  - override /dataset: ind_last_fm
+  - override /model: ind_diag_sheaf
 
 tags: [ DiagSheaf, LastFM, sheaf, lp, exp2 ]

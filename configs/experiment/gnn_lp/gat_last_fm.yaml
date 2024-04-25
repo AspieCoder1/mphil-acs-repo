@@ -7,6 +7,9 @@ callbacks:
   model_checkpoint:
     filename: GAT-LastFM
 
+dataset:
+  homogeneous: true
+
 tags:
   - GAT
   - LastFM

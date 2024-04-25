@@ -1,10 +1,13 @@
 # @package _global_
 defaults:
-  - 'override /dataset: dblp'
-  - 'override /model: gat'
+  - override /dataset: dblp
+  - override /model: gat
 
 callbacks:
   model_checkpoint:
     filename: GAT-DBLP
+
+dataset:
+  homogeneous: true
 
 tags: [ GAT, DBLP, exp1_1, nc, gnn ]
