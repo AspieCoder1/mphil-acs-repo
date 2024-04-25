@@ -1,6 +1,8 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 
+from typing import List
+
 import hydra
 from lightning import LightningDataModule, Callback, Trainer, LightningModule
 from omegaconf import DictConfig
@@ -17,23 +19,26 @@ def main(cfg: DictConfig) -> None:
     dm.prepare_data()
 
     # initialise model
-    model: LightningModule = hydra.utils.instantiate(cfg.model)
-    print(model)
+    model: LightningModule = hydra.utils.instantiate(
+        cfg.model,
+        args={
+            "num_features": 128,
+        },
+    )
 
     # initialise loggers
-    logger: list[Logger] = instantiate_loggers(cfg.get("logger"))
-    print(logger)
+    logger: List[Logger] = instantiate_loggers(cfg.get("logger"))
 
     # initialise callbacks
-    callbacks: list[Callback] = instantiate_callbacks(cfg.get("callbacks"))
-    print(callbacks)
+    callbacks: List[Callback] = instantiate_callbacks(cfg.get("callbacks"))
 
     # initialise trainer
     trainer: Trainer = hydra.utils.instantiate(
         cfg.trainer, callbacks=callbacks, logger=logger
     )
 
-    print(trainer)
+    trainer.fit(model, dm)
+    trainer.test(model, dm)
 
 
 if __name__ == "__main__":
