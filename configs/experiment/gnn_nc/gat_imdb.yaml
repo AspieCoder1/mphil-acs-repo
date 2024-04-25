@@ -1,3 +1,4 @@
+# @package _global_
 defaults:
   - 'override /dataset: imdb'
   - 'override /model: gat'

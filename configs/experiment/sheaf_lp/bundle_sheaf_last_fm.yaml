@@ -1,0 +1,4 @@
+# @package _global_
+defaults:
+  - 'override /dataset: last_fm'
+  - 'override /model: bundle_sheaf'
