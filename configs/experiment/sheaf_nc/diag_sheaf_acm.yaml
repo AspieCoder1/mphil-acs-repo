@@ -1,7 +1,13 @@
 # @package _global_
+defaults:
+  - override /data: acm
+  - override /model: diag_sheaf
+
 callbacks:
   early_stopping:
     patience: 75
+  model_checkpoint:
+    filename: 'DiagSheaf-${sheaf_learner}-ACM'
 
 model:
   args:

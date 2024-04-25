@@ -1,4 +1,8 @@
 # @package _global_
+defaults:
+  - override /data: imdb
+  - override /model: diag_sheaf
+
 model:
   args:
     device: cuda
@@ -8,3 +12,7 @@ model:
     initial_dropout: 0.3512017167796448
     input_dropout: 0.07999212600167775
     layers: 6
+
+callbacks:
+  model_checkpoint:
+    filename: 'DiagSheaf-${sheaf_learner}-IMDB'

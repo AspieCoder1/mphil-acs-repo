@@ -1,7 +1,13 @@
 # @package _global_
+defaults:
+  - override /data: dblp
+  - override /model: diag_sheaf
+
 callbacks:
   early_stopping:
     patience: 50
+  model_checkpoint:
+    filename: 'DiagSheaf-${sheaf_learner}-DBLP'
 
 model:
   args:

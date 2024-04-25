@@ -1,4 +1,8 @@
 # @package _global_
+defaults:
+  - override /data: dblp
+  - override /model: bundle_sheaf
+
 model:
   args:
     device: cuda
@@ -8,3 +12,7 @@ model:
     initial_dropout: 0.055879202673095374
     input_dropout: 0.6330423862394109
     layers: 7
+
+callbacks:
+  model_checkpoint:
+    filename: 'BundleSheaf-${sheaf_learner}-DBLP'

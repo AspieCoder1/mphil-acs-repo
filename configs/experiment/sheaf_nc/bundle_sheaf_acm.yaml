@@ -1,8 +1,13 @@
 # @package _global_
+defaults:
+  - override /data: acm
+  - override /model: bundle_sheaf
 
 callbacks:
   early_stopping:
     patience: 50
+  model_checkpoint:
+    filename: 'BundleSheaf-${sheaf_learner}-ACM'
 
 model:
   args:

@@ -3,7 +3,7 @@ defaults:
   - trainer: trainer
   - model: ind_diag_sheaf
   - dataset: last_fm
-  - callbacks: sheaf_nc
+  - callbacks: sheaf_lp
   - logger: wandb
   - experiment: null
 
