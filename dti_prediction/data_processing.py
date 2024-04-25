@@ -161,6 +161,7 @@ class DTIData(InMemoryDataset):
         data.n_x = self.num_nodes
         data.train_idx = train_idx
         data.test_idx = test_idx
+        data.edge_index[1] -= data.edge_index[1].min()
 
         data = data if self.pre_transform is None else self.pre_transform(data)
 

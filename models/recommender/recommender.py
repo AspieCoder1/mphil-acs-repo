@@ -206,9 +206,9 @@ class GNNRecommender(L.LightningModule):
         homogeneous: bool = False,
         batch_size: int = 1,
         hidden_channels: int = 64,
-        use_rec_metrics: bool = True,
         node_type_names: Optional[list[str]] = None,
         edge_type_names: Optional[list[tuple[str, str, str]]] = None,
+        **_kwargs,
     ):
         super(GNNRecommender, self).__init__()
         self.recommender: _Recommender = _Recommender(
@@ -274,11 +274,11 @@ class GNNRecommender(L.LightningModule):
         self.log_dict(
             metrics,
             prog_bar=False,
-            on_step=True,
+            on_step=False,
             on_epoch=True,
             batch_size=self.batch_size,
         )
-        self.log("train/loss", loss, batch_size=1)
+        self.log("train/loss", loss, batch_size=1, on_step=True, on_epoch=True)
 
         return loss
 
@@ -289,11 +289,17 @@ class GNNRecommender(L.LightningModule):
         self.log_dict(
             metrics,
             prog_bar=False,
-            on_step=True,
+            on_step=False,
             on_epoch=True,
             batch_size=self.batch_size,
         )
-        self.log("valid/loss", loss, batch_size=1)
+        self.log(
+            "valid/loss",
+            loss,
+            batch_size=1,
+            on_step=True,
+            on_epoch=True,
+        )
 
         return loss
 
@@ -304,11 +310,17 @@ class GNNRecommender(L.LightningModule):
         self.log_dict(
             metrics,
             prog_bar=False,
-            on_step=True,
+            on_step=False,
             on_epoch=True,
             batch_size=self.batch_size,
         )
-        self.log("test/loss", loss, batch_size=1)
+        self.log(
+            "test/loss",
+            loss,
+            batch_size=1,
+            on_step=True,
+            on_epoch=True,
+        )
 
         return loss
 
