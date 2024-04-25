@@ -1,6 +1,3 @@
 defaults:
-  - 'override /data: acm'
+  - 'override /dataset: acm'
   - 'override /model: gcn'
-
-dataset:
-  homogeneous: true

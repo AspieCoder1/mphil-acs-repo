@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - override /data: dblp
+  - override /dataset: dblp
   - override /model: bundle_sheaf
 
 model:

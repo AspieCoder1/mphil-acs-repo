@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - override /data: imdb
+  - override /dataset: imdb
   - override /model: bundle_sheaf
 
 model:

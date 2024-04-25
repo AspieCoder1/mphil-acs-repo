@@ -1,6 +1,3 @@
 defaults:
-  - 'override /data: imdb'
+  - 'override /dataset: imdb'
   - 'override /model: gcn'
-
-dataset:
-  homogeneous: true

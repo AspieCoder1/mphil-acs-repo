@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - override /data: acm
+  - override /dataset: acm
   - override /model: bundle_sheaf
 
 callbacks:

@@ -1,6 +1,3 @@
 defaults:
-  - 'override /data: dblp'
+  - 'override /dataset: dblp'
   - 'override /model: gcn'
-
-dataset:
-  homogeneous: true
