@@ -1,5 +1,4 @@
 # @package _global_
-# @package _global_
 defaults:
   - override /dataset: dblp
   - override /model: gcn

@@ -34,4 +34,4 @@ DATASET=${DATASETS[DATA_IDX]}
 export WANDB_CACHE_DIR=".wandb"
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
 source ~/venv/bin/activate
-srun python run_gnn_nc.py model="${MODEL}" dataset="${DATASET}" +tags=["${MODEL}","${DATASET}",nc,gnn,exp1_1]
+srun python run_gnn_nc.py experiment="gnn_nc/${MODEL}_${DATASET}"

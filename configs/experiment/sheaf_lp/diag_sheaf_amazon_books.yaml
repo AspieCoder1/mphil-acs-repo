@@ -3,4 +3,8 @@ defaults:
   - override /dataset: amazon_books
   - override /model: ind_diag_sheaf
 
+callbacks:
+  model_checkpoint:
+    filename: DiagSheaf-AmazonBooks
+
 tags: [ DiagSheaf, AmazonBooks, sheaf, lp, exp2 ]

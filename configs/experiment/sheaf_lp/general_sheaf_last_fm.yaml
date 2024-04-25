@@ -3,4 +3,8 @@ defaults:
   - override /dataset: last_fm
   - override /model: ind_general_sheaf
 
+callbacks:
+  model_checkpoint:
+    filename: GeneralSheaf-LastFM
+
 tags: [ GeneralSheaf, LastFM, sheaf, lp, exp2 ]

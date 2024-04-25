@@ -3,4 +3,8 @@ defaults:
   - override /dataset: amazon_books
   - override /model: ind_general_sheaf
 
+callbacks:
+  model_checkpoint:
+    filename: GeneralSheaf-AmazonBooks
+
 tags: [ GeneralSheaf, AmazonBooks, sheaf, lp, exp2 ]

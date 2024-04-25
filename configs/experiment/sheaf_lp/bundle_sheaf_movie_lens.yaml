@@ -3,4 +3,8 @@ defaults:
   - override /dataset: movie_lens
   - override /model: ind_bundle_sheaf
 
+callbacks:
+  model_checkpoint:
+    filename: BundleSheaf-MovieLens
+
 tags: [ BundleSheaf, MovieLens, sheaf, lp, exp2 ]
