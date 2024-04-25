@@ -1,3 +1,7 @@
 defaults:
   - 'override /dataset: dblp'
   - 'override /model: rgcn'
+
+callbacks:
+  model_checkpoint:
+    filename: RGCN-DBLP

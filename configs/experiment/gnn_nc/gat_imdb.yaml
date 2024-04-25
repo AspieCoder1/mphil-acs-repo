@@ -1,3 +1,7 @@
 defaults:
   - 'override /dataset: imdb'
   - 'override /model: gat'
+
+callbacks:
+  model_checkpoint:
+    filename: GAT-IMDB

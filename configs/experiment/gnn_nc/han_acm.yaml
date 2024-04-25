@@ -1,3 +1,7 @@
 defaults:
   - 'override /dataset: acm'
   - 'override /model: han'
+
+callbacks:
+  model_checkpoint:
+    filename: HAN-ACM

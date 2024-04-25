@@ -1,3 +1,7 @@
 defaults:
   - 'override /dataset: acm'
   - 'override /model: hgt'
+
+callbacks:
+  model_checkpoint:
+    filename: HGT-ACM

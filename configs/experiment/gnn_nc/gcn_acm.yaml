@@ -1,3 +1,7 @@
 defaults:
   - 'override /dataset: acm'
   - 'override /model: gcn'
+
+callbacks:
+  model_checkpoint:
+    filename: GCN-ACM
