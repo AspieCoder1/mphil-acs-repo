@@ -31,7 +31,7 @@ torch.manual_seed(0)
 def parse_method(args, data):
     #     Currently we don't set hyperparameters w.r.t. different dataset
     if args.method == "AllSetTransformer":
-        if args.LearnMask:
+        if args.learn_mask:
             model = SetGNN(args, data.norm)
         else:
             model = SetGNN(args)
@@ -39,7 +39,7 @@ def parse_method(args, data):
     elif args.method == "AllDeepSets":
         models.hgnn_baselines.SetGNN.PMA = False
         args.aggregate = "add"
-        if args.LearnMask:
+        if args.learn_mask:
             model = SetGNN(args, data.norm)
         else:
             model = SetGNN(args)

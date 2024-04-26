@@ -29,7 +29,7 @@ class PMA(MessagePassing):
         in_channels,
         hid_dim,
         out_channels,
-        num_layers,
+        num_layers=1,
         heads=1,
         concat=True,
         negative_slope=0.2,
@@ -250,7 +250,24 @@ class HalfNLHconv(MessagePassing):
 
 
 class SetGNN(nn.Module):
-    def __init__(self, args, norm=None):
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        hidden_channels: int = 64,
+        num_layers: int = 1,
+        n_heads: int = 1,
+        dropout: float = 0.0,
+        use_pma: bool = True,
+        norm=None,
+        aggregate: str = "mean",
+        gpr: bool = False,
+        learn_mask: bool = False,
+        normalisation: str = "ln",
+        input_norm: bool = True,
+        num_classifier_layers: int = 1,
+        classifier_hidden_dim: int = 64,
+    ):
         super(SetGNN, self).__init__()
         """
         args should contain the following:
@@ -262,13 +279,13 @@ class SetGNN(nn.Module):
         """
 
         #         Now set all dropout the same, but can be different
-        self.All_num_layers = args.All_num_layers
-        self.dropout = args.dropout
-        self.aggr = args.aggregate
-        self.NormLayer = args.normalization
-        self.InputNorm = args.deepset_input_norm
-        self.GPR = args.GPR
-        self.LearnMask = args.LearnMask
+        self.All_num_layers = num_layers
+        self.dropout = dropout
+        self.aggr = aggregate
+        self.NormLayer = normalisation
+        self.InputNorm = input_norm
+        self.GPR = gpr
+        self.learn_mask = learn_mask
         #         Now define V2EConvs[i], V2EConvs[i] for ith layers
         #         Currently we assume there's no hyperedge features, which means V_out_dim = E_in_dim
         #         If there's hyperedge features, concat with Vpart decoder output features [V_feat||E_feat]
@@ -277,15 +294,15 @@ class SetGNN(nn.Module):
         self.bnV2Es = nn.ModuleList()
         self.bnE2Vs = nn.ModuleList()
 
-        if self.LearnMask:
+        if self.learn_mask:
             self.Importance = Parameter(torch.ones(norm.size()))
 
         if self.All_num_layers == 0:
             self.classifier = MLP(
-                in_channels=args.num_features,
-                hidden_channels=args.Classifier_hidden,
-                out_channels=args.num_classes,
-                num_layers=args.Classifier_num_layers,
+                in_channels=in_channels,
+                hidden_channels=classifier_hidden_dim,
+                out_channels=out_channels,
+                num_layers=num_classifier_layers,
                 dropout=self.dropout,
                 normalisation=self.NormLayer,
                 input_norm=False,
@@ -293,87 +310,87 @@ class SetGNN(nn.Module):
         else:
             self.V2EConvs.append(
                 HalfNLHconv(
-                    in_dim=args.num_features,
-                    hid_dim=args.MLP_hidden,
-                    out_dim=args.MLP_hidden,
-                    num_layers=args.MLP_num_layers,
+                    in_dim=in_channels,
+                    hid_dim=hidden_channels,
+                    out_dim=hidden_channels,
+                    num_layers=num_layers,
                     dropout=self.dropout,
                     Normalization=self.NormLayer,
                     InputNorm=self.InputNorm,
-                    heads=args.heads,
-                    attention=args.PMA,
+                    heads=n_heads,
+                    attention=use_pma,
                 )
             )
-            self.bnV2Es.append(nn.BatchNorm1d(args.MLP_hidden))
+            self.bnV2Es.append(nn.BatchNorm1d(hidden_channels))
             self.E2VConvs.append(
                 HalfNLHconv(
-                    in_dim=args.MLP_hidden,
-                    hid_dim=args.MLP_hidden,
-                    out_dim=args.MLP_hidden,
-                    num_layers=args.MLP_num_layers,
+                    in_dim=hidden_channels,
+                    hid_dim=hidden_channels,
+                    out_dim=hidden_channels,
+                    num_layers=num_layers,
                     dropout=self.dropout,
                     Normalization=self.NormLayer,
                     InputNorm=self.InputNorm,
-                    heads=args.heads,
-                    attention=args.PMA,
+                    heads=n_heads,
+                    attention=use_pma,
                 )
             )
-            self.bnE2Vs.append(nn.BatchNorm1d(args.MLP_hidden))
+            self.bnE2Vs.append(nn.BatchNorm1d(hidden_channels))
             for _ in range(self.All_num_layers - 1):
                 self.V2EConvs.append(
                     HalfNLHconv(
-                        in_dim=args.MLP_hidden,
-                        hid_dim=args.MLP_hidden,
-                        out_dim=args.MLP_hidden,
-                        num_layers=args.MLP_num_layers,
+                        in_dim=hidden_channels,
+                        hid_dim=hidden_channels,
+                        out_dim=hidden_channels,
+                        num_layers=num_layers,
                         dropout=self.dropout,
                         Normalization=self.NormLayer,
                         InputNorm=self.InputNorm,
-                        heads=args.heads,
-                        attention=args.PMA,
+                        heads=n_heads,
+                        attention=use_pma,
                     )
                 )
-                self.bnV2Es.append(nn.BatchNorm1d(args.MLP_hidden))
+                self.bnV2Es.append(nn.BatchNorm1d(hidden_channels))
                 self.E2VConvs.append(
                     HalfNLHconv(
-                        in_dim=args.MLP_hidden,
-                        hid_dim=args.MLP_hidden,
-                        out_dim=args.MLP_hidden,
-                        num_layers=args.MLP_num_layers,
+                        in_dim=hidden_channels,
+                        hid_dim=hidden_channels,
+                        out_dim=hidden_channels,
+                        num_layers=num_layers,
                         dropout=self.dropout,
                         Normalization=self.NormLayer,
                         InputNorm=self.InputNorm,
-                        heads=args.heads,
-                        attention=args.PMA,
+                        heads=n_heads,
+                        attention=use_pma,
                     )
                 )
-                self.bnE2Vs.append(nn.BatchNorm1d(args.MLP_hidden))
+                self.bnE2Vs.append(nn.BatchNorm1d(hidden_channels))
             if self.GPR:
                 self.MLP = MLP(
-                    in_channels=args.num_features,
-                    hidden_channels=args.MLP_hidden,
-                    out_channels=args.MLP_hidden,
-                    num_layers=args.MLP_num_layers,
+                    in_channels=in_channels,
+                    hidden_channels=hidden_channels,
+                    out_channels=hidden_channels,
+                    num_layers=num_layers,
                     dropout=self.dropout,
                     normalisation=self.NormLayer,
                     input_norm=False,
                 )
                 self.GPRweights = Linear(self.All_num_layers + 1, 1, bias=False)
                 self.classifier = MLP(
-                    in_channels=args.MLP_hidden,
-                    hidden_channels=args.Classifier_hidden,
-                    out_channels=args.num_classes,
-                    num_layers=args.Classifier_num_layers,
+                    in_channels=hidden_channels,
+                    hidden_channels=classifier_hidden_dim,
+                    out_channels=out_channels,
+                    num_layers=num_classifier_layers,
                     dropout=self.dropout,
                     normalisation=self.NormLayer,
                     input_norm=False,
                 )
             else:
                 self.classifier = MLP(
-                    in_channels=args.MLP_hidden,
-                    hidden_channels=args.Classifier_hidden,
-                    out_channels=args.num_classes,
-                    num_layers=args.Classifier_num_layers,
+                    in_channels=hidden_channels,
+                    hidden_channels=classifier_hidden_dim,
+                    out_channels=out_channels,
+                    num_layers=num_classifier_layers,
                     dropout=self.dropout,
                     normalisation=self.NormLayer,
                     input_norm=False,
@@ -395,7 +412,7 @@ class SetGNN(nn.Module):
         if self.GPR:
             self.MLP.reset_parameters()
             self.GPRweights.reset_parameters()
-        if self.LearnMask:
+        if self.learn_mask:
             nn.init.ones_(self.Importance)
 
     def forward(self, data):
@@ -414,7 +431,7 @@ class SetGNN(nn.Module):
         #             data.V2Eedge_index[0] contains nodes and data.V2Eedge_index[1] contains hyperedges
 
         x, edge_index, norm = data.x, data.edge_index, data.norm
-        if self.LearnMask:
+        if self.learn_mask:
             norm = self.Importance * norm
         cidx = edge_index[1].min()
         edge_index[1] -= cidx  # make sure we do not waste memory

@@ -9,13 +9,12 @@
 """
 This script contains all models in our paper.
 """
+from typing import Literal
 
 import torch.nn.functional as F
 from torch import nn
 from torch_geometric.nn.dense import Linear
 from torch_scatter import scatter_mean
-
-from .config import SheafHGNNConfig
 
 #  This part is for HyperGCN
 from .hgcn_sheaf_laplacians import *
@@ -41,49 +40,70 @@ class SheafHyperGNN(nn.Module):
 
     """
 
-    def __init__(self, args: SheafHGNNConfig, sheaf_type: str):
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        hidden_channels: int = 64,
+        sheaf_type: str = "DiagSheafs",
+        stalk_dimension: int = 1,
+        num_layers: int = 1,
+        dropout: float = 0.6,
+        sheaf_act: Literal["sigmoid", "tanh", "none"] = "sigmoid",
+        init_hedge: Literal["rand", "avg"] = "rand",
+        sheaf_normtype: Literal[
+            "degree_norm", "block_norm", "sym_degree_norm", "sym_block_norm"
+        ] = "degree_norm",
+        cuda: int = 0,
+        left_proj: bool = False,
+        allset_input_norm: bool = True,
+        dynamic_sheaf: bool = False,
+        residual_connections: bool = False,
+        use_lin2: bool = False,
+        sheaf_special_head: bool = False,
+        sheaf_pred_block: str = "MLP_var1",
+        sheaf_dropout: bool = False,
+    ):
         super(SheafHyperGNN, self).__init__()
 
-        self.num_layers = args.All_num_layers
-        self.dropout = args.dropout  # Note that default is 0.6
-        self.num_features = args.num_features
-        self.MLP_hidden = args.MLP_hidden
-        self.d = args.heads  # dimension of the stalks
+        self.num_layers = num_layers
+        self.dropout = dropout  # Note that default is 0.6
+        self.num_features = in_channels
+        self.MLP_hidden = hidden_channels
+        self.d = stalk_dimension  # dimension of the stalks
         self.init_hedge = (
-            args.init_hedge
-        )  # how to initialise hyperedge attributes: avg or rand
+            init_hedge  # how to initialise hyperedge attributes: avg or rand
+        )
         self.norm_type = (
-            args.sheaf_normtype
-        )  # type of laplacian normalisation degree_norm or block_norm
-        self.act = (
-            args.sheaf_act
-        )  # type of nonlinearity used when predicting the dxd blocks
-        self.left_proj = args.sheaf_left_proj  # multiply with (I x W_1) to the left
-        self.args = args
-        self.norm = args.AllSet_input_norm
+            sheaf_normtype  # type of laplacian normalisation degree_norm or block_norm
+        )
+        self.act = sheaf_act  # type of nonlinearity used when predicting the dxd blocks
+        self.left_proj = left_proj  # multiply with (I x W_1) to the left
+        # self.args = args
+        self.norm = allset_input_norm
         self.dynamic_sheaf = (
-            args.dynamic_sheaf
-        )  # if True, theb sheaf changes from one layer to another
-        self.residual = args.residual_HCHA
+            dynamic_sheaf  # if True, theb sheaf changes from one layer to another
+        )
+        self.residual = residual_connections
 
         self.hyperedge_attr = None
-        if args.cuda in [0, 1]:
+        if cuda in [0, 1]:
             self.device = torch.device(
-                "cuda:" + str(args.cuda) if torch.cuda.is_available() else "cpu"
+                "cuda:" + str(cuda) if torch.cuda.is_available() else "cpu"
             )
         else:
             self.device = torch.device("cpu")
 
         self.lin = MLP(
             in_channels=self.num_features,
-            hidden_channels=args.MLP_hidden,
-            out_channels=self.MLP_hidden * self.d,
+            hidden_channels=hidden_channels,
+            out_channels=hidden_channels * self.d,
             num_layers=1,
             dropout=0.0,
             normalisation="ln",
             input_norm=False,
         )
-        self.use_lin2 = args.use_lin2
+        self.use_lin2 = use_lin2
 
         # define the model and sheaf generator according to the type of sheaf wanted
         # The diuffusion does not change, however tha implementation for diag and ortho is more efficient
@@ -93,7 +113,7 @@ class SheafHyperGNN(nn.Module):
             ModelSheaf, ModelConv = SheafBuilderOrtho, HyperDiffusionOrthoSheafConv
         elif sheaf_type == "GeneralSheafs":
             ModelSheaf, ModelConv = SheafBuilderGeneral, HyperDiffusionGeneralSheafConv
-        elif sheaf_type == "LowRankSheafs":
+        else:
             ModelSheaf, ModelConv = SheafBuilderLowRank, HyperDiffusionGeneralSheafConv
 
         self.convs = nn.ModuleList()
@@ -113,7 +133,18 @@ class SheafHyperGNN(nn.Module):
 
         # Model to generate the reduction maps
         self.sheaf_builder = nn.ModuleList()
-        self.sheaf_builder.append(ModelSheaf(args))
+        self.sheaf_builder.append(
+            ModelSheaf(
+                stalk_dimension=stalk_dimension,
+                hidden_channels=hidden_channels,
+                dropout=dropout,
+                allset_input_norm=allset_input_norm,
+                sheaf_special_head=sheaf_special_head,
+                sheaf_pred_block=sheaf_pred_block,
+                sheaf_dropout=sheaf_dropout,
+                sheaf_normtype=self.norm,
+            )
+        )
 
         for _ in range(self.num_layers - 1):
             # Sheaf Diffusion layers
@@ -131,10 +162,21 @@ class SheafHyperGNN(nn.Module):
             )
             # Model to generate the reduction maps if the sheaf changes from one layer to another
             if self.dynamic_sheaf:
-                self.sheaf_builder.append(ModelSheaf(args))
+                self.sheaf_builder.append(
+                    ModelSheaf(
+                        stalk_dimension=stalk_dimension,
+                        hidden_channels=hidden_channels,
+                        dropout=dropout,
+                        allset_input_norm=allset_input_norm,
+                        sheaf_special_head=sheaf_special_head,
+                        sheaf_pred_block=sheaf_pred_block,
+                        sheaf_dropout=sheaf_dropout,
+                        sheaf_normtype=self.norm,
+                    )
+                )
 
         self.out_dim = self.MLP_hidden * self.d
-        self.lin2 = Linear(self.MLP_hidden * self.d, args.num_classes, bias=False)
+        self.lin2 = Linear(self.MLP_hidden * self.d, out_channels, bias=False)
 
     def reset_parameters(self):
         for conv in self.convs:
@@ -226,56 +268,74 @@ class SheafHyperGCN(nn.Module):
     def __init__(
         self,
         V,
-        num_features,
+        in_channels,
         num_layers,
-        num_classses,
-        args: SheafHGNNConfig,
+        out_channels,
         sheaf_type: str,
+        cuda: int = 0,
+        hidden_channels: int = 64,
+        stalk_dimension: int = 1,
+        dropout: float = 0.6,
+        sheaf_act: Literal["sigmoid", "tanh", "none"] = "sigmoid",
+        init_hedge: Literal["rand", "avg"] = "rand",
+        sheaf_normtype: Literal[
+            "degree_norm", "block_norm", "sym_degree_norm", "sym_block_norm"
+        ] = "degree_norm",
+        left_proj: bool = False,
+        allset_input_norm: bool = True,
+        dynamic_sheaf: bool = False,
+        residual_connections: bool = False,
+        use_lin2: bool = False,
+        sheaf_special_head: bool = False,
+        sheaf_pred_block: str = "MLP_var1",
+        sheaf_dropout: bool = False,
+        mediators: bool = False,
     ):
         super(SheafHyperGCN, self).__init__()
-        d, l, c = num_features, num_layers, num_classses
-        cuda = args.cuda  # and torch.cuda.is_available()
+        d, l, c = in_channels, num_layers, out_channels
 
         self.num_nodes = V
-        h = [args.MLP_hidden]
+        h = [hidden_channels]
         for i in range(l - 1):
             power = l - i + 2
-            if (getattr(args, "dname", None) is not None) and args.dname == "citeseer":
-                power = l - i + 4
             h.append(2**power)
         h.append(c)
 
         reapproximate = False  # for HyperGCN we take care of this via dynamic_sheaf
 
-        self.MLP_hidden = args.MLP_hidden
-        self.d = args.heads
+        self.MLP_hidden = hidden_channels
+        self.d = stalk_dimension
 
-        self.num_layers = args.All_num_layers
-        self.dropout = args.dropout  # Note that default is 0.6
-        self.num_features = args.num_features
-        self.MLP_hidden = args.MLP_hidden
-        self.d = args.heads  # dimension of the stalks
+        self.num_layers = num_layers
+        self.dropout = dropout  # Note that default is 0.6
+        self.num_features = in_channels
+        self.MLP_hidden = hidden_channels
+        self.d = stalk_dimension  # dimension of the stalks
         self.init_hedge = (
-            args.init_hedge
-        )  # how to initialise hyperedge attributes: avg or rand
+            init_hedge  # how to initialise hyperedge attributes: avg or rand
+        )
         self.norm_type = (
-            args.sheaf_normtype
-        )  # type of laplacian normalisation degree_norm or block_norm
-        self.act = (
-            args.sheaf_act
-        )  # type of nonlinearity used when predicting the dxd blocks
-        self.left_proj = args.sheaf_left_proj  # multiply with (I x W_1) to the left
-        self.args = args
-        self.norm = args.AllSet_input_norm
+            sheaf_normtype  # type of laplacian normalisation degree_norm or block_norm
+        )
+        self.act = sheaf_act  # type of nonlinearity used when predicting the dxd blocks
+        self.left_proj = left_proj  # multiply with (I x W_1) to the left
+        self.norm = allset_input_norm
         self.dynamic_sheaf = (
-            args.dynamic_sheaf
-        )  # if True, theb sheaf changes from one layer to another
+            dynamic_sheaf  # if True, theb sheaf changes from one layer to another
+        )
         self.sheaf_type = (
             sheaf_type  #'DiagSheafs', 'OrthoSheafs', 'GeneralSheafs' or 'LowRankSheafs'
         )
 
         self.hyperedge_attr = None
-        self.residual = args.residual_HCHA
+        self.residual = residual_connections
+
+        if cuda in [0, 1]:
+            self.device = torch.device(
+                "cuda:" + str(cuda) if torch.cuda.is_available() else "cpu"
+            )
+        else:
+            self.device = torch.device("cpu")
 
         # sheaf_type = 'OrthoSheafs'
         if sheaf_type == "DiagSheafs":
@@ -284,7 +344,7 @@ class SheafHyperGCN(nn.Module):
             ModelSheaf, self.Laplacian = HGCNSheafBuilderOrtho, SheafLaplacianOrtho
         elif sheaf_type == "GeneralSheafs":
             ModelSheaf, self.Laplacian = HGCNSheafBuilderGeneral, SheafLaplacianGeneral
-        elif sheaf_type == "LowRankSheafs":
+        else:
             ModelSheaf, self.Laplacian = HGCNSheafBuilderLowRank, SheafLaplacianGeneral
 
         if self.left_proj:
@@ -314,14 +374,35 @@ class SheafHyperGCN(nn.Module):
         )
 
         self.sheaf_builder = nn.ModuleList()
-        self.sheaf_builder.append(ModelSheaf(args, args.MLP_hidden))
+        self.sheaf_builder.append(
+            ModelSheaf(
+                stalk_dimension=stalk_dimension,
+                hidden_channels=hidden_channels,
+                dropout=dropout,
+                allset_input_norm=allset_input_norm,
+                sheaf_special_head=sheaf_special_head,
+                sheaf_pred_block=sheaf_pred_block,
+                sheaf_dropout=sheaf_dropout,
+            )
+        )
 
         self.out_dim = h[-1] * self.d
-        self.lin2 = Linear(self.out_dim, args.num_classes, bias=False)
+        self.lin2 = Linear(self.out_dim, out_channels, bias=False)
+        self.use_lin2 = use_lin2
 
         if self.dynamic_sheaf:
             for i in range(1, l):
-                self.sheaf_builder.append(ModelSheaf(args, h[i]))
+                self.sheaf_builder.append(
+                    ModelSheaf(
+                        stalk_dimension=stalk_dimension,
+                        hidden_channels=h[i],
+                        dropout=dropout,
+                        allset_input_norm=allset_input_norm,
+                        sheaf_special_head=sheaf_special_head,
+                        sheaf_pred_block=sheaf_pred_block,
+                        sheaf_dropout=sheaf_dropout,
+                    )
+                )
 
         self.layers = nn.ModuleList(
             [
@@ -329,8 +410,8 @@ class SheafHyperGCN(nn.Module):
                 for i in range(l)
             ]
         )
-        self.do, self.l = args.dropout, num_layers
-        self.m = args.HyperGCN_mediators
+        self.do, self.l = dropout, num_layers
+        self.m = mediators
 
     def reset_parameters(self):
         for layer in self.layers:

@@ -1,13 +1,15 @@
-from ..hgnn_baselines.mlp import MLP
-import torch.nn as nn
+from typing import Literal, Protocol
+
+import numpy as np
 import torch
-from .orthogonal import Orthogonal
+import torch.nn as nn
+import torch.nn.functional as F
 from torch_scatter import scatter, scatter_mean, scatter_add
+
 from . import utils
 from .config import SheafHGNNConfig
-
-import torch.nn.functional as F
-import numpy as np
+from .orthogonal import Orthogonal
+from ..hgnn_baselines.mlp import MLP
 
 
 # helper functions to predict sigma(MLP(x_v || h_e)) varying how thw attributes for hyperedge are computed
@@ -112,28 +114,49 @@ def predict_blocks_cp_decomp(x, hyperedge_index, cp_W, cp_V, sheaf_lin, args):
 
 
 # One class for each type of sheaf. We will need to merge them.
+class HyperSheafBuilder(Protocol):
+    def __init__(
+        self,
+        stalk_dimension: int,
+        hidden_channels: int = 64,
+        dropout: float = 0.6,
+        allset_input_norm: bool = True,
+        sheaf_special_head: bool = False,
+        sheaf_pred_block: str = "MLP_var1",
+        sheaf_dropout: bool = False,
+        sheaf_normtype: Literal[
+            "degree_norm", "block_norm", "sym_degree_norm", "sym_block_norm"
+        ] = "degree_norm",
+    ): ...
 
 
 # Build the restriction maps for the Diagonal Case
 class SheafBuilderDiag(nn.Module):
-    def __init__(self, args: SheafHGNNConfig):
+    def __init__(
+        self,
+        stalk_dimension: int,
+        hidden_channels: int = 64,
+        dropout: float = 0.6,
+        allset_input_norm: bool = True,
+        sheaf_special_head: bool = False,
+        sheaf_pred_block: str = "MLP_var1",
+        sheaf_dropout: bool = False,
+        **_kwargs,
+    ):
         super(SheafBuilderDiag, self).__init__()
-        self.args = args
         self.prediction_type = (
-            args.sheaf_pred_block
-        )  # pick the way hyperedge feartures are computed
-        self.sheaf_dropout = args.sheaf_dropout
-        self.special_head = (
-            args.sheaf_special_head
-        )  # add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
-        self.d = args.heads  # stalk dinension
-        self.MLP_hidden = args.MLP_hidden
-        self.norm = args.AllSet_input_norm
-        self.dropout = args.dropout
+            sheaf_pred_block  # pick the way hyperedge feartures are computed
+        )
+        self.sheaf_dropout = sheaf_dropout
+        self.special_head = sheaf_special_head  # add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
+        self.d = stalk_dimension  # stalk dinension
+        self.MLP_hidden = hidden_channels
+        self.norm = allset_input_norm
+        self.dropout = dropout
 
         self.sheaf_lin = MLP(
             in_channels=2 * self.MLP_hidden,
-            hidden_channels=args.MLP_hidden,
+            hidden_channels=hidden_channels,
             out_channels=self.d,
             num_layers=1,
             dropout=0.0,
@@ -144,8 +167,8 @@ class SheafBuilderDiag(nn.Module):
         if self.prediction_type == "MLP_var3":
             self.sheaf_lin2 = MLP(
                 in_channels=self.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
-                out_channels=args.MLP_hidden,
+                hidden_channels=hidden_channels,
+                out_channels=hidden_channels,
                 num_layers=1,
                 dropout=0.0,
                 normalisation="ln",
@@ -153,22 +176,22 @@ class SheafBuilderDiag(nn.Module):
             )
         elif self.prediction_type == "cp_decomp":
             self.cp_W = MLP(
-                in_channels=self.MLP_hidden + 1,
-                hidden_channels=args.MLP_hidden,
-                out_channels=args.MLP_hidden,
+                in_channels=hidden_channels + 1,
+                hidden_channels=hidden_channels,
+                out_channels=hidden_channels,
                 num_layers=1,
                 dropout=0.0,
                 normalisation="ln",
                 input_norm=self.norm,
             )
             self.cp_V = MLP(
-                in_channels=args.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
-                out_channels=args.MLP_hidden,
+                in_channels=hidden_channels,
+                hidden_channels=hidden_channels,
+                out_channels=hidden_channels,
                 num_layers=1,
                 dropout=0.0,
                 normalisation="ln",
-                input_norm=self.MLP_hidden,
+                input_norm=hidden_channels,
             )
 
     def reset_parameters(self):
@@ -245,25 +268,34 @@ class SheafBuilderDiag(nn.Module):
 
 # Build the restriction maps for the General Case
 class SheafBuilderGeneral(nn.Module):
-    def __init__(self, args: SheafHGNNConfig):
+    def __init__(
+        self,
+        stalk_dimension: int,
+        hidden_channels: int = 64,
+        dropout: float = 0.6,
+        allset_input_norm: bool = True,
+        sheaf_special_head: bool = False,
+        sheaf_pred_block: str = "MLP_var1",
+        sheaf_dropout: bool = False,
+        sheaf_normtype: Literal[
+            "degree_norm", "block_norm", "sym_degree_norm", "sym_block_norm"
+        ] = "degree_norm",
+    ):
         super(SheafBuilderGeneral, self).__init__()
-        self.args = args
         self.prediction_type = (
-            args.sheaf_pred_block
-        )  # pick the way hyperedge feartures are computed
-        self.sheaf_dropout = args.sheaf_dropout
-        self.special_head = (
-            args.sheaf_special_head
-        )  # add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
-        self.d = args.heads  # stalk dimension
-        self.MLP_hidden = args.MLP_hidden
-        self.norm = args.AllSet_input_norm
-        self.norm_type = args.sheaf_normtype
-        self.dropout = args.dropout
+            sheaf_pred_block  # pick the way hyperedge feartures are computed
+        )
+        self.sheaf_dropout = sheaf_dropout
+        self.special_head = sheaf_special_head  # add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
+        self.d = stalk_dimension  # stalk dimension
+        self.MLP_hidden = hidden_channels
+        self.norm = allset_input_norm
+        self.norm_type = sheaf_normtype
+        self.dropout = dropout
 
         self.general_sheaf_lin = MLP(
             in_channels=2 * self.MLP_hidden,
-            hidden_channels=args.MLP_hidden,
+            hidden_channels=hidden_channels,
             out_channels=self.d * self.d,
             num_layers=1,
             dropout=0.0,
@@ -273,8 +305,8 @@ class SheafBuilderGeneral(nn.Module):
         if self.prediction_type == "MLP_var3":
             self.general_sheaf_lin2 = MLP(
                 in_channels=self.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
-                out_channels=args.MLP_hidden,
+                hidden_channels=hidden_channels,
+                out_channels=hidden_channels,
                 num_layers=1,
                 dropout=0.0,
                 normalisation="ln",
@@ -283,17 +315,17 @@ class SheafBuilderGeneral(nn.Module):
         if self.prediction_type == "cp_decomp":
             self.cp_W = MLP(
                 in_channels=self.MLP_hidden + 1,
-                hidden_channels=args.MLP_hidden,
-                out_channels=args.MLP_hidden,
+                hidden_channels=hidden_channels,
+                out_channels=hidden_channels,
                 num_layers=1,
                 dropout=0.0,
                 normalisation="ln",
                 input_norm=self.norm,
             )
             self.cp_V = MLP(
-                in_channels=args.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
-                out_channels=args.MLP_hidden,
+                in_channels=hidden_channels,
+                hidden_channels=hidden_channels,
+                out_channels=hidden_channels,
                 num_layers=1,
                 dropout=0.0,
                 normalisation="ln",
@@ -392,20 +424,28 @@ class SheafBuilderGeneral(nn.Module):
 
 # Build the restriction maps for the Orthogonal Case
 class SheafBuilderOrtho(nn.Module):
-    def __init__(self, args: SheafHGNNConfig):
+    def __init__(
+        self,
+        stalk_dimension: int,
+        hidden_channels: int = 64,
+        dropout: float = 0.6,
+        allset_input_norm: bool = True,
+        sheaf_special_head: bool = False,
+        sheaf_pred_block: str = "MLP_var1",
+        sheaf_dropout: bool = False,
+        **_kwargs,
+    ):
         super(SheafBuilderOrtho, self).__init__()
-        self.args = args
+        # self.args = args
         self.prediction_type = (
-            args.sheaf_pred_block
-        )  # pick the way hyperedge feartures are computed
-        self.sheaf_dropout = args.sheaf_dropout
-        self.special_head = (
-            args.sheaf_special_head
-        )  # add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
-        self.d = args.heads  # stalk dimension
-        self.MLP_hidden = args.MLP_hidden
-        self.norm = args.AllSet_input_norm
-        self.dropout = args.dropout
+            sheaf_pred_block  # pick the way hyperedge feartures are computed
+        )
+        self.sheaf_dropout = sheaf_dropout
+        self.special_head = sheaf_special_head  # add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
+        self.d = stalk_dimension  # stalk dimension
+        self.MLP_hidden = hidden_channels
+        self.norm = allset_input_norm
+        self.dropout = dropout
 
         self.orth_transform = Orthogonal(
             d=self.d, orthogonal_map="householder"
@@ -413,7 +453,7 @@ class SheafBuilderOrtho(nn.Module):
 
         self.orth_sheaf_lin = MLP(
             in_channels=2 * self.MLP_hidden,
-            hidden_channels=args.MLP_hidden,
+            hidden_channels=self.MLP_hidden,
             out_channels=self.d * (self.d - 1) // 2,
             num_layers=1,
             dropout=0.0,
@@ -423,8 +463,8 @@ class SheafBuilderOrtho(nn.Module):
         if self.prediction_type == "MLP_var3":
             self.orth_sheaf_lin2 = MLP(
                 in_channels=self.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
-                out_channels=args.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
+                out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
                 normalisation="ln",
@@ -433,17 +473,17 @@ class SheafBuilderOrtho(nn.Module):
         if self.prediction_type == "cp_decomp":
             self.cp_W = MLP(
                 in_channels=self.MLP_hidden + 1,
-                hidden_channels=args.MLP_hidden,
-                out_channels=args.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
+                out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
                 normalisation="ln",
                 input_norm=self.norm,
             )
             self.cp_V = MLP(
-                in_channels=args.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
-                out_channels=args.MLP_hidden,
+                in_channels=self.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
+                out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
                 normalisation="ln",
@@ -762,28 +802,39 @@ class SheafBuilderLowRank(nn.Module):
 
 
 class HGCNSheafBuilderDiag(nn.Module):
-    def __init__(self, args: SheafHGNNConfig, hidden_dim):
+    def __init__(
+        self,
+        stalk_dimension: int,
+        hidden_channels: int = 64,
+        dropout: float = 0.6,
+        allset_input_norm: bool = True,
+        sheaf_special_head: bool = False,
+        sheaf_pred_block: str = "MLP_var1",
+        sheaf_dropout: bool = False,
+        **_kwargs,
+        # sheaf_normtype: Literal[
+        #     "degree_norm", "block_norm", "sym_degree_norm", "sym_block_norm"
+        # ] = "degree_norm",
+    ):
         """
         hidden_dim overwrite the args.MLP_hidden used in the normal sheaf HNN
         """
         super(HGCNSheafBuilderDiag, self).__init__()
-        self.args = args
+        # self.args = args
         self.prediction_type = (
-            args.sheaf_pred_block
-        )  # pick the way hyperedge feartures are computed
-        self.sheaf_dropout = args.sheaf_dropout
-        self.special_head = (
-            args.sheaf_special_head
-        )  # add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
-        self.d = args.heads  # stalk dimension
-        self.MLP_hidden = hidden_dim
-        self.norm = args.AllSet_input_norm
-        self.dropout = args.dropout
+            sheaf_pred_block  # pick the way hyperedge feartures are computed
+        )
+        self.sheaf_dropout = sheaf_dropout
+        self.special_head = sheaf_special_head  # add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
+        self.d = stalk_dimension  # stalk dimension
+        self.MLP_hidden = hidden_channels
+        self.norm = allset_input_norm
+        self.dropout = dropout
 
         if self.prediction_type == "MLP_var1":
             self.sheaf_lin = MLP(
-                in_channels=self.MLP_hidden + args.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
+                in_channels=2 * self.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
                 out_channels=self.d,
                 num_layers=1,
                 dropout=0.0,
@@ -793,7 +844,7 @@ class HGCNSheafBuilderDiag(nn.Module):
         else:
             self.sheaf_lin = MLP(
                 in_channels=2 * self.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
                 out_channels=self.d,
                 num_layers=1,
                 dropout=0.0,
@@ -803,7 +854,7 @@ class HGCNSheafBuilderDiag(nn.Module):
         if self.prediction_type == "MLP_var3":
             self.sheaf_lin2 = MLP(
                 in_channels=self.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
                 out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
@@ -813,16 +864,16 @@ class HGCNSheafBuilderDiag(nn.Module):
         if self.prediction_type == "cp_decomp":
             self.cp_W = MLP(
                 in_channels=self.MLP_hidden + 1,
-                hidden_channels=args.MLP_hidden,
-                out_channels=args.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
+                out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
                 normalisation="ln",
                 input_norm=self.norm,
             )
             self.cp_V = MLP(
-                in_channels=args.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
+                in_channels=self.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
                 out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
@@ -876,25 +927,32 @@ class HGCNSheafBuilderDiag(nn.Module):
 
 
 class HGCNSheafBuilderGeneral(nn.Module):
-    def __init__(self, args: SheafHGNNConfig, hidden_dim):
+    def __init__(
+        self,
+        stalk_dimension: int,
+        hidden_channels: int = 64,
+        dropout: float = 0.6,
+        allset_input_norm: bool = True,
+        sheaf_special_head: bool = False,
+        sheaf_pred_block: str = "MLP_var1",
+        sheaf_dropout: bool = False,
+    ):
         super(HGCNSheafBuilderGeneral, self).__init__()
-        self.args = args
+        # self.args = args
         self.prediction_type = (
-            args.sheaf_pred_block
-        )  # pick the way hyperedge feartures are computed
-        self.sheaf_dropout = args.sheaf_dropout
-        self.special_head = (
-            args.sheaf_special_head
-        )  # add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
-        self.d = args.heads  # stalk dimension
-        self.MLP_hidden = hidden_dim
-        self.norm = args.AllSet_input_norm
-        self.dropout = args.dropout
+            sheaf_pred_block  # pick the way hyperedge feartures are computed
+        )
+        self.sheaf_dropout = sheaf_dropout
+        self.special_head = sheaf_special_head  # add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
+        self.d = stalk_dimension  # stalk dimension
+        self.MLP_hidden = hidden_channels
+        self.norm = allset_input_norm
+        self.dropout = dropout
 
         if self.prediction_type == "MLP_var1":
             self.sheaf_lin = MLP(
-                in_channels=self.MLP_hidden + args.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
+                in_channels=self.MLP_hidden + self.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
                 out_channels=self.d * self.d,
                 num_layers=1,
                 dropout=0.0,
@@ -904,7 +962,7 @@ class HGCNSheafBuilderGeneral(nn.Module):
         else:
             self.sheaf_lin = MLP(
                 in_channels=2 * self.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
                 out_channels=self.d * self.d,
                 num_layers=1,
                 dropout=0.0,
@@ -914,7 +972,7 @@ class HGCNSheafBuilderGeneral(nn.Module):
         if self.prediction_type == "MLP_var3":
             self.sheaf_lin2 = MLP(
                 in_channels=self.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
                 out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
@@ -924,16 +982,16 @@ class HGCNSheafBuilderGeneral(nn.Module):
         if self.prediction_type == "cp_decomp":
             self.cp_W = MLP(
                 in_channels=self.MLP_hidden + 1,
-                hidden_channels=args.MLP_hidden,
-                out_channels=args.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
+                out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
                 normalisation="ln",
                 input_norm=self.norm,
             )
             self.cp_V = MLP(
-                in_channels=args.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
+                in_channels=self.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
                 out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
@@ -988,29 +1046,37 @@ class HGCNSheafBuilderGeneral(nn.Module):
 
 
 class HGCNSheafBuilderOrtho(nn.Module):
-    def __init__(self, args: SheafHGNNConfig, hidden_dim):
+    def __init__(
+        self,
+        # args: SheafHGNNConfig,
+        stalk_dimension: int,
+        hidden_channels: int = 64,
+        dropout: float = 0.6,
+        allset_input_norm: bool = True,
+        sheaf_special_head: bool = False,
+        sheaf_pred_block: str = "MLP_var1",
+        sheaf_dropout: bool = False,
+        **_kwargs,
+    ):
         super(HGCNSheafBuilderOrtho, self).__init__()
-        self.args = args
         self.prediction_type = (
-            args.sheaf_pred_block
-        )  # pick the way hyperedge feartures are computed
-        self.sheaf_dropout = args.sheaf_dropout
-        self.special_head = (
-            args.sheaf_special_head
-        )  # add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
-        self.d = args.heads
-        self.MLP_hidden = hidden_dim
-        self.norm = args.AllSet_input_norm
+            sheaf_pred_block  # pick the way hyperedge feartures are computed
+        )
+        self.sheaf_dropout = sheaf_dropout
+        self.special_head = sheaf_special_head  # add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
+        self.d = stalk_dimension
+        self.MLP_hidden = hidden_channels
+        self.norm = allset_input_norm
 
         self.orth_transform = Orthogonal(
             d=self.d, orthogonal_map="householder"
         )  # method applied to transform params into ortho dxd matrix
-        self.dropout = args.dropout
+        self.dropout = dropout
 
         if self.prediction_type == "MLP_var1":
             self.sheaf_lin = MLP(
-                in_channels=self.MLP_hidden + args.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
+                in_channels=self.MLP_hidden + self.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
                 out_channels=self.d * (self.d - 1) // 2,
                 num_layers=1,
                 dropout=0.0,
@@ -1020,7 +1086,7 @@ class HGCNSheafBuilderOrtho(nn.Module):
         else:
             self.sheaf_lin = MLP(
                 in_channels=2 * self.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
                 out_channels=self.d * (self.d - 1) // 2,
                 num_layers=1,
                 dropout=0.0,
@@ -1030,7 +1096,7 @@ class HGCNSheafBuilderOrtho(nn.Module):
         if self.prediction_type == "MLP_var3":
             self.sheaf_lin2 = MLP(
                 in_channels=self.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
                 out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
@@ -1040,16 +1106,16 @@ class HGCNSheafBuilderOrtho(nn.Module):
         if self.prediction_type == "cp_decomp":
             self.cp_W = MLP(
                 in_channels=self.MLP_hidden + 1,
-                hidden_channels=args.MLP_hidden,
-                out_channels=args.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
+                out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
                 normalisation="ln",
                 input_norm=self.norm,
             )
             self.cp_V = MLP(
-                in_channels=args.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
+                in_channels=self.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
                 out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
