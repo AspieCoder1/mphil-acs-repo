@@ -10,6 +10,9 @@
 This script contains all models in our paper.
 """
 
+import torch.nn.functional as F
+from torch import nn
+from torch_geometric.nn.dense import Linear
 from torch_scatter import scatter_mean
 
 from .config import SheafHGNNConfig
@@ -27,6 +30,7 @@ from .sheaf_builder import (
     HGCNSheafBuilderLowRank,
     SheafBuilderLowRank,
 )
+from ..hgnn_baselines.MLP import MLP
 
 
 class SheafHyperGNN(nn.Module):
@@ -34,7 +38,6 @@ class SheafHyperGNN(nn.Module):
     This is a Hypergraph Sheaf Model with
     the dxd blocks in H_BIG associated to each pair (node, hyperedge)
     being **diagonal**
-
 
     """
 

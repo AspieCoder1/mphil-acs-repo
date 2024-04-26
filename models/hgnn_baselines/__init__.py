@@ -6,6 +6,6 @@ from .HCHA import HCHA
 from .HGNN import HGNN
 from .HNHN import HNHN
 from .HyperGCN import HyperGCN
-from .MLP import MLP
+from .MLP import MLPModel
 from .SetGNN import SetGNN
 from .UniGNN import UniGCNII

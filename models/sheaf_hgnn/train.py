@@ -11,8 +11,9 @@ import matplotlib.pyplot as plt
 import torch.nn.functional as F
 from tqdm import tqdm
 
+import models.hgnn_baselines.SetGNN
 from convert_datasets_to_pygDataset import dataset_Hypergraph
-from models.hgnn_baselines import CEGAT, CEGCN, HCHA, HNHN, HyperGCN, MLP, SetGNN
+from models.hgnn_baselines import CEGAT, CEGCN, HCHA, HNHN, HyperGCN, MLPModel, SetGNN
 from preprocessing import *
 from .models import (
     SheafHyperGNN,
@@ -36,7 +37,7 @@ def parse_method(args, data):
             model = SetGNN(args)
 
     elif args.method == "AllDeepSets":
-        args.PMA = False
+        models.hgnn_baselines.SetGNN.PMA = False
         args.aggregate = "add"
         if args.LearnMask:
             model = SetGNN(args, data.norm)
@@ -127,7 +128,7 @@ def parse_method(args, data):
         model = HCHA(args)
 
     elif args.method == "MLP":
-        model = MLP(args)
+        model = MLPModel(args)
 
     elif args.method in [
         "SheafHyperGNNDiag",
