@@ -1,0 +1,2 @@
+_target_: models.sheaf_hgnn.models.Sheaf
+sheaf_type: DiagSheafs

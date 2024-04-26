@@ -1,0 +1,3 @@
+_target_: models.hgnn_baselines.SetGNN
+pma: false
+aggregate: add
