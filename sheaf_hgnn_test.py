@@ -62,7 +62,19 @@ def main():
     # Running Linear SheafHNN.
     # To change the type of restrictian map change between
     # sheaf_type= 'SheafHyperGNNDiag'/'SheafHyperGNNGeneral'/'SheafHyperGNNOrtho'/'SheafHyperGNNLowRank'
-    model = SheafHyperGNN(args, sheaf_type=HGNNSheafTypes.DiagSheafs).to(device)
+    model = SheafHyperGNN(
+        in_channels=args.num_features,
+        out_channels=args.num_classes,
+        num_layers=1,
+        stalk_dimension=6,
+        left_proj=False,
+        init_hedge="avg",
+        sheaf_normtype=args.sheaf_normtype,
+        sheaf_pred_block=args.sheaf_pred_block,
+        sheaf_act=args.sheaf_act,
+        sheaf_type="DiagSheafs",
+        use_lin2=True,
+    ).to(device)
     out = model(data)
     print(out.shape)
 
@@ -71,11 +83,17 @@ def main():
     # sheaf_type= 'DiagSheafs'/'GeneralSheafs'/'OrthoSheafs'/'LowRankSheafs'
     model = SheafHyperGCN(
         V=data.x.shape[0],
-        num_features=args.num_features,
-        num_layers=args.All_num_layers,
-        num_classses=args.num_classes,
-        args=args,
-        sheaf_type=HGNNSheafTypes.DiagSheafs,
+        num_layers=1,
+        in_channels=args.num_features,
+        out_channels=args.num_classes,
+        stalk_dimension=6,
+        left_proj=False,
+        init_hedge="avg",
+        sheaf_normtype=args.sheaf_normtype,
+        sheaf_pred_block=args.sheaf_pred_block,
+        sheaf_act=args.sheaf_act,
+        sheaf_type="DiagSheafs",
+        use_lin2=True,
     ).to(device)
     out = model(data)
     print(out.shape)

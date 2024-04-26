@@ -79,7 +79,6 @@ class SheafHyperGNN(nn.Module):
         )
         self.act = sheaf_act  # type of nonlinearity used when predicting the dxd blocks
         self.left_proj = left_proj  # multiply with (I x W_1) to the left
-        # self.args = args
         self.norm = allset_input_norm
         self.dynamic_sheaf = (
             dynamic_sheaf  # if True, theb sheaf changes from one layer to another
@@ -207,7 +206,7 @@ class SheafHyperGNN(nn.Module):
 
         # if we are at the first epoch, initialise the attribute, otherwise use the previous ones
         if self.hyperedge_attr is None:
-            if data.hyperedge_attr:
+            if hasattr(data, 'hyperedge_attr'):
                 self.hyperedge_attr = data.hyperedge_attr
             else:
                 self.hyperedge_attr = self.init_hyperedge_attr(
@@ -437,7 +436,7 @@ class SheafHyperGCN(nn.Module):
         return hyperedge_attr
 
     def normalise(self, A, hyperedge_index, num_nodes, d):
-        if self.args.sheaf_normtype == "degree_norm":
+        if self.norm_type == "degree_norm":
             # compute D^-1
             D = scatter_add(
                 hyperedge_index.new_ones(hyperedge_index.size(1)),
@@ -463,7 +462,7 @@ class SheafHyperGCN(nn.Module):
             A = torch.sparse_coo_tensor(
                 A[0], A[1], size=(num_nodes * d, num_nodes * d)
             ).to(D.device)
-        elif self.args.sheaf_normtype == "sym_degree_norm":
+        elif self.norm_type == "sym_degree_norm":
             # compute D^-0.5
             D = scatter_add(
                 hyperedge_index.new_ones(hyperedge_index.size(1)),
@@ -501,7 +500,7 @@ class SheafHyperGCN(nn.Module):
                 A[0], A[1], size=(num_nodes * d, num_nodes * d)
             ).to(D.device)
 
-        elif self.args.sheaf_normtype == "block_norm":
+        elif self.norm_type == "block_norm":
             # D computed based on the block diagonal
             D = A.to_dense().view((num_nodes, d, num_nodes, d))
             D = torch.permute(D, (0, 2, 1, 3))  # num_nodes x num_nodes x d x d
@@ -523,7 +522,7 @@ class SheafHyperGCN(nn.Module):
             if self.sheaf_type in ["GeneralSheafs", "LowRankSheafs"]:
                 A = A.to_dense().clamp(-1, 1).to_sparse()
 
-        elif self.args.sheaf_normtype == "sym_block_norm":
+        elif self.norm_type == "sym_block_norm":
             # D computed based on the block diagonal
             D = A.to_dense().view((num_nodes, d, num_nodes, d))
             D = torch.permute(D, (0, 2, 1, 3))  # num_nodes x num_nodes x d x d
@@ -559,7 +558,7 @@ class SheafHyperGCN(nn.Module):
         edge_index = data.edge_index
 
         if self.hyperedge_attr is None:
-            if data.hyperedge_attr:
+            if hasattr(data, "hyperedge_attr"):
                 self.hyperedge_attr = data.hyperedge_attr
             else:
                 self.hyperedge_attr = self.init_hyperedge_attr(

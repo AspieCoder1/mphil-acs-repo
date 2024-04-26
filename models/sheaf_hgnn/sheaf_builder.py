@@ -1,19 +1,18 @@
-from typing import Literal, Protocol
+from typing import Literal
 
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-from torch_scatter import scatter, scatter_mean, scatter_add
+from torch import nn
+from torch_scatter import scatter_add, scatter_mean, scatter
 
 from . import utils
-from .config import SheafHGNNConfig
 from .orthogonal import Orthogonal
 from ..hgnn_baselines.mlp import MLP
 
 
 # helper functions to predict sigma(MLP(x_v || h_e)) varying how thw attributes for hyperedge are computed
-def predict_blocks(x, e, hyperedge_index, sheaf_lin, args: SheafHGNNConfig):
+def predict_blocks(x, e, hyperedge_index, sheaf_lin, sheaf_act):
     # e_j = avg(x_v)
     row, col = hyperedge_index
     xs = torch.index_select(x, dim=0, index=row)
@@ -22,18 +21,18 @@ def predict_blocks(x, e, hyperedge_index, sheaf_lin, args: SheafHGNNConfig):
     # sigma(MLP(x_v || h_e))
     h_sheaf = torch.cat((xs, es), dim=-1)  # sparse version of an NxEx2f tensor
     h_sheaf = sheaf_lin(h_sheaf)  # sparse version of an NxExd tensor
-    if args.sheaf_act == "sigmoid":
+    if sheaf_act == "sigmoid":
         h_sheaf = F.sigmoid(
             h_sheaf
         )  # output d numbers for every entry in the incidence matrix
-    elif args.sheaf_act == "tanh":
+    elif sheaf_act == "tanh":
         h_sheaf = F.tanh(
             h_sheaf
         )  # output d numbers for every entry in the incidence matrix
     return h_sheaf
 
 
-def predict_blocks_var2(x, hyperedge_index, sheaf_lin, args: SheafHGNNConfig):
+def predict_blocks_var2(x, hyperedge_index, sheaf_lin, sheaf_act):
     # e_j = avg(h_v)
     row, col = hyperedge_index
     e = scatter_mean(x[row], col, dim=0)
@@ -44,11 +43,11 @@ def predict_blocks_var2(x, hyperedge_index, sheaf_lin, args: SheafHGNNConfig):
     # sigma(MLP(x_v || h_e))
     h_sheaf = torch.cat((xs, es), dim=-1)  # sparse version of an NxEx2f tensor
     h_sheaf = sheaf_lin(h_sheaf)  # sparse version of an NxExd tensor
-    if args.sheaf_act == "sigmoid":
+    if sheaf_act == "sigmoid":
         h_sheaf = F.sigmoid(
             h_sheaf
         )  # output d numbers for every entry in the incidence matrix
-    elif args.sheaf_act == "tanh":
+    elif sheaf_act == "tanh":
         h_sheaf = F.tanh(
             h_sheaf
         )  # output d numbers for every entry in the incidence matrix
@@ -56,9 +55,7 @@ def predict_blocks_var2(x, hyperedge_index, sheaf_lin, args: SheafHGNNConfig):
     return h_sheaf
 
 
-def predict_blocks_var3(
-    x, hyperedge_index, sheaf_lin, sheaf_lin2, args: SheafHGNNConfig
-):
+def predict_blocks_var3(x, hyperedge_index, sheaf_lin, sheaf_lin2, sheaf_act):
     # universal approx according to  Equivariant Hypergraph Diffusion Neural Operators
     # # e_j = sum(φ(x_v))
 
@@ -74,11 +71,11 @@ def predict_blocks_var3(
     # sigma(MLP(x_v || h_e))
     h_sheaf = torch.cat((xs, es), dim=-1)  # sparse v ersion of an NxEx2f tensor
     h_sheaf = sheaf_lin(h_sheaf)  # sparse version of an NxExd tensor
-    if args.sheaf_act == "sigmoid":
+    if sheaf_act == "sigmoid":
         h_sheaf = F.sigmoid(
             h_sheaf
         )  # output d numbers for every entry in the incidence matrix
-    elif args.sheaf_act == "tanh":
+    elif sheaf_act == "tanh":
         h_sheaf = F.tanh(
             h_sheaf
         )  # output d numbers for every entry in the incidence matrix
@@ -86,7 +83,7 @@ def predict_blocks_var3(
     return h_sheaf
 
 
-def predict_blocks_cp_decomp(x, hyperedge_index, cp_W, cp_V, sheaf_lin, args):
+def predict_blocks_cp_decomp(x, hyperedge_index, cp_W, cp_V, sheaf_lin, sheaf_act):
     row, col = hyperedge_index
     xs = torch.index_select(x, dim=0, index=row)
 
@@ -102,11 +99,11 @@ def predict_blocks_cp_decomp(x, hyperedge_index, cp_W, cp_V, sheaf_lin, args):
     # sigma(MLP(x_v || h_e))
     h_sheaf = torch.cat((xs, es), dim=-1)  # sparse version of an NxEx2f tensor
     h_sheaf = sheaf_lin(h_sheaf)  # sparse version of an NxExd tensor
-    if args.sheaf_act == "sigmoid":
+    if sheaf_act == "sigmoid":
         h_sheaf = F.sigmoid(
             h_sheaf
         )  # output d numbers for every entry in the incidence matrix
-    elif args.sheaf_act == "tanh":
+    elif sheaf_act == "tanh":
         h_sheaf = F.tanh(
             h_sheaf
         )  # output d numbers for every entry in the incidence matrix
@@ -114,20 +111,6 @@ def predict_blocks_cp_decomp(x, hyperedge_index, cp_W, cp_V, sheaf_lin, args):
 
 
 # One class for each type of sheaf. We will need to merge them.
-class HyperSheafBuilder(Protocol):
-    def __init__(
-        self,
-        stalk_dimension: int,
-        hidden_channels: int = 64,
-        dropout: float = 0.6,
-        allset_input_norm: bool = True,
-        sheaf_special_head: bool = False,
-        sheaf_pred_block: str = "MLP_var1",
-        sheaf_dropout: bool = False,
-        sheaf_normtype: Literal[
-            "degree_norm", "block_norm", "sym_degree_norm", "sym_block_norm"
-        ] = "degree_norm",
-    ): ...
 
 
 # Build the restriction maps for the Diagonal Case
@@ -141,6 +124,7 @@ class SheafBuilderDiag(nn.Module):
         sheaf_special_head: bool = False,
         sheaf_pred_block: str = "MLP_var1",
         sheaf_dropout: bool = False,
+        sheaf_act: str = "sigmoid",
         **_kwargs,
     ):
         super(SheafBuilderDiag, self).__init__()
@@ -153,6 +137,7 @@ class SheafBuilderDiag(nn.Module):
         self.MLP_hidden = hidden_channels
         self.norm = allset_input_norm
         self.dropout = dropout
+        self.sheaf_act = sheaf_act
 
         self.sheaf_lin = MLP(
             in_channels=2 * self.MLP_hidden,
@@ -221,16 +206,25 @@ class SheafBuilderDiag(nn.Module):
 
         # predict (_ x d) elements
         if self.prediction_type == "MLP_var1":
-            h_sheaf = predict_blocks(x, e, hyperedge_index, self.sheaf_lin, self.args)
+            h_sheaf = predict_blocks(
+                x, e, hyperedge_index, self.sheaf_lin, self.sheaf_act
+            )
         elif self.prediction_type == "MLP_var2":
-            h_sheaf = predict_blocks_var2(x, hyperedge_index, self.sheaf_lin, self.args)
+            h_sheaf = predict_blocks_var2(
+                x, hyperedge_index, self.sheaf_lin, self.sheaf_act
+            )
         elif self.prediction_type == "MLP_var3":
             h_sheaf = predict_blocks_var3(
-                x, hyperedge_index, self.sheaf_lin, self.sheaf_lin2, self.args
+                x, hyperedge_index, self.sheaf_lin, self.sheaf_lin2, self.sheaf_act
             )
         elif self.prediction_type == "cp_decomp":
             h_sheaf = predict_blocks_cp_decomp(
-                x, hyperedge_index, self.cp_W, self.cp_V, self.sheaf_lin, self.args
+                x,
+                hyperedge_index,
+                self.cp_W,
+                self.cp_V,
+                self.sheaf_lin,
+                sheaf_act=self.sheaf_act,
             )
 
         if self.sheaf_dropout:
@@ -280,6 +274,7 @@ class SheafBuilderGeneral(nn.Module):
         sheaf_normtype: Literal[
             "degree_norm", "block_norm", "sym_degree_norm", "sym_block_norm"
         ] = "degree_norm",
+        sheaf_act: str = "sigmoid",
     ):
         super(SheafBuilderGeneral, self).__init__()
         self.prediction_type = (
@@ -292,6 +287,7 @@ class SheafBuilderGeneral(nn.Module):
         self.norm = allset_input_norm
         self.norm_type = sheaf_normtype
         self.dropout = dropout
+        self.sheaf_act = sheaf_act
 
         self.general_sheaf_lin = MLP(
             in_channels=2 * self.MLP_hidden,
@@ -364,11 +360,11 @@ class SheafBuilderGeneral(nn.Module):
 
         if self.prediction_type == "MLP_var1":
             h_general_sheaf = predict_blocks(
-                x, e, hyperedge_index, self.general_sheaf_lin, self.args
+                x, e, hyperedge_index, self.general_sheaf_lin, self.sheaf_act
             )
         elif self.prediction_type == "MLP_var2":
             h_general_sheaf = predict_blocks_var2(
-                x, hyperedge_index, self.general_sheaf_lin, self.args
+                x, hyperedge_index, self.general_sheaf_lin, self.sheaf_act
             )
         elif self.prediction_type == "MLP_var3":
             h_general_sheaf = predict_blocks_var3(
@@ -376,7 +372,7 @@ class SheafBuilderGeneral(nn.Module):
                 hyperedge_index,
                 self.general_sheaf_lin,
                 self.general_sheaf_lin2,
-                self.args,
+                self.sheaf_act,
             )
         elif self.prediction_type == "cp_decomp":
             h_general_sheaf = predict_blocks_cp_decomp(
@@ -385,7 +381,7 @@ class SheafBuilderGeneral(nn.Module):
                 self.cp_W,
                 self.cp_V,
                 self.general_sheaf_lin,
-                self.args,
+                self.sheaf_act,
             )
 
         if debug:
@@ -433,10 +429,10 @@ class SheafBuilderOrtho(nn.Module):
         sheaf_special_head: bool = False,
         sheaf_pred_block: str = "MLP_var1",
         sheaf_dropout: bool = False,
+        sheaf_act: str = "sigmoid",
         **_kwargs,
     ):
         super(SheafBuilderOrtho, self).__init__()
-        # self.args = args
         self.prediction_type = (
             sheaf_pred_block  # pick the way hyperedge feartures are computed
         )
@@ -446,6 +442,7 @@ class SheafBuilderOrtho(nn.Module):
         self.MLP_hidden = hidden_channels
         self.norm = allset_input_norm
         self.dropout = dropout
+        self.sheaf_act = sheaf_act
 
         self.orth_transform = Orthogonal(
             d=self.d, orthogonal_map="householder"
@@ -516,19 +513,28 @@ class SheafBuilderOrtho(nn.Module):
 
         if self.prediction_type == "MLP_var1":
             h_orth_sheaf = predict_blocks(
-                x, e, hyperedge_index, self.orth_sheaf_lin, self.args
+                x, e, hyperedge_index, self.orth_sheaf_lin, self.sheaf_act
             )
         elif self.prediction_type == "MLP_var2":
             h_orth_sheaf = predict_blocks_var2(
-                x, hyperedge_index, self.orth_sheaf_lin, self.args
+                x, hyperedge_index, self.orth_sheaf_lin, self.sheaf_act
             )
         elif self.prediction_type == "MLP_var3":
             h_orth_sheaf = predict_blocks_var3(
-                x, hyperedge_index, self.orth_sheaf_lin, self.orth_sheaf_lin2, self.args
+                x,
+                hyperedge_index,
+                self.orth_sheaf_lin,
+                self.orth_sheaf_lin2,
+                self.sheaf_act,
             )
         elif self.prediction_type == "cp_decomp":
             h_orth_sheaf = predict_blocks_cp_decomp(
-                x, hyperedge_index, self.cp_W, self.cp_V, self.orth_sheaf_lin, self.args
+                x,
+                hyperedge_index,
+                self.cp_W,
+                self.cp_V,
+                self.orth_sheaf_lin,
+                self.sheaf_act,
             )
 
         # convert the d*(d-1)//2 params into orthonormal dxd matrices using housholder transformation
@@ -583,27 +589,38 @@ class SheafBuilderOrtho(nn.Module):
 
 # Build the restriction maps for the LowRank Case
 class SheafBuilderLowRank(nn.Module):
-    def __init__(self, args: SheafHGNNConfig):
+    def __init__(
+        self,
+        stalk_dimension: int,
+        hidden_channels: int = 64,
+        dropout: float = 0.6,
+        allset_input_norm: bool = True,
+        sheaf_special_head: bool = False,
+        sheaf_pred_block: str = "MLP_var1",
+        sheaf_dropout: bool = False,
+        sheaf_act: str = "sigmoid",
+        sheaf_normtype: str = "degree_norm",
+        rank: int = 2,
+        **_kwargs,
+    ):
         super(SheafBuilderLowRank, self).__init__()
-        self.args = args
         self.prediction_type = (
-            args.sheaf_pred_block
-        )  # pick the way hyperedge feartures are computed
-        self.sheaf_dropout = args.sheaf_dropout
-        self.special_head = (
-            args.sheaf_special_head
-        )  # add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
-        self.d = args.heads  # stalk dimension
-        self.MLP_hidden = args.MLP_hidden
-        self.norm = args.AllSet_input_norm
-        self.norm_type = args.sheaf_normtype
+            sheaf_pred_block  # pick the way hyperedge feartures are computed
+        )
+        self.sheaf_dropout = sheaf_dropout
+        self.special_head = sheaf_special_head  # add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
+        self.d = stalk_dimension  # stalk dimension
+        self.MLP_hidden = hidden_channels
+        self.norm = allset_input_norm
+        self.norm_type = sheaf_normtype
 
-        self.rank = args.rank  # rank for the block matrices
-        self.dropout = args.dropout
+        self.rank = rank  # rank for the block matrices
+        self.dropout = dropout
+        self.sheaf_act = sheaf_act
 
         self.general_sheaf_lin = MLP(
             in_channels=2 * self.MLP_hidden,
-            hidden_channels=args.MLP_hidden,
+            hidden_channels=self.MLP_hidden,
             out_channels=2 * self.d * self.rank + self.d,
             num_layers=1,
             dropout=0.0,
@@ -614,8 +631,8 @@ class SheafBuilderLowRank(nn.Module):
         if self.prediction_type == "MLP_var3":
             self.general_sheaf_lin2 = MLP(
                 in_channels=self.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
-                out_channels=args.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
+                out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
                 normalisation="ln",
@@ -624,17 +641,17 @@ class SheafBuilderLowRank(nn.Module):
         if self.prediction_type == "cp_decomp":
             self.cp_W = MLP(
                 in_channels=self.MLP_hidden + 1,
-                hidden_channels=args.MLP_hidden,
-                out_channels=args.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
+                out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
                 normalisation="ln",
                 input_norm=self.norm,
             )
             self.cp_V = MLP(
-                in_channels=args.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
-                out_channels=args.MLP_hidden,
+                in_channels=self.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
+                out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
                 normalisation="ln",
@@ -670,11 +687,11 @@ class SheafBuilderLowRank(nn.Module):
 
         if self.prediction_type == "MLP_var1":
             h_general_sheaf = predict_blocks(
-                x, e, hyperedge_index, self.general_sheaf_lin, self.args
+                x, e, hyperedge_index, self.general_sheaf_lin, self.sheaf_act
             )
         elif self.prediction_type == "MLP_var2":
             h_general_sheaf = predict_blocks_var2(
-                x, hyperedge_index, self.general_sheaf_lin, self.args
+                x, hyperedge_index, self.general_sheaf_lin, self.sheaf_act
             )
         elif self.prediction_type == "MLP_var3":
             h_general_sheaf = predict_blocks_var3(
@@ -811,16 +828,13 @@ class HGCNSheafBuilderDiag(nn.Module):
         sheaf_special_head: bool = False,
         sheaf_pred_block: str = "MLP_var1",
         sheaf_dropout: bool = False,
+        sheaf_act: str = "sigmoid",
         **_kwargs,
-        # sheaf_normtype: Literal[
-        #     "degree_norm", "block_norm", "sym_degree_norm", "sym_block_norm"
-        # ] = "degree_norm",
     ):
         """
-        hidden_dim overwrite the args.MLP_hidden used in the normal sheaf HNN
+        hidden_dim overwrite the self.MLP_hidden used in the normal sheaf HNN
         """
         super(HGCNSheafBuilderDiag, self).__init__()
-        # self.args = args
         self.prediction_type = (
             sheaf_pred_block  # pick the way hyperedge feartures are computed
         )
@@ -830,6 +844,7 @@ class HGCNSheafBuilderDiag(nn.Module):
         self.MLP_hidden = hidden_channels
         self.norm = allset_input_norm
         self.dropout = dropout
+        self.sheaf_act = sheaf_act
 
         if self.prediction_type == "MLP_var1":
             self.sheaf_lin = MLP(
@@ -908,16 +923,20 @@ class HGCNSheafBuilderDiag(nn.Module):
         e = e.view(num_edges, self.d, e.shape[-1]).mean(1)  # # x d x f -> E x f
 
         if self.prediction_type == "MLP_var1":
-            h_sheaf = predict_blocks(x, e, hyperedge_index, self.sheaf_lin, self.args)
+            h_sheaf = predict_blocks(
+                x, e, hyperedge_index, self.sheaf_lin, self.sheaf_act
+            )
         elif self.prediction_type == "MLP_var2":
-            h_sheaf = predict_blocks_var2(x, hyperedge_index, self.sheaf_lin, self.args)
+            h_sheaf = predict_blocks_var2(
+                x, hyperedge_index, self.sheaf_lin, self.sheaf_act
+            )
         elif self.prediction_type == "MLP_var3":
             h_sheaf = predict_blocks_var3(
-                x, hyperedge_index, self.sheaf_lin, self.sheaf_lin2, self.args
+                x, hyperedge_index, self.sheaf_lin, self.sheaf_lin2, self.sheaf_act
             )
         elif self.prediction_type == "cp_decomp":
             h_sheaf = predict_blocks_cp_decomp(
-                x, hyperedge_index, self.cp_W, self.cp_V, self.sheaf_lin, self.args
+                x, hyperedge_index, self.cp_W, self.cp_V, self.sheaf_lin, self.sheaf_act
             )
 
         if self.sheaf_dropout:
@@ -936,9 +955,10 @@ class HGCNSheafBuilderGeneral(nn.Module):
         sheaf_special_head: bool = False,
         sheaf_pred_block: str = "MLP_var1",
         sheaf_dropout: bool = False,
+        sheaf_act: str = "sigmoid",
+        **_kwargs,
     ):
         super(HGCNSheafBuilderGeneral, self).__init__()
-        # self.args = args
         self.prediction_type = (
             sheaf_pred_block  # pick the way hyperedge feartures are computed
         )
@@ -948,6 +968,7 @@ class HGCNSheafBuilderGeneral(nn.Module):
         self.MLP_hidden = hidden_channels
         self.norm = allset_input_norm
         self.dropout = dropout
+        self.sheaf_act = sheaf_act
 
         if self.prediction_type == "MLP_var1":
             self.sheaf_lin = MLP(
@@ -1027,16 +1048,20 @@ class HGCNSheafBuilderGeneral(nn.Module):
         # h_sheaf = self.predict_blocks(x, e, hyperedge_index, sheaf_lin)
         # h_sheaf = self.predict_blocks_var2(x, hyperedge_index, sheaf_lin)
         if self.prediction_type == "MLP_var1":
-            h_sheaf = predict_blocks(x, e, hyperedge_index, self.sheaf_lin, self.args)
+            h_sheaf = predict_blocks(
+                x, e, hyperedge_index, self.sheaf_lin, self.sheaf_act
+            )
         elif self.prediction_type == "MLP_var2":
-            h_sheaf = predict_blocks_var2(x, hyperedge_index, self.sheaf_lin, self.args)
+            h_sheaf = predict_blocks_var2(
+                x, hyperedge_index, self.sheaf_lin, self.sheaf_act
+            )
         elif self.prediction_type == "MLP_var3":
             h_sheaf = predict_blocks_var3(
-                x, hyperedge_index, self.sheaf_lin, self.sheaf_lin2, self.args
+                x, hyperedge_index, self.sheaf_lin, self.sheaf_lin2, self.sheaf_act
             )
         elif self.prediction_type == "cp_decomp":
             h_sheaf = predict_blocks_cp_decomp(
-                x, hyperedge_index, self.cp_W, self.cp_V, self.sheaf_lin, self.args
+                x, hyperedge_index, self.cp_W, self.cp_V, self.sheaf_lin, self.sheaf_act
             )
 
         if self.sheaf_dropout:
@@ -1048,7 +1073,6 @@ class HGCNSheafBuilderGeneral(nn.Module):
 class HGCNSheafBuilderOrtho(nn.Module):
     def __init__(
         self,
-        # args: SheafHGNNConfig,
         stalk_dimension: int,
         hidden_channels: int = 64,
         dropout: float = 0.6,
@@ -1056,6 +1080,7 @@ class HGCNSheafBuilderOrtho(nn.Module):
         sheaf_special_head: bool = False,
         sheaf_pred_block: str = "MLP_var1",
         sheaf_dropout: bool = False,
+        sheaf_act: str = "sigmoid",
         **_kwargs,
     ):
         super(HGCNSheafBuilderOrtho, self).__init__()
@@ -1067,6 +1092,7 @@ class HGCNSheafBuilderOrtho(nn.Module):
         self.d = stalk_dimension
         self.MLP_hidden = hidden_channels
         self.norm = allset_input_norm
+        self.sheaf_act = sheaf_act
 
         self.orth_transform = Orthogonal(
             d=self.d, orthogonal_map="householder"
@@ -1149,16 +1175,20 @@ class HGCNSheafBuilderOrtho(nn.Module):
         e = e.view(num_edges, self.d, e.shape[-1]).mean(1)  # # x d x f -> E x f
 
         if self.prediction_type == "MLP_var1":
-            h_sheaf = predict_blocks(x, e, hyperedge_index, self.sheaf_lin, self.args)
+            h_sheaf = predict_blocks(
+                x, e, hyperedge_index, self.sheaf_lin, self.sheaf_act
+            )
         elif self.prediction_type == "MLP_var2":
-            h_sheaf = predict_blocks_var2(x, hyperedge_index, self.sheaf_lin, self.args)
+            h_sheaf = predict_blocks_var2(
+                x, hyperedge_index, self.sheaf_lin, self.sheaf_act
+            )
         elif self.prediction_type == "MLP_var3":
             h_sheaf = predict_blocks_var3(
-                x, hyperedge_index, self.sheaf_lin, self.sheaf_lin2, self.args
+                x, hyperedge_index, self.sheaf_lin, self.sheaf_lin2, self.sheaf_act
             )
         elif self.prediction_type == "cp_decomp":
             h_sheaf = predict_blocks_cp_decomp(
-                x, hyperedge_index, self.cp_W, self.cp_V, self.sheaf_lin, self.args
+                x, hyperedge_index, self.cp_W, self.cp_V, self.sheaf_lin, self.sheaf_act
             )
 
         h_sheaf = self.orth_transform(h_sheaf)  # sparse version of a NxExdxd tensor
@@ -1169,27 +1199,37 @@ class HGCNSheafBuilderOrtho(nn.Module):
 
 
 class HGCNSheafBuilderLowRank(nn.Module):
-    def __init__(self, args: SheafHGNNConfig, hidden_dim):
+    def __init__(
+        self,
+        stalk_dimension: int,
+        hidden_channels: int = 64,
+        dropout: float = 0.6,
+        allset_input_norm: bool = True,
+        sheaf_special_head: bool = False,
+        sheaf_pred_block: str = "MLP_var1",
+        sheaf_dropout: bool = False,
+        sheaf_act: str = "sigmoid",
+        rank: int = 2,
+        **_kwargs,
+    ):
         super(HGCNSheafBuilderLowRank, self).__init__()
-        self.args = args
         self.prediction_type = (
-            args.sheaf_pred_block
-        )  # pick the way hyperedge feartures are computed
-        self.sheaf_dropout = args.sheaf_dropout
-        self.special_head = (
-            args.sheaf_special_head
-        )  # add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
-        self.d = args.heads  # stalk dimension
-        self.MLP_hidden = hidden_dim
-        self.norm = args.AllSet_input_norm
+            sheaf_pred_block  # pick the way hyperedge feartures are computed
+        )
+        self.sheaf_dropout = sheaf_dropout
+        self.special_head = sheaf_special_head  # add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
+        self.d = stalk_dimension  # stalk dimension
+        self.MLP_hidden = hidden_channels
+        self.norm = allset_input_norm
+        self.sheaf_act = sheaf_act
 
-        self.rank = args.rank
-        self.dropout = args.dropout
+        self.rank = rank
+        self.dropout = dropout
 
         if self.prediction_type == "MLP_var1":
             self.sheaf_lin = MLP(
-                in_channels=self.MLP_hidden + args.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
+                in_channels=self.MLP_hidden + self.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
                 out_channels=2 * self.d * self.rank + self.d,
                 num_layers=1,
                 dropout=0.0,
@@ -1199,7 +1239,7 @@ class HGCNSheafBuilderLowRank(nn.Module):
         else:
             self.sheaf_lin = MLP(
                 in_channels=2 * self.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
                 out_channels=2 * self.d * self.rank + self.d,
                 num_layers=1,
                 dropout=0.0,
@@ -1209,7 +1249,7 @@ class HGCNSheafBuilderLowRank(nn.Module):
         if self.prediction_type == "MLP_var3":
             self.sheaf_lin2 = MLP(
                 in_channels=self.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
                 out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
@@ -1219,16 +1259,16 @@ class HGCNSheafBuilderLowRank(nn.Module):
         if self.prediction_type == "cp_decomp":
             self.cp_W = MLP(
                 in_channels=self.MLP_hidden + 1,
-                hidden_channels=args.MLP_hidden,
-                out_channels=args.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
+                out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
                 normalisation="ln",
                 input_norm=self.norm,
             )
             self.cp_V = MLP(
-                in_channels=args.MLP_hidden,
-                hidden_channels=args.MLP_hidden,
+                in_channels=self.MLP_hidden,
+                hidden_channels=self.MLP_hidden,
                 out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
@@ -1264,16 +1304,20 @@ class HGCNSheafBuilderLowRank(nn.Module):
         # h_sheaf = self.predict_blocks(x, e, hyperedge_index, sheaf_lin)
         # h_sheaf = self.predict_blocks_var2(x, hyperedge_index, sheaf_lin)
         if self.prediction_type == "MLP_var1":
-            h_sheaf = predict_blocks(x, e, hyperedge_index, self.sheaf_lin, self.args)
+            h_sheaf = predict_blocks(
+                x, e, hyperedge_index, self.sheaf_lin, self.sheaf_act
+            )
         elif self.prediction_type == "MLP_var2":
-            h_sheaf = predict_blocks_var2(x, hyperedge_index, self.sheaf_lin, self.args)
+            h_sheaf = predict_blocks_var2(
+                x, hyperedge_index, self.sheaf_lin, self.sheaf_act
+            )
         elif self.prediction_type == "MLP_var3":
             h_sheaf = predict_blocks_var3(
-                x, hyperedge_index, self.sheaf_lin, self.sheaf_lin2, self.args
+                x, hyperedge_index, self.sheaf_lin, self.sheaf_lin2, self.sheaf_act
             )
         elif self.prediction_type == "cp_decomp":
             h_sheaf = predict_blocks_cp_decomp(
-                x, hyperedge_index, self.cp_W, self.cp_V, self.sheaf_lin, self.args
+                x, hyperedge_index, self.cp_W, self.cp_V, self.sheaf_lin, self.sheaf_act
             )
 
         # h_general_sheaf is nnz x (2*d*r)
