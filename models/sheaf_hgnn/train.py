@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import torch.nn.functional as F
 from tqdm import tqdm
 
-import models.hgnn_baselines.SetGNN
+import models.hgnn_baselines.setgnn
 from convert_datasets_to_pygDataset import dataset_Hypergraph
 from models.hgnn_baselines import CEGAT, CEGCN, HCHA, HNHN, HyperGCN, MLPModel, SetGNN
 from preprocessing import *

@@ -30,7 +30,7 @@ from .sheaf_builder import (
     HGCNSheafBuilderLowRank,
     SheafBuilderLowRank,
 )
-from ..hgnn_baselines.MLP import MLP
+from ..hgnn_baselines.mlp import MLP
 
 
 class SheafHyperGNN(nn.Module):

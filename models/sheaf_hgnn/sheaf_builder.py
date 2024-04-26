@@ -1,4 +1,4 @@
-from ..hgnn_baselines.MLP import MLP
+from ..hgnn_baselines.mlp import MLP
 import torch.nn as nn
 import torch
 from .orthogonal import Orthogonal
