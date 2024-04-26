@@ -7,6 +7,7 @@ import torch
 from torch import nn
 from torch_geometric.utils import softmax
 from torch_scatter import scatter
+import torch.nn.functional as F
 
 # from models.sheaf_hgnn.layers import glorot
 

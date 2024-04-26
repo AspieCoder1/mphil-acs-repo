@@ -2,19 +2,19 @@
 #  License: MIT
 
 from torch import nn
-from torch.nn import functional
+from torch.nn import functional as F
 from torch_geometric.nn import MessagePassing, GCNConv
 
 
 class CEGCN(MessagePassing):
     def __init__(
-        self, in_dim, hid_dim, out_dim, num_layers, dropout, Normalization="bn"
+        self, in_dim, hid_dim, out_dim, num_layers, dropout, normalisation="bn"
     ):
         super(CEGCN, self).__init__()
         self.convs = nn.ModuleList()
         self.normalizations = nn.ModuleList()
 
-        if Normalization == "bn":
+        if normalisation == "bn":
             self.convs.append(GCNConv(in_dim, hid_dim, normalize=False))
             self.normalizations.append(nn.BatchNorm1d(hid_dim))
             for _ in range(num_layers - 2):

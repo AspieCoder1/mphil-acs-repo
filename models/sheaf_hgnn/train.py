@@ -12,7 +12,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 
 from convert_datasets_to_pygDataset import dataset_Hypergraph
-from models.hgnn_baselines import CEGAT, CEGCN, HCHA, HNHN, HyperGCN, MLP_model, SetGNN
+from models.hgnn_baselines import CEGAT, CEGCN, HCHA, HNHN, HyperGCN, MLP, SetGNN
 from preprocessing import *
 from .models import (
     SheafHyperGNN,
@@ -50,7 +50,7 @@ def parse_method(args, data):
             out_dim=args.num_classes,
             num_layers=args.All_num_layers,
             dropout=args.dropout,
-            Normalization=args.normalization,
+            normalisation=args.normalization,
         )
 
     elif args.method == "CEGAT":
@@ -62,7 +62,7 @@ def parse_method(args, data):
             heads=args.heads,
             output_heads=args.output_heads,
             dropout=args.dropout,
-            Normalization=args.normalization,
+            normalisation=args.normalization,
         )
 
     elif args.method == "HyperGCN":
@@ -127,7 +127,7 @@ def parse_method(args, data):
         model = HCHA(args)
 
     elif args.method == "MLP":
-        model = MLP_model(args)
+        model = MLP(args)
 
     elif args.method in [
         "SheafHyperGNNDiag",

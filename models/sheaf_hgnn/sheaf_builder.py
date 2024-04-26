@@ -137,8 +137,8 @@ class SheafBuilderDiag(nn.Module):
             out_channels=self.d,
             num_layers=1,
             dropout=0.0,
-            Normalization="ln",
-            InputNorm=self.norm,
+            normalisation="ln",
+            input_norm=self.norm,
         )
 
         if self.prediction_type == "MLP_var3":
@@ -148,8 +148,8 @@ class SheafBuilderDiag(nn.Module):
                 out_channels=args.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
         elif self.prediction_type == "cp_decomp":
             self.cp_W = MLP(
@@ -158,8 +158,8 @@ class SheafBuilderDiag(nn.Module):
                 out_channels=args.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
             self.cp_V = MLP(
                 in_channels=args.MLP_hidden,
@@ -167,8 +167,8 @@ class SheafBuilderDiag(nn.Module):
                 out_channels=args.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.MLP_hidden,
+                normalisation="ln",
+                input_norm=self.MLP_hidden,
             )
 
     def reset_parameters(self):
@@ -267,8 +267,8 @@ class SheafBuilderGeneral(nn.Module):
             out_channels=self.d * self.d,
             num_layers=1,
             dropout=0.0,
-            Normalization="ln",
-            InputNorm=self.norm,
+            normalisation="ln",
+            input_norm=self.norm,
         )
         if self.prediction_type == "MLP_var3":
             self.general_sheaf_lin2 = MLP(
@@ -277,8 +277,8 @@ class SheafBuilderGeneral(nn.Module):
                 out_channels=args.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
         if self.prediction_type == "cp_decomp":
             self.cp_W = MLP(
@@ -287,8 +287,8 @@ class SheafBuilderGeneral(nn.Module):
                 out_channels=args.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
             self.cp_V = MLP(
                 in_channels=args.MLP_hidden,
@@ -296,8 +296,8 @@ class SheafBuilderGeneral(nn.Module):
                 out_channels=args.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.MLP_hidden,
+                normalisation="ln",
+                input_norm=self.MLP_hidden,
             )
 
     def reset_parameters(self):
@@ -417,8 +417,8 @@ class SheafBuilderOrtho(nn.Module):
             out_channels=self.d * (self.d - 1) // 2,
             num_layers=1,
             dropout=0.0,
-            Normalization="ln",
-            InputNorm=self.norm,
+            normalisation="ln",
+            input_norm=self.norm,
         )
         if self.prediction_type == "MLP_var3":
             self.orth_sheaf_lin2 = MLP(
@@ -427,8 +427,8 @@ class SheafBuilderOrtho(nn.Module):
                 out_channels=args.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
         if self.prediction_type == "cp_decomp":
             self.cp_W = MLP(
@@ -437,8 +437,8 @@ class SheafBuilderOrtho(nn.Module):
                 out_channels=args.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
             self.cp_V = MLP(
                 in_channels=args.MLP_hidden,
@@ -446,8 +446,8 @@ class SheafBuilderOrtho(nn.Module):
                 out_channels=args.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.MLP_hidden,
+                normalisation="ln",
+                input_norm=self.MLP_hidden,
             )
 
     def reset_parameters(self):
@@ -567,8 +567,8 @@ class SheafBuilderLowRank(nn.Module):
             out_channels=2 * self.d * self.rank + self.d,
             num_layers=1,
             dropout=0.0,
-            Normalization="ln",
-            InputNorm=self.norm,
+            normalisation="ln",
+            input_norm=self.norm,
         )
 
         if self.prediction_type == "MLP_var3":
@@ -578,8 +578,8 @@ class SheafBuilderLowRank(nn.Module):
                 out_channels=args.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
         if self.prediction_type == "cp_decomp":
             self.cp_W = MLP(
@@ -588,8 +588,8 @@ class SheafBuilderLowRank(nn.Module):
                 out_channels=args.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
             self.cp_V = MLP(
                 in_channels=args.MLP_hidden,
@@ -597,8 +597,8 @@ class SheafBuilderLowRank(nn.Module):
                 out_channels=args.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.MLP_hidden,
+                normalisation="ln",
+                input_norm=self.MLP_hidden,
             )
 
     def reset_parameters(self):
@@ -787,8 +787,8 @@ class HGCNSheafBuilderDiag(nn.Module):
                 out_channels=self.d,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
         else:
             self.sheaf_lin = MLP(
@@ -797,8 +797,8 @@ class HGCNSheafBuilderDiag(nn.Module):
                 out_channels=self.d,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
         if self.prediction_type == "MLP_var3":
             self.sheaf_lin2 = MLP(
@@ -807,8 +807,8 @@ class HGCNSheafBuilderDiag(nn.Module):
                 out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
         if self.prediction_type == "cp_decomp":
             self.cp_W = MLP(
@@ -817,8 +817,8 @@ class HGCNSheafBuilderDiag(nn.Module):
                 out_channels=args.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
             self.cp_V = MLP(
                 in_channels=args.MLP_hidden,
@@ -826,8 +826,8 @@ class HGCNSheafBuilderDiag(nn.Module):
                 out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.MLP_hidden,
+                normalisation="ln",
+                input_norm=self.MLP_hidden,
             )
 
     def reset_parameters(self):
@@ -898,8 +898,8 @@ class HGCNSheafBuilderGeneral(nn.Module):
                 out_channels=self.d * self.d,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
         else:
             self.sheaf_lin = MLP(
@@ -908,8 +908,8 @@ class HGCNSheafBuilderGeneral(nn.Module):
                 out_channels=self.d * self.d,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
         if self.prediction_type == "MLP_var3":
             self.sheaf_lin2 = MLP(
@@ -918,8 +918,8 @@ class HGCNSheafBuilderGeneral(nn.Module):
                 out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
         if self.prediction_type == "cp_decomp":
             self.cp_W = MLP(
@@ -928,8 +928,8 @@ class HGCNSheafBuilderGeneral(nn.Module):
                 out_channels=args.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
             self.cp_V = MLP(
                 in_channels=args.MLP_hidden,
@@ -937,8 +937,8 @@ class HGCNSheafBuilderGeneral(nn.Module):
                 out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.MLP_hidden,
+                normalisation="ln",
+                input_norm=self.MLP_hidden,
             )
 
     def reset_parameters(self):
@@ -1014,8 +1014,8 @@ class HGCNSheafBuilderOrtho(nn.Module):
                 out_channels=self.d * (self.d - 1) // 2,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
         else:
             self.sheaf_lin = MLP(
@@ -1024,8 +1024,8 @@ class HGCNSheafBuilderOrtho(nn.Module):
                 out_channels=self.d * (self.d - 1) // 2,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
         if self.prediction_type == "MLP_var3":
             self.sheaf_lin2 = MLP(
@@ -1034,8 +1034,8 @@ class HGCNSheafBuilderOrtho(nn.Module):
                 out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
         if self.prediction_type == "cp_decomp":
             self.cp_W = MLP(
@@ -1044,8 +1044,8 @@ class HGCNSheafBuilderOrtho(nn.Module):
                 out_channels=args.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
             self.cp_V = MLP(
                 in_channels=args.MLP_hidden,
@@ -1053,8 +1053,8 @@ class HGCNSheafBuilderOrtho(nn.Module):
                 out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.MLP_hidden,
+                normalisation="ln",
+                input_norm=self.MLP_hidden,
             )
 
     def reset_parameters(self):
@@ -1127,8 +1127,8 @@ class HGCNSheafBuilderLowRank(nn.Module):
                 out_channels=2 * self.d * self.rank + self.d,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
         else:
             self.sheaf_lin = MLP(
@@ -1137,8 +1137,8 @@ class HGCNSheafBuilderLowRank(nn.Module):
                 out_channels=2 * self.d * self.rank + self.d,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
         if self.prediction_type == "MLP_var3":
             self.sheaf_lin2 = MLP(
@@ -1147,8 +1147,8 @@ class HGCNSheafBuilderLowRank(nn.Module):
                 out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
         if self.prediction_type == "cp_decomp":
             self.cp_W = MLP(
@@ -1157,8 +1157,8 @@ class HGCNSheafBuilderLowRank(nn.Module):
                 out_channels=args.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
             self.cp_V = MLP(
                 in_channels=args.MLP_hidden,
@@ -1166,8 +1166,8 @@ class HGCNSheafBuilderLowRank(nn.Module):
                 out_channels=self.MLP_hidden,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.MLP_hidden,
+                normalisation="ln",
+                input_norm=self.MLP_hidden,
             )
 
     def reset_parameters(self):

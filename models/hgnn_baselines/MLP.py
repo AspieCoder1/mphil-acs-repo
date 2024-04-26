@@ -2,14 +2,14 @@
 #  License: MIT
 
 from torch import nn
-from torch.nn import functional
+from torch.nn import functional as F
 
 
-class MLP_model(nn.Module):
+class MLP(nn.Module):
     """adapted from https://github.com/CUAI/CorrectAndSmooth/blob/master/gen_models.py"""
 
     def __init__(self, args, InputNorm=False):
-        super(MLP_model, self).__init__()
+        super(MLP, self).__init__()
         in_channels = args.num_features
         hidden_channels = args.MLP_hidden
         out_channels = args.num_classes

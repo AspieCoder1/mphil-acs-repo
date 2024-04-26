@@ -3,7 +3,7 @@
 
 import torch
 from torch import nn
-from torch.nn import Parameter, Linear, functional
+from torch.nn import Parameter, Linear, functional as F
 
 from models.sheaf_hgnn.layers import MLP, HalfNLHconv
 
@@ -46,8 +46,8 @@ class SetGNN(nn.Module):
                 out_channels=args.num_classes,
                 num_layers=args.Classifier_num_layers,
                 dropout=self.dropout,
-                Normalization=self.NormLayer,
-                InputNorm=False,
+                normalisation=self.NormLayer,
+                input_norm=False,
             )
         else:
             self.V2EConvs.append(
@@ -114,8 +114,8 @@ class SetGNN(nn.Module):
                     out_channels=args.MLP_hidden,
                     num_layers=args.MLP_num_layers,
                     dropout=self.dropout,
-                    Normalization=self.NormLayer,
-                    InputNorm=False,
+                    normalisation=self.NormLayer,
+                    input_norm=False,
                 )
                 self.GPRweights = Linear(self.All_num_layers + 1, 1, bias=False)
                 self.classifier = MLP(
@@ -124,8 +124,8 @@ class SetGNN(nn.Module):
                     out_channels=args.num_classes,
                     num_layers=args.Classifier_num_layers,
                     dropout=self.dropout,
-                    Normalization=self.NormLayer,
-                    InputNorm=False,
+                    normalisation=self.NormLayer,
+                    input_norm=False,
                 )
             else:
                 self.classifier = MLP(
@@ -134,8 +134,8 @@ class SetGNN(nn.Module):
                     out_channels=args.num_classes,
                     num_layers=args.Classifier_num_layers,
                     dropout=self.dropout,
-                    Normalization=self.NormLayer,
-                    InputNorm=False,
+                    normalisation=self.NormLayer,
+                    input_norm=False,
                 )
 
     #         Now we simply use V_enc_hid=V_dec_hid=E_enc_hid=E_dec_hid

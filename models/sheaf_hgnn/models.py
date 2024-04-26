@@ -77,8 +77,8 @@ class SheafHyperGNN(nn.Module):
             out_channels=self.MLP_hidden * self.d,
             num_layers=1,
             dropout=0.0,
-            Normalization="ln",
-            InputNorm=False,
+            normalisation="ln",
+            input_norm=False,
         )
         self.use_lin2 = args.use_lin2
 
@@ -293,8 +293,8 @@ class SheafHyperGCN(nn.Module):
                         out_channels=self.d,
                         num_layers=1,
                         dropout=0.0,
-                        Normalization="ln",
-                        InputNorm=self.norm,
+                        normalisation="ln",
+                        input_norm=self.norm,
                     )
                     for i in range(l)
                 ]
@@ -306,8 +306,8 @@ class SheafHyperGCN(nn.Module):
             out_channels=self.MLP_hidden * self.d,
             num_layers=1,
             dropout=0.0,
-            Normalization="ln",
-            InputNorm=False,
+            normalisation="ln",
+            input_norm=False,
         )
 
         self.sheaf_builder = nn.ModuleList()

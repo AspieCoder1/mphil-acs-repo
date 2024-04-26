@@ -165,8 +165,8 @@ class HyperDiffusionDiagSheafConv(MessagePassing):
                 out_channels=d,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
 
         self.lin = MLP(
@@ -175,8 +175,8 @@ class HyperDiffusionDiagSheafConv(MessagePassing):
             out_channels=out_channels,
             num_layers=1,
             dropout=0.0,
-            Normalization="ln",
-            InputNorm=self.norm,
+            normalisation="ln",
+            input_norm=self.norm,
         )
 
         if bias:
@@ -356,8 +356,8 @@ class HyperDiffusionOrthoSheafConv(MessagePassing):
                 out_channels=d,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
         self.lin = MLP(
             in_channels=in_channels,
@@ -365,8 +365,8 @@ class HyperDiffusionOrthoSheafConv(MessagePassing):
             out_channels=out_channels,
             num_layers=1,
             dropout=0.0,
-            Normalization="ln",
-            InputNorm=self.norm,
+            normalisation="ln",
+            input_norm=self.norm,
         )
         if bias:
             self.bias = Parameter(torch.Tensor(out_channels))
@@ -536,8 +536,8 @@ class HyperDiffusionGeneralSheafConv(MessagePassing):
                 out_channels=d,
                 num_layers=1,
                 dropout=0.0,
-                Normalization="ln",
-                InputNorm=self.norm,
+                normalisation="ln",
+                input_norm=self.norm,
             )
 
         self.lin = MLP(
@@ -546,8 +546,8 @@ class HyperDiffusionGeneralSheafConv(MessagePassing):
             out_channels=out_channels,
             num_layers=1,
             dropout=0.0,
-            Normalization="ln",
-            InputNorm=self.norm,
+            normalisation="ln",
+            input_norm=self.norm,
         )
         if bias:
             self.bias = Parameter(torch.Tensor(out_channels))
@@ -810,7 +810,7 @@ class PMA(MessagePassing):
             out_channels=out_channels,
             num_layers=num_layers,
             dropout=0.0,
-            Normalization="None",
+            normalisation="None",
         )
         self.ln0 = nn.LayerNorm(self.heads * self.hidden)
         self.ln1 = nn.LayerNorm(self.heads * self.hidden)
@@ -1224,25 +1224,25 @@ class MLP(nn.Module):
         out_channels,
         num_layers,
         dropout=0.5,
-        Normalization="bn",
-        InputNorm=False,
+        normalisation="bn",
+        input_norm=False,
     ):
         super(MLP, self).__init__()
         self.lins = nn.ModuleList()
         self.normalizations = nn.ModuleList()
-        self.InputNorm = InputNorm
+        self.InputNorm = input_norm
 
-        assert Normalization in ["bn", "ln", "None"]
-        if Normalization == "bn":
+        assert normalisation in ["bn", "ln", "None"]
+        if normalisation == "bn":
             if num_layers == 1:
                 # just linear layer i.e. logistic regression
-                if InputNorm:
+                if input_norm:
                     self.normalizations.append(nn.BatchNorm1d(in_channels))
                 else:
                     self.normalizations.append(nn.Identity())
                 self.lins.append(nn.Linear(in_channels, out_channels))
             else:
-                if InputNorm:
+                if input_norm:
                     self.normalizations.append(nn.BatchNorm1d(in_channels))
                 else:
                     self.normalizations.append(nn.Identity())
@@ -1253,18 +1253,18 @@ class MLP(nn.Module):
                     self.normalizations.append(nn.BatchNorm1d(hidden_channels))
                 self.lins.append(nn.Linear(hidden_channels, out_channels))
 
-        elif Normalization == "ln":
+        elif normalisation == "ln":
             print("using LN")
             if num_layers == 1:
                 # just linear layer i.e. logistic regression
-                if InputNorm:
+                if input_norm:
                     self.normalizations.append(nn.LayerNorm(in_channels))
                 else:
                     self.normalizations.append(nn.Identity())
                 # print(self.normalizations[0].device)
                 self.lins.append(nn.Linear(in_channels, out_channels))
             else:
-                if InputNorm:
+                if input_norm:
                     self.normalizations.append(nn.LayerNorm(in_channels))
                 else:
                     self.normalizations.append(nn.Identity())

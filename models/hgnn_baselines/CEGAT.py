@@ -2,7 +2,7 @@
 #  License: MIT
 
 from torch import nn
-from torch.nn import functional
+from torch.nn import functional as F
 from torch_geometric.nn import MessagePassing, GATConv
 
 
@@ -16,13 +16,13 @@ class CEGAT(MessagePassing):
         heads,
         output_heads,
         dropout,
-        Normalization="bn",
+        normalisation="bn",
     ):
         super(CEGAT, self).__init__()
         self.convs = nn.ModuleList()
         self.normalizations = nn.ModuleList()
 
-        if Normalization == "bn":
+        if normalisation == "bn":
             self.convs.append(GATConv(in_dim, hid_dim, heads))
             self.normalizations.append(nn.BatchNorm1d(hid_dim))
             for _ in range(num_layers - 2):

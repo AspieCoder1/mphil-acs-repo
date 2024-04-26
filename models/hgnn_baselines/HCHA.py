@@ -1,9 +1,11 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 
+from typing import Literal
+
 import torch
 from torch import nn
-from torch.nn import functional
+from torch.nn import functional as F
 from torch_scatter import scatter_mean
 
 from models.sheaf_hgnn.layers import HypergraphConv
@@ -20,26 +22,40 @@ class HCHA(nn.Module):
                  **kwargs
     """
 
-    def __init__(self, args):
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        hidden_channels: int = 64,
+        num_layers: int = 1,
+        dropout: float = 0.1,
+        use_attention: bool = True,
+        heads: int = 1,
+        residual_connections: bool = False,
+        symdegnorm: bool = True,
+        init_hedge: Literal["rand", "avg"] = "rand",
+        cuda: int = 0,
+        **_kwargs
+    ):
         super(HCHA, self).__init__()
 
-        self.num_layers = args.All_num_layers
-        self.dropout = args.dropout  # Note that default is 0.6
-        self.symdegnorm = args.HCHA_symdegnorm
-        self.heads = args.heads
-        self.num_features = args.num_features
-        self.MLP_hidden = args.MLP_hidden // self.heads
-        self.init_hedge = args.init_hedge
+        self.num_layers = num_layers
+        self.dropout = dropout  # Note that default is 0.6
+        self.symdegnorm = symdegnorm
+        self.heads = heads
+        self.num_features = in_channels
+        self.MLP_hidden = hidden_channels // self.heads
+        self.init_hedge = init_hedge
         self.hyperedge_attr = None
 
-        self.residual = args.residual_HCHA
+        self.residual = residual_connections
         #        Note that add dropout to attention is default in the original paper
         self.convs = nn.ModuleList()
         self.convs.append(
             HypergraphConv(
-                args.num_features,
+                in_channels,
                 self.MLP_hidden,
-                use_attention=args.use_attention,
+                use_attention=use_attention,
                 heads=self.heads,
             )
         )
@@ -49,19 +65,19 @@ class HCHA(nn.Module):
                 HypergraphConv(
                     self.heads * self.MLP_hidden,
                     self.MLP_hidden,
-                    use_attention=args.use_attention,
+                    use_attention=use_attention,
                     heads=self.heads,
                 )
             )
         # Output heads is set to 1 as default
         self.convs.append(
             HypergraphConv(
-                self.heads * self.MLP_hidden, args.num_classes, use_attention=False
+                self.heads * self.MLP_hidden, out_channels, use_attention=False
             )
         )
-        if args.cuda in [0, 1]:
+        if cuda in [0, 1]:
             self.device = torch.device(
-                "cuda:" + str(args.cuda) if torch.cuda.is_available() else "cpu"
+                "cuda:" + str(cuda) if torch.cuda.is_available() else "cpu"
             )
 
     def reset_parameters(self):
