@@ -1,2 +1,3 @@
-_target_: models.sheaf_hgnn.models.Sheaf
+_target_: models.sheaf_hgnn.models.SheafHyperGNN
 sheaf_type: DiagSheafs
+output_channels: '${output_channels}'

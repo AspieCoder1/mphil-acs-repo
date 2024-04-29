@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - override /data: kegg
+  - override /dataset: kegg
   - override /model: vshae
 
 

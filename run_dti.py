@@ -4,26 +4,26 @@
 from typing import List
 
 import hydra
-from lightning import LightningDataModule, Callback, Trainer, LightningModule
+from lightning import LightningDataModule, Callback, LightningModule, Trainer
 from omegaconf import DictConfig
 from pytorch_lightning.loggers import Logger
 
+from dti_prediction.sheaf_models import DTIPredictionModule
 from utils.instantiators import instantiate_loggers, instantiate_callbacks
 
 
 @hydra.main(version_base=None, config_path="configs", config_name="dti_config")
 def main(cfg: DictConfig) -> None:
-    print(cfg)
     # initialise data module
     dm: LightningDataModule = hydra.utils.instantiate(cfg.dataset)
-    # dm.prepare_data()
 
     # initialise model
     model: LightningModule = hydra.utils.instantiate(
         cfg.model,
-        args={
-            "num_features": 128,
-        },
+    )
+
+    dti_predictor = DTIPredictionModule(
+        model=model, use_score_function=cfg.use_score_func, out_channels=64
     )
 
     # initialise loggers
@@ -37,8 +37,8 @@ def main(cfg: DictConfig) -> None:
         cfg.trainer, callbacks=callbacks, logger=logger
     )
 
-    trainer.fit(model, dm)
-    trainer.test(model, dm)
+    trainer.fit(dti_predictor, dm)
+    trainer.test(dti_predictor, dm)
 
 
 if __name__ == "__main__":

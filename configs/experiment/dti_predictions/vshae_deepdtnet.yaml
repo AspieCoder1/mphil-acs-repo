@@ -1,9 +1,10 @@
 # @package _global_
 defaults:
-  - override /data: deepdtnet
+  - override /dataset: deepdtnet
   - override /model: vshae
 
 
 num_nodes: 3087
 num_hyperedges: 6147
 num_features: 128
+use_score_func: false

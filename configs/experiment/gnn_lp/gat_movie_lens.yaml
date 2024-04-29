@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - override /data: movie_lens
+  - override /dataset: movie_lens
   - override /model: gat
 
 callbacks:

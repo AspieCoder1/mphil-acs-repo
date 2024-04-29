@@ -63,6 +63,8 @@ class SheafHyperGNN(nn.Module):
         sheaf_special_head: bool = False,
         sheaf_pred_block: str = "MLP_var1",
         sheaf_dropout: bool = False,
+        rank: int = 2,
+        **_kwargs
     ):
         super(SheafHyperGNN, self).__init__()
 
@@ -171,6 +173,7 @@ class SheafHyperGNN(nn.Module):
                         sheaf_pred_block=sheaf_pred_block,
                         sheaf_dropout=sheaf_dropout,
                         sheaf_normtype=self.norm,
+                        rank=rank,
                     )
                 )
 
@@ -289,6 +292,8 @@ class SheafHyperGCN(nn.Module):
         sheaf_pred_block: str = "MLP_var1",
         sheaf_dropout: bool = False,
         mediators: bool = False,
+        rank: int = 2,
+        **_kwargs,
     ):
         super(SheafHyperGCN, self).__init__()
         d, l, c = in_channels, num_layers, out_channels
@@ -382,6 +387,7 @@ class SheafHyperGCN(nn.Module):
                 sheaf_special_head=sheaf_special_head,
                 sheaf_pred_block=sheaf_pred_block,
                 sheaf_dropout=sheaf_dropout,
+                rank=rank,
             )
         )
 

@@ -4,11 +4,14 @@ defaults:
   - logger: wandb
   - trainer: trainer
   - model: vshae
+  - experiment: null
 
 
 num_nodes: ???
 num_hyperedges: ???
 num_features: ???
+out_channels: 64
+use_score_func: false
 
 #logger:
 #  wandb:

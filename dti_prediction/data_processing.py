@@ -189,7 +189,7 @@ class DTIDataModule(L.LightningDataModule):
         dataset: DTIDatasets = "deepDTnet_20",
         split: int = 0,
     ):
-        super(DTIDataModule).__init__()
+        super(DTIDataModule, self).__init__()
         self.dataset = dataset
         self.split = split
         self.data = None
@@ -202,13 +202,13 @@ class DTIDataModule(L.LightningDataModule):
         self.data = dataset[0]
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
-        return self.data
+        return torch.utils.data.DataLoader([self.data], collate_fn=lambda xs: xs[0])
 
     def test_dataloader(self) -> EVAL_DATALOADERS:
-        return self.data
+        return torch.utils.data.DataLoader([self.data], collate_fn=lambda xs: xs[0])
 
     def val_dataloader(self) -> EVAL_DATALOADERS:
-        return self.data
+        return torch.utils.data.DataLoader([self.data], collate_fn=lambda xs: xs[0])
 
 
 if __name__ == "__main__":

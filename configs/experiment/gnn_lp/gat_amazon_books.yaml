@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - override /data: amazon_books
+  - override /dataset: amazon_books
   - override /model: gat
 
 callbacks:
