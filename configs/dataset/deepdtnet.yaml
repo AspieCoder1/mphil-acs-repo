@@ -1,0 +1,3 @@
+_target_: dti_prediction.DTIDataModule
+dataset: deepDTnet_20
+split: 0

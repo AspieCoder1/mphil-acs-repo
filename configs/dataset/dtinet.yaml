@@ -1,0 +1,3 @@
+_target_: dti_prediction.DTIDataModule
+dataset: DTINet_17
+split: 0

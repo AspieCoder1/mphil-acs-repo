@@ -1,0 +1,9 @@
+# @package _global_
+defaults:
+  - override /data: dtinet
+  - override /model: vshae
+
+
+num_nodes: 7823
+num_hyperedges: 15646
+num_features: 128

@@ -5,5 +5,10 @@ defaults:
   - trainer: trainer
   - model: vshae
 
+
+num_nodes: ???
+num_hyperedges: ???
+num_features: ???
+
 #logger:
 #  wandb:
