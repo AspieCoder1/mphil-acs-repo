@@ -48,7 +48,7 @@ class DTIPredictionModule(L.LightningModule):
             x_cat = torch.cat(
                 [logits[pos_neg_idx[0, :]], logits[pos_neg_idx[1, :]]], dim=-1
             )
-            preds = self.score_func(x_cat)
+            preds = self.decoder(x_cat).squeeze()
         else:
             preds = (
                 (logits[pos_neg_idx[0]] * logits[pos_neg_idx[1]]).sum(dim=-1)

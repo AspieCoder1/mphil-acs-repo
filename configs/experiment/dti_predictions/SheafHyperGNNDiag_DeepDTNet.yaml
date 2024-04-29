@@ -1,0 +1,11 @@
+# @package _global_
+defaults:
+  - override /dataset: deepdtnet
+  - override /model: SheafHyperGNNDiag
+
+
+num_nodes: 3087
+num_hyperedges: 6147
+num_features: 128
+use_score_func: true
+output_channels: 64

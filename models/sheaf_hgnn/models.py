@@ -262,6 +262,7 @@ class SheafHyperGNN(nn.Module):
         x = x.view(num_nodes, -1)  # Nd x out_channels -> Nx(d*out_channels)
         if self.use_lin2:
             x = self.lin2(x)  # Nx(d*out_channels)-> N x num_classes
+        x = F.elu(x)
         return x
 
 
@@ -617,11 +618,11 @@ class SheafHyperGCN(nn.Module):
                 H = self.lin_left_proj[i](H)
                 H = H.reshape(-1, num_nodes * self.d).t()
 
-            H = F.relu(hidden(A, H, m))
+            H = F.elu(hidden(A, H, m))
             if i < l - 1:
                 H = F.dropout(H, do, training=self.training)
 
         H = H.view(self.num_nodes, -1)  # Nd x out_channels -> Nx(d*out_channels)
         if self.use_lin2:
-            H = self.lin2(H)  # Nx(d*out_channels)-> N x num_classes
+            H = F.elu(self.lin2(H))  # Nx(d*out_channels)-> N x num_classes
         return H
