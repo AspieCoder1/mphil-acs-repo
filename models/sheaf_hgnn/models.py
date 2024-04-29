@@ -46,8 +46,8 @@ class SheafHyperGNN(nn.Module):
         out_channels: int,
         hidden_channels: int = 64,
         sheaf_type: str = "DiagSheafs",
-        stalk_dimension: int = 1,
-        num_layers: int = 1,
+        stalk_dimension: int = 6,
+        num_layers: int = 2,
         dropout: float = 0.6,
         sheaf_act: Literal["sigmoid", "tanh", "none"] = "sigmoid",
         init_hedge: Literal["rand", "avg"] = "rand",
@@ -206,7 +206,7 @@ class SheafHyperGNN(nn.Module):
 
         # if we are at the first epoch, initialise the attribute, otherwise use the previous ones
         if self.hyperedge_attr is None:
-            if hasattr(data, 'hyperedge_attr'):
+            if hasattr(data, "hyperedge_attr"):
                 self.hyperedge_attr = data.hyperedge_attr
             else:
                 self.hyperedge_attr = self.init_hyperedge_attr(
@@ -268,12 +268,12 @@ class SheafHyperGCN(nn.Module):
         self,
         V,
         in_channels,
-        num_layers,
         out_channels,
-        sheaf_type: str,
+        num_layers: int = 2,
+        sheaf_type: str = "DiagSheafs",
         cuda: int = 0,
         hidden_channels: int = 64,
-        stalk_dimension: int = 1,
+        stalk_dimension: int = 6,
         dropout: float = 0.6,
         sheaf_act: Literal["sigmoid", "tanh", "none"] = "sigmoid",
         init_hedge: Literal["rand", "avg"] = "rand",

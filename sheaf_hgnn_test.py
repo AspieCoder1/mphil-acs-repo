@@ -8,7 +8,6 @@ from torch_geometric.data import Data
 
 from models.sheaf_hgnn.config import (
     SheafHGNNConfig,
-    HGNNSheafTypes,
 )
 from models.sheaf_hgnn.models import SheafHyperGNN, SheafHyperGCN
 
@@ -64,8 +63,9 @@ def main():
     # sheaf_type= 'SheafHyperGNNDiag'/'SheafHyperGNNGeneral'/'SheafHyperGNNOrtho'/'SheafHyperGNNLowRank'
     model = SheafHyperGNN(
         in_channels=args.num_features,
+        hidden_channels=args.MLP_hidden,
         out_channels=args.num_classes,
-        num_layers=1,
+        num_layers=2,
         stalk_dimension=6,
         left_proj=False,
         init_hedge="avg",
@@ -83,8 +83,9 @@ def main():
     # sheaf_type= 'DiagSheafs'/'GeneralSheafs'/'OrthoSheafs'/'LowRankSheafs'
     model = SheafHyperGCN(
         V=data.x.shape[0],
-        num_layers=1,
+        num_layers=2,
         in_channels=args.num_features,
+        hidden_channels=args.MLP_hidden,
         out_channels=args.num_classes,
         stalk_dimension=6,
         left_proj=False,

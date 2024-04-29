@@ -16,7 +16,7 @@ def main(cfg: DictConfig) -> None:
     print(cfg)
     # initialise data module
     dm: LightningDataModule = hydra.utils.instantiate(cfg.dataset)
-    dm.prepare_data()
+    # dm.prepare_data()
 
     # initialise model
     model: LightningModule = hydra.utils.instantiate(

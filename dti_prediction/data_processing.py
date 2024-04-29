@@ -195,6 +195,9 @@ class DTIDataModule(L.LightningDataModule):
         self.data = None
 
     def prepare_data(self) -> None:
+        DTIData(root_dir="data", dataset=self.dataset, split=self.split)
+
+    def setup(self, stage: str) -> None:
         dataset = DTIData(root_dir="data", dataset=self.dataset, split=self.split)
         self.data = dataset[0]
 
@@ -209,7 +212,7 @@ class DTIDataModule(L.LightningDataModule):
 
 
 if __name__ == "__main__":
-    dm = DTIDataModule()
+    dm = DTIDataModule(dataset="KEGG_MED")
     dm.prepare_data()
     data = dm.train_dataloader()
     print(data)
