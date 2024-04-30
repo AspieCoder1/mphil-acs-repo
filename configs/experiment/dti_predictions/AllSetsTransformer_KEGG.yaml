@@ -1,0 +1,11 @@
+# @package _global_
+defaults:
+  - override /dataset: KEGG
+  - override /model: AllSetsTransformer
+
+
+num_nodes: 5589
+num_hyperedges: 11177
+num_features: 128
+use_score_func: true
+output_channels: 64

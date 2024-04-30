@@ -1,0 +1,11 @@
+# @package _global_
+defaults:
+  - override /dataset: DTINet
+  - override /model: AllSetsTransformer
+
+
+num_nodes: 7823
+num_hyperedges: 15646
+num_features: 128
+use_score_func: true
+output_channels: 64
