@@ -1,4 +1,5 @@
-_target_: models.vshae.VSHAE
+_target_: models.sheaf_hgnn.models.SheafHyperGNN
+sheaf_type: GeneralSheafs
 in_channels: '${num_features}'
 out_channels: '${out_channels}'
 num_layers: 2  # number of layeers
@@ -18,4 +19,5 @@ sheaf_special_head: False  # if True, add a head having just 1 on the diagonal. 
 rank: 2  # only for LowRank type of sheaf. mention the rank of the reduction matrix
 mediators: True  # only for the Non-Linear sheaf laplacian. Indicates if mediators are used when computing the non-linear Laplacian (same as in HyperGCN)
 cuda: 0
-sheaf_type: DiagSheafs
+output_channels: '${output_channels}'
+use_lin2: true

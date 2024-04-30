@@ -19,6 +19,7 @@ class VSHAE(nn.Module):
             in_channels=in_channels,
             out_channels=out_channels,
             sheaf_type=sheaf_type,
+            is_vshae=True,
             **kwargs
         )
         self.mu_encoder = nn.Linear(self.encoder.out_dim, 128)
@@ -38,9 +39,7 @@ class VSHAE(nn.Module):
             return mu
 
     def forward(self, data: Data):
-        H = self.encoder(data)
-        self.mu = F.elu(self.mu_encoder(H))
-        self.logstd = F.elu(self.logstd_encoder(H))
+        self.mu, self.logstd = self.encoder(data)
         self.logstd = self.logstd.clamp(max=MAX_LOGSTD)
         return self.reparametrise(self.mu, self.logstd)
 

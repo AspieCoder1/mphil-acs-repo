@@ -1,2 +1,4 @@
 _target_: models.baseline.HCHA
 use_attention: false
+in_channels: '${num_features}'
+out_channels: '${out_channels}'

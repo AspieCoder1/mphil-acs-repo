@@ -1,1 +1,4 @@
 _target_: models.hgnn_baselines.HCHA
+in_channels: '${num_features}'
+out_channels: '${out_channels}'
+heads: 6

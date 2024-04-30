@@ -1,0 +1,23 @@
+_target_: models.sheaf_hgnn.models.SheafHyperGNN
+sheaf_type: LowRankSheafs
+in_channels: '${num_features}'
+out_channels: '${out_channels}'
+num_layers: 2  # number of layeers
+dropout: 0.3  # dropout rate
+hidden_channels: 64  # dimension of hidden state (for most of the layers)
+allset_input_norm: True  # normalising the input at each layer
+residual_connections: False  # using or not a residual connectoon per sheaf layer
+stalk_dimension: 6  # dimension of reduction map (d)
+init_hedge: avg  # how to compute hedge features when needed. options: 'avg'or 'rand'
+sheaf_normtype: sym_degree_norm  # the type of normalisation for the sheaf Laplacian. options: 'degree_norm', 'block_norm', 'sym_degree_norm', 'sym_block_norm'
+sheaf_act: tanh  # non-linear activation applied to the restriction maps. options: 'sigmoid', 'tanh', 'none'
+left_proj: False  # multiply to the left with IxW or not
+dynamic_sheaf: False  # infer a different sheaf at each layer or share one
+sheaf_pred_block: cp_decomp  # indicated the type of model used to predict the restriction maps. options: 'MLP_var1', 'MLP_var3' or 'cp_decomp'
+sheaf_dropout: False  # use dropout in the sheaf layer or not
+sheaf_special_head: False  # if True, add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
+rank: 2  # only for LowRank type of sheaf. mention the rank of the reduction matrix
+mediators: True  # only for the Non-Linear sheaf laplacian. Indicates if mediators are used when computing the non-linear Laplacian (same as in HyperGCN)
+cuda: 0
+output_channels: '${output_channels}'
+use_lin2: true

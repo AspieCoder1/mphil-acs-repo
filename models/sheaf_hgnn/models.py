@@ -64,7 +64,8 @@ class SheafHyperGNN(nn.Module):
         sheaf_pred_block: str = "MLP_var1",
         sheaf_dropout: bool = False,
         rank: int = 2,
-        **_kwargs
+        is_vshae: bool = False,
+        **_kwargs,
     ):
         super(SheafHyperGNN, self).__init__()
 
@@ -86,6 +87,7 @@ class SheafHyperGNN(nn.Module):
             dynamic_sheaf  # if True, theb sheaf changes from one layer to another
         )
         self.residual = residual_connections
+        self.is_vshae = is_vshae
 
         self.hyperedge_attr = None
         if cuda in [0, 1]:
@@ -145,6 +147,27 @@ class SheafHyperGNN(nn.Module):
                 sheaf_dropout=sheaf_dropout,
                 sheaf_normtype=self.norm,
             )
+        )
+
+        self.mu_encoder = ModelConv(
+            self.MLP_hidden,
+            self.MLP_hidden,
+            d=self.d,
+            device=self.device,
+            norm_type=self.norm_type,
+            left_proj=self.left_proj,
+            norm=self.norm,
+            residual=self.residual,
+        )
+        self.logstd_encoder = ModelConv(
+            self.MLP_hidden,
+            self.MLP_hidden,
+            d=self.d,
+            device=self.device,
+            norm_type=self.norm_type,
+            left_proj=self.left_proj,
+            norm=self.norm,
+            residual=self.residual,
         )
 
         for _ in range(self.num_layers - 1):
@@ -259,6 +282,27 @@ class SheafHyperGNN(nn.Module):
             num_nodes=num_nodes,
             num_edges=num_edges,
         )
+        if self.is_vshae:
+            mu = F.elu(
+                self.mu_encoder(
+                    x,
+                    hyperedge_index=h_sheaf_index,
+                    alpha=h_sheaf_attributes,
+                    num_nodes=num_nodes,
+                    num_edges=num_edges,
+                )
+            )
+            logstd = F.elu(
+                self.logstd_encoder(
+                    x,
+                    hyperedge_index=h_sheaf_index,
+                    alpha=h_sheaf_attributes,
+                    num_nodes=num_nodes,
+                    num_edges=num_edges,
+                )
+            )
+            return mu.view(num_nodes, -1), logstd.view(num_nodes, -1)
+
         x = x.view(num_nodes, -1)  # Nd x out_channels -> Nx(d*out_channels)
         if self.use_lin2:
             x = self.lin2(x)  # Nx(d*out_channels)-> N x num_classes

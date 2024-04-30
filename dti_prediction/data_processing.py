@@ -162,6 +162,7 @@ class DTIData(InMemoryDataset):
         data.train_idx = train_idx
         data.test_idx = test_idx
         data.edge_index[1] -= data.edge_index[1].min()
+        data.norm = torch.ones_like(data.edge_index[0])
 
         data = data if self.pre_transform is None else self.pre_transform(data)
 

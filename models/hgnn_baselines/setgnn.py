@@ -150,9 +150,9 @@ class PMA(MessagePassing):
         :meth:`__init__` by the :obj:`aggr` argument.
         """
         #         ipdb.set_trace()
-        if aggr is None:
-            raise ValueError("aggr was not passed!")
-        return scatter(inputs, index, dim=self.node_dim, reduce=aggr)
+        # if aggr is None:
+        #     raise ValueError("aggr was not passed!")
+        return scatter(inputs, index, dim=self.node_dim, reduce=self.aggr)
 
     def __repr__(self):
         return "{}({}, {}, heads={})".format(
@@ -173,10 +173,11 @@ class HalfNLHconv(MessagePassing):
         heads=1,
         attention=True,
     ):
-        super(HalfNLHconv, self).__init__()
+        super(HalfNLHconv, self).__init__(aggr="add")
 
         self.attention = attention
         self.dropout = dropout
+        self.aggr = "add"
 
         if self.attention:
             self.prop = PMA(in_dim, hid_dim, out_dim, num_layers, heads=heads)
@@ -244,9 +245,9 @@ class HalfNLHconv(MessagePassing):
         :meth:`__init__` by the :obj:`aggr` argument.
         """
         #         ipdb.set_trace()
-        if aggr is None:
-            raise ValueError("aggr was not passed!")
-        return scatter(inputs, index, dim=self.node_dim, reduce=aggr)
+        # if aggr is None:
+        #     raise ValueError("aggr was not passed!")
+        return scatter(inputs, index, dim=self.node_dim, reduce=self.aggr)
 
 
 class SetGNN(nn.Module):
@@ -440,10 +441,10 @@ class SetGNN(nn.Module):
             xs = []
             xs.append(F.relu(self.MLP(x)))
             for i, _ in enumerate(self.V2EConvs):
-                x = F.relu(self.V2EConvs[i](x, edge_index, norm, self.aggr))
+                x = F.relu(self.V2EConvs[i](x, edge_index, norm, aggr=self.aggr))
                 #                 x = self.bnV2Es[i](x)
                 x = F.dropout(x, p=self.dropout, training=self.training)
-                x = self.E2VConvs[i](x, reversed_edge_index, norm, self.aggr)
+                x = self.E2VConvs[i](x, reversed_edge_index, norm, aggr=self.aggr)
                 x = F.relu(x)
                 xs.append(x)
                 #                 x = self.bnE2Vs[i](x)

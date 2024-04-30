@@ -1,3 +1,5 @@
 _target_: models.hgnn_baselines.SetGNN
-pma: false
+in_channels: '${num_features}'
+out_channels: '${out_channels}'
+use_pma: false
 aggregate: add

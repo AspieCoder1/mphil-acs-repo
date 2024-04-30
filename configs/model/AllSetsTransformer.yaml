@@ -1,1 +1,3 @@
 _target_: models.hgnn_baselines.SetGNN
+in_channels: '${num_features}'
+out_channels: '${out_channels}'
