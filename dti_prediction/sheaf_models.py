@@ -9,7 +9,8 @@ from torch.nn import functional as F
 from torch_geometric.data import Data
 from torch_geometric.utils import negative_sampling
 from torchmetrics import MetricCollection
-from torchmetrics.classification import BinaryAUROC, BinaryAveragePrecision, BinaryAccuracy
+from torchmetrics.classification import (BinaryAUROC, BinaryAveragePrecision,
+                                         BinaryAccuracy, )
 
 from models.sheaf_hgnn.config import SheafHGNNConfig
 from models.sheaf_hgnn.models import SheafHyperGNN
@@ -78,9 +79,23 @@ class DTIPredictionModule(L.LightningModule):
 
         return loss
 
+    def validation_step(self, batch: Data, batch_idx) -> STEP_OUTPUT:
+        val_idx = batch.val_idx
+        loss, preds, targets = self.common_step(batch, val_idx)
+        val_metrics = self.test_metrics(preds, targets)
+
+        self.log_dict(
+            val_metrics, prog_bar=False, on_epoch=True, on_step=False, batch_size=1
+        )
+        self.log(
+            "val/loss", loss, prog_bar=True, on_epoch=True, on_step=True, batch_size=1
+        )
+
+        return None
+
     def test_step(self, batch: Data, batch_idx) -> STEP_OUTPUT:
-        train_idx = batch.test_idx
-        loss, preds, targets = self.common_step(batch, train_idx)
+        test_idx = batch.test_idx
+        loss, preds, targets = self.common_step(batch, test_idx)
         test_metrics = self.test_metrics(preds, targets)
 
         self.log_dict(

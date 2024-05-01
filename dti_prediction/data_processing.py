@@ -137,18 +137,29 @@ class DTIData(InMemoryDataset):
 
         idx_offset = torch.Tensor(
             [
-                [hyperedge_idx.node_start_idx["drug"]],
-                [hyperedge_idx.node_start_idx["protein"]],
+                [hyperedge_idx.node_start_idx["drug"],
+                 hyperedge_idx.node_start_idx["protein"]],
             ]
         )
-        train_idx = (
-            torch.Tensor(np.genfromtxt(f"{self.raw_dir}/train_{self.split}.txt")).T
+        train_idx_dataset = torch.utils.data.TensorDataset(
+            torch.Tensor(np.genfromtxt(f"{self.raw_dir}/train_{self.split}.txt"))
             + idx_offset
         )
+
+        generator1 = torch.Generator().manual_seed(42)
+        train_split, val_split = torch.utils.data.random_split(
+            train_idx_dataset, [0.875, 0.125],
+            generator=generator1)
+
+        train_idx = train_idx_dataset[train_split.indices][0].T.to(torch.long)
+        print(train_idx)
+        val_idx = train_idx_dataset[val_split.indices][0].T.to(torch.long)
+        print(val_idx)
+
         test_idx = (
-            torch.Tensor(np.genfromtxt(f"{self.raw_dir}/test_{self.split}.txt")).T
+                torch.Tensor(np.genfromtxt(f"{self.raw_dir}/test_{self.split}.txt"))
             + idx_offset
-        )
+        ).T
 
         data = Data(
             x=node_features,
@@ -160,6 +171,7 @@ class DTIData(InMemoryDataset):
         data.num_hyperedges = self.num_hyperedges
         data.n_x = self.num_nodes
         data.train_idx = train_idx
+        data.val_idx = val_idx
         data.test_idx = test_idx
         data.edge_index[1] -= data.edge_index[1].min()
         data.norm = torch.ones_like(data.edge_index[0])
@@ -213,9 +225,15 @@ class DTIDataModule(L.LightningDataModule):
 
 
 if __name__ == "__main__":
+    print(torch.__version__)
     dm = DTIDataModule(dataset="KEGG_MED")
     dm.prepare_data()
-    data = dm.train_dataloader()
+    dm.setup("train")
+    data = dm.data
     print(data)
     print(data.x.shape)
     print(data.hyperedge_attr.shape)
+    total = data.train_idx.shape[1] + data.test_idx.shape[1] + data.val_idx.shape[1]
+    print(data.train_idx.shape[1] / total)
+    print(data.val_idx.shape[1] / total)
+    print(data.test_idx.shape[1] / total)

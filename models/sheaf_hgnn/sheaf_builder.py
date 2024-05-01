@@ -29,6 +29,8 @@ def predict_blocks(x, e, hyperedge_index, sheaf_lin, sheaf_act):
         h_sheaf = F.tanh(
             h_sheaf
         )  # output d numbers for every entry in the incidence matrix
+    elif sheaf_act == "elu":
+        h_sheaf = F.elu(h_sheaf)
     return h_sheaf
 
 
@@ -51,6 +53,8 @@ def predict_blocks_var2(x, hyperedge_index, sheaf_lin, sheaf_act):
         h_sheaf = F.tanh(
             h_sheaf
         )  # output d numbers for every entry in the incidence matrix
+    elif sheaf_act == "elu":
+        h_sheaf = F.elu(h_sheaf)
 
     return h_sheaf
 
@@ -79,6 +83,8 @@ def predict_blocks_var3(x, hyperedge_index, sheaf_lin, sheaf_lin2, sheaf_act):
         h_sheaf = F.tanh(
             h_sheaf
         )  # output d numbers for every entry in the incidence matrix
+    elif sheaf_act == "elu":
+        h_sheaf = F.elu(h_sheaf)
 
     return h_sheaf
 

@@ -1,0 +1,55 @@
+name: VSHAE-DeepDTNet
+program: run_dti.py
+method: random
+metric:
+  goal: maximize
+  name: val/accuracy
+parameters:
+  experiment:
+    value: dti_predictions/VSHAE_DeepDTNet
+  model.sheaf_dimension:
+    distribution: int_uniform
+    min: 2
+    max: 7
+  model.num_layers:
+    distribution: int_uniform
+    min: 2
+    max: 8
+  model.hidden_channels:
+    distribution: categorical
+    values: [ 8, 16, 32, 64, 128 ]
+  model.dropout:
+    distribution: uniform
+    min: 0
+    max: 0.9
+  model.sheaf_act:
+    distribution: categorical
+    values:
+      - none
+      - sigmoid
+      - tanh
+      - elu
+  model.sheaf_pred_block:
+    distribution: categorical
+    values:
+      - MLP_var1
+      - MLP_var2
+      - MLP_var3
+      - cp_decomp
+  out_channels:
+    distribution: categorical
+    values: [ 64, 128, 256 ]
+  model.residual_connections:
+    distribution: categorical
+    values:
+      - true
+      - false
+  model.left_proj:
+    distribution: categorical
+    values:
+      - true
+      - false
+command:
+  - python
+  - ${program}
+  - ${args_no_hyphens}
