@@ -1,6 +1,6 @@
 #SBATCH -J VSHAE_DeepDTNet
 #SBATCH --output=slurm_output/sweeps/VSHAE_DeepDTNet/out/%A_%a.out
-#SBATCH --error=slurm_output/sweeps/VSHAE_DeepDTNet/dti_sweeps/err/%A_%a.err
+#SBATCH --error=slurm_output/sweeps/VSHAE_DeepDTNet/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=1:00:00
 #SBATCH -a 0-60
