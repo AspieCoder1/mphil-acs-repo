@@ -41,4 +41,4 @@ SHEAF_LEARNER=${SHEAF_LEARNERS[SHEAF_LEARNER_IDX]}
 export WANDB_CACHE_DIR=".wandb"
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
 source ~/venv/bin/activate
-srun  python run_sheaf_lp.py experiment="${MODEL}_${DATASET}" sheaf_learner="${SHEAF_LEARNER}"
+srun  python run_sheaf_lp.py experiment="sheaf_lp/${MODEL}_${DATASET}" sheaf_learner="${SHEAF_LEARNER}"
