@@ -36,7 +36,7 @@ class DTIPredictionModule(L.LightningModule):
             },
             prefix="train/",
         )
-        self.val_metrics = self.train_metrics.clone(prefix="valid/")
+        self.val_metrics = self.train_metrics.clone(prefix="val/")
         self.test_metrics = self.train_metrics.clone(prefix="test/")
 
     def common_step(self, data: Data, pos_idx: Tensor):
