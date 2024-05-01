@@ -3,7 +3,7 @@
 #SBATCH -J VSHAE_DeepDTNet
 #SBATCH --output=slurm_output/sweeps/VSHAE_DeepDTNet/out/%A_%a.out
 #SBATCH --error=slurm_output/sweeps/VSHAE_DeepDTNet/err/%A_%a.err
-#SBATCH -A COMPUTERLAB-SL2-GPU
+#SBATCH -A COMPUTERLAB-SL3-GPU
 #SBATCH --time=00:15:00
 #SBATCH -a 0-60
 #SBATCH -p ampere
