@@ -28,8 +28,6 @@ def main(cfg: DictConfig) -> None:
         model=model, use_score_function=cfg.use_score_func, out_channels=64
     )
 
-    print(f"{model}-{dm}")
-
     # initialise loggers
     logger: List[Logger] = instantiate_loggers(cfg.get("logger"))
     if logger:
