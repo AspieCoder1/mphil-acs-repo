@@ -1,0 +1,7 @@
+defaults:
+  - early_stopping
+  - timer
+
+early_stopping:
+  patience: 100
+  monitor: val/loss

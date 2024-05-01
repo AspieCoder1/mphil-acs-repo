@@ -1,9 +1,10 @@
 defaults:
   - _self_
-  - dataset: kegg
+  - dataset: KEGG
   - logger: wandb
   - trainer: trainer
-  - model: vshae
+  - callbacks: dti_predictions
+  - model: VSHAE
   - experiment: null
 
 
