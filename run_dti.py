@@ -5,6 +5,7 @@ from typing import List
 
 import hydra
 from lightning import LightningDataModule, Callback, LightningModule, Trainer
+from lightning.pytorch.callbacks import Timer
 from lightning.pytorch.loggers import WandbLogger
 from omegaconf import DictConfig
 from pytorch_lightning.loggers import Logger
@@ -46,6 +47,19 @@ def main(cfg: DictConfig) -> None:
 
     trainer.fit(dti_predictor, dm)
     trainer.test(dti_predictor, dm)
+
+    timer = next(filter(lambda x: isinstance(x, Timer), callbacks))
+
+    runtime = {
+        "train/runtime": timer.time_elapsed("train"),
+        "valid/runtime": timer.time_elapsed("validate"),
+        "test/runtime": timer.time_elapsed("test"),
+    }
+
+    if logger:
+        trainer.logger.log_metrics(runtime)
+    else:
+        print(runtime)
 
 
 if __name__ == "__main__":
