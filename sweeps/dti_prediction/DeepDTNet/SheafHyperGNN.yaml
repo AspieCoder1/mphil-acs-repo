@@ -1,4 +1,4 @@
-name: VSHAE-DeepDTNet
+name: SheafHyperGNN-DeepDTNet
 program: run_dti.py
 method: random
 metric:
@@ -6,7 +6,7 @@ metric:
   name: val/accuracy
 parameters:
   experiment:
-    value: dti_predictions/VSHAE_DeepDTNet
+    value: dti_predictions/SheafHyperGNN_DeepDTNet
   model.sheaf_type:
     distribution: categorical
     values:

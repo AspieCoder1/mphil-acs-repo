@@ -309,6 +309,9 @@ class SheafHyperGNN(nn.Module):
         x = F.elu(x)
         return x
 
+    def __repr__(self):
+        return "SheafHyperGNN"
+
 
 class SheafHyperGCN(nn.Module):
     # replace hyperedge with edges amax(F_v<e(x_v)) ~ amin(F_v<e(x_v))

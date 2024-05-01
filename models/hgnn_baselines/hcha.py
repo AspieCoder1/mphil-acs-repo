@@ -48,6 +48,7 @@ class HCHA(nn.Module):
         self.MLP_hidden = hidden_channels // self.heads
         self.init_hedge = init_hedge
         self.hyperedge_attr = None
+        self.use_attention = use_attention
 
         self.residual = residual_connections
         #        Note that add dropout to attention is default in the original paper
@@ -122,6 +123,12 @@ class HCHA(nn.Module):
         x = self.convs[-1](x, edge_index)
 
         return x
+
+    def __repr__(self):
+        if self.use_attention:
+            return 'HCHA'
+        else:
+            return 'HGNN'
 
 
 class HypergraphConv(MessagePassing):

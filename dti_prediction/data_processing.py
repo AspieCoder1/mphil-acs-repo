@@ -206,6 +206,11 @@ class DTIDataModule(L.LightningDataModule):
         self.dataset = dataset
         self.split = split
         self.data = None
+        self.name_mapping = {
+            "deepDTnet_20": "DeepDTNet",
+            "KEGG_MED": "KEGG",
+            "DTINet_17": "DTINet",
+        }
 
     def prepare_data(self) -> None:
         DTIData(root_dir="data", dataset=self.dataset, split=self.split)
@@ -222,6 +227,9 @@ class DTIDataModule(L.LightningDataModule):
 
     def val_dataloader(self) -> EVAL_DATALOADERS:
         return torch.utils.data.DataLoader([self.data], collate_fn=lambda xs: xs[0])
+
+    def __repr__(self):
+        return self.name_mapping[self.dataset]
 
 
 if __name__ == "__main__":

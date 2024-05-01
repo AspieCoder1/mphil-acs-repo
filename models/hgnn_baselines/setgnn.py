@@ -210,12 +210,10 @@ class HalfNLHconv(MessagePassing):
         if self.attention:
             self.prop.reset_parameters()
         else:
-            if not (self.f_enc.__class__.__name__ is "Identity"):
+            if self.f_enc.__class__.__name__ != "Identity":
                 self.f_enc.reset_parameters()
-            if not (self.f_dec.__class__.__name__ is "Identity"):
+            if self.f_dec.__class__.__name__ != "Identity":
                 self.f_dec.reset_parameters()
-
-    #         self.bn.reset_parameters()
 
     def forward(self, x, edge_index, norm, aggr="add"):
         """
@@ -268,6 +266,7 @@ class SetGNN(nn.Module):
         input_norm: bool = True,
         num_classifier_layers: int = 1,
         classifier_hidden_dim: int = 64,
+        **_kwargs
     ):
         super(SetGNN, self).__init__()
         """
@@ -294,6 +293,7 @@ class SetGNN(nn.Module):
         self.E2VConvs = nn.ModuleList()
         self.bnV2Es = nn.ModuleList()
         self.bnE2Vs = nn.ModuleList()
+        self.use_attention = use_pma
 
         if self.learn_mask:
             self.Importance = Parameter(torch.ones(norm.size()))
@@ -464,3 +464,10 @@ class SetGNN(nn.Module):
             x = self.classifier(x)
 
         return x
+
+    def __repr__(self):
+        if self.use_attention:
+            return 'AllSetsTransformer'
+        else:
+            return 'AllDeepSets'
+

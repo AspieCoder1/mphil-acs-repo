@@ -5,6 +5,7 @@ from typing import List
 
 import hydra
 from lightning import LightningDataModule, Callback, LightningModule, Trainer
+from lightning.pytorch.loggers import WandbLogger
 from omegaconf import DictConfig
 from pytorch_lightning.loggers import Logger
 
@@ -26,8 +27,14 @@ def main(cfg: DictConfig) -> None:
         model=model, use_score_function=cfg.use_score_func, out_channels=64
     )
 
+    print(f"{model}-{dm}")
+
     # initialise loggers
     logger: List[Logger] = instantiate_loggers(cfg.get("logger"))
+    if logger:
+        assert isinstance(logger[0], WandbLogger)
+        logger[0].experiment.config["model"] = f"{model}"
+        logger[0].experiment.config["dataset"] = f"{dm}"
 
     # initialise callbacks
     callbacks: List[Callback] = instantiate_callbacks(cfg.get("callbacks"))

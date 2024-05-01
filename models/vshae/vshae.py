@@ -54,3 +54,6 @@ class VSHAE(nn.Module):
         )
 
         return BCE_loss + kl_divergence
+
+    def __repr__(self):
+        return "VSHAE"
