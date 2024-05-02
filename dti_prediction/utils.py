@@ -2,16 +2,16 @@
 #  License: MIT
 
 from collections import defaultdict
-from dataclasses import dataclass
 from typing import Optional
 
 import torch
+from attrs import define
 from torch_geometric.nn import Node2Vec
 from torch_geometric.typing import Adj
 from torch_geometric.utils import to_undirected
 
 
-@dataclass(slots=True)
+@define
 class HyperedgeIndex:
     hyperedge_index: Adj
     hyperedge_types: torch.Tensor
