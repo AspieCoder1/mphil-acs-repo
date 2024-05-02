@@ -13,6 +13,7 @@ num_hyperedges: ???
 num_features: ???
 out_channels: 64
 use_score_func: false
+tags: [ dti, sweep ]
 
 #logger:
 #  wandb:
