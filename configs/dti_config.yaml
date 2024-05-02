@@ -3,7 +3,7 @@ defaults:
   - dataset: KEGG
   - logger: wandb
   - trainer: trainer
-  - callbacks: dti_predictions
+  - callbacks: dti_prediction
   - model: VSHAE
   - experiment: null
 
