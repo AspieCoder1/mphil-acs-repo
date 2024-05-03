@@ -13,7 +13,7 @@ parameters:
       - DiagSheafs
       - GeneralSheafs
       - OrthoSheafs
-  model.sheaf_dimension:
+  model.atalk_dimension:
     distribution: int_uniform
     min: 2
     max: 7
