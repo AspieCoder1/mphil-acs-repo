@@ -57,7 +57,7 @@ class DTIPredictionModule(L.LightningModule):
 
         targets = torch.hstack(
             (torch.ones(pos_idx.shape[1]), torch.zeros(neg_idx.shape[1]))
-        ).to(logits)
+        ).to(preds)
         targets = targets.to(torch.long)
 
         if hasattr(self.encoder, "loss"):
