@@ -12,6 +12,7 @@ from omegaconf import DictConfig
 from pytorch_lightning.loggers import Logger
 
 from dti_prediction.sheaf_models import DTIPredictionModule
+from dti_prediction.data_processing import DTIDataModule
 from utils.instantiators import instantiate_loggers, instantiate_callbacks
 
 
@@ -19,16 +20,17 @@ from utils.instantiators import instantiate_loggers, instantiate_callbacks
 def main(cfg: DictConfig) -> None:
     torch.set_float32_matmul_precision('high')
     # initialise data module
-    dm: LightningDataModule = hydra.utils.instantiate(cfg.dataset)
+    dm: DTIDataModule = hydra.utils.instantiate(cfg.dataset)
+    dm.prepare_data()
+    dm.setup('train')
 
     # initialise model
     model: LightningModule = hydra.utils.instantiate(
-        cfg.model,
+        cfg.model, norm=dm.data.norm,
     )
 
     dti_predictor = DTIPredictionModule(
-        model=model, use_score_function=cfg.use_score_func, out_channels=cfg.out_channels
-    )
+        model=model, use_score_function=cfg.use_score_func, out_channels=cfg.out_channels)
 
     # initialise loggers
     logger: List[Logger] = instantiate_loggers(cfg.get("logger"))
