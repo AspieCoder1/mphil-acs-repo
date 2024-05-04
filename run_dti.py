@@ -27,7 +27,7 @@ def main(cfg: DictConfig) -> None:
     )
 
     dti_predictor = DTIPredictionModule(
-        model=model, use_score_function=cfg.use_score_func, out_channels=64
+        model=model, use_score_function=cfg.use_score_func, out_channels=cfg.out_channels
     )
 
     # initialise loggers
