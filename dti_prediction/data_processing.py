@@ -221,15 +221,15 @@ class DTIDataModule(L.LightningDataModule):
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return torch.utils.data.DataLoader([self.data], collate_fn=lambda xs: xs[0],
-                                           n_workers=31)
+                                           num_workers=31)
 
     def test_dataloader(self) -> EVAL_DATALOADERS:
         return torch.utils.data.DataLoader([self.data], collate_fn=lambda xs: xs[0],
-                                           n_workers=31)
+                                           num_workers=31)
 
     def val_dataloader(self) -> EVAL_DATALOADERS:
         return torch.utils.data.DataLoader([self.data], collate_fn=lambda xs: xs[0],
-                                           n_workers=31)
+                                           num_workers=31)
 
     def __repr__(self):
         return self.name_mapping[self.dataset]
