@@ -6,3 +6,4 @@ heads: 6
 residual_connections: false
 hidden_channels: 64
 dropout: 0
+num_layers: 1

@@ -12,3 +12,4 @@ normalisation: ln
 input_norm: true
 num_classifier_layers: 1
 classifier_hidden_dim: 64
+residual_connections: false
