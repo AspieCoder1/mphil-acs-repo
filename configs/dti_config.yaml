@@ -15,5 +15,8 @@ out_channels: 64
 use_score_func: false
 tags: [ dti, sweep ]
 
+trainer:
+  max_epochs: 500
+
 #logger:
 #  wandb:
