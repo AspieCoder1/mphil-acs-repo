@@ -4,6 +4,7 @@
 from typing import List
 
 import hydra
+import torch
 from lightning import LightningDataModule, Callback, LightningModule, Trainer
 from lightning.pytorch.callbacks import Timer
 from lightning.pytorch.loggers import WandbLogger
@@ -16,6 +17,7 @@ from utils.instantiators import instantiate_loggers, instantiate_callbacks
 
 @hydra.main(version_base=None, config_path="configs", config_name="dti_config")
 def main(cfg: DictConfig) -> None:
+    torch.set_float32_matmul_precision('high')
     # initialise data module
     dm: LightningDataModule = hydra.utils.instantiate(cfg.dataset)
 
