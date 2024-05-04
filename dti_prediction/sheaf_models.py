@@ -82,7 +82,7 @@ class DTIPredictionModule(L.LightningModule):
     def validation_step(self, batch: Data, batch_idx) -> STEP_OUTPUT:
         val_idx = batch.val_idx
         loss, preds, targets = self.common_step(batch, val_idx)
-        val_metrics = self.test_metrics(preds, targets)
+        val_metrics = self.val_metrics(preds, targets)
 
         self.log_dict(
             val_metrics, prog_bar=False, on_epoch=True, on_step=False, batch_size=1
