@@ -5,14 +5,14 @@ from typing import List
 
 import hydra
 import torch
-from lightning import LightningDataModule, Callback, LightningModule, Trainer
+from lightning import Callback, LightningModule, Trainer
 from lightning.pytorch.callbacks import Timer
 from lightning.pytorch.loggers import WandbLogger
 from omegaconf import DictConfig
 from pytorch_lightning.loggers import Logger
 
-from dti_prediction.sheaf_models import DTIPredictionModule
 from dti_prediction.data_processing import DTIDataModule
+from dti_prediction.sheaf_models import DTIPredictionModule
 from utils.instantiators import instantiate_loggers, instantiate_callbacks
 
 
@@ -21,12 +21,10 @@ def main(cfg: DictConfig) -> None:
     torch.set_float32_matmul_precision('high')
     # initialise data module
     dm: DTIDataModule = hydra.utils.instantiate(cfg.dataset)
-    dm.prepare_data()
-    dm.setup('train')
 
     # initialise model
     model: LightningModule = hydra.utils.instantiate(
-        cfg.model, norm=dm.data.norm,
+        cfg.model
     )
 
     dti_predictor = DTIPredictionModule(
