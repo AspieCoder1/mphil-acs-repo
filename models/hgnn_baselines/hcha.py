@@ -74,7 +74,7 @@ class HCHA(nn.Module):
         # Output heads is set to 1 as default
         self.convs.append(
             HypergraphConv(
-                self.heads * self.MLP_hidden, out_channels, use_attention=False
+                self.heads * self.MLP_hidden, out_channels, use_attention=False, heads=1
             )
         )
         if cuda in [0, 1]:
@@ -106,12 +106,15 @@ class HCHA(nn.Module):
 
         # hyperedge_attr = torch.randn((num_edges, self.num_features)).to(self.device)
         if self.hyperedge_attr is None:
-            self.hyperedge_attr = self.init_hyperedge_attr(
-                type=self.init_hedge,
-                num_edges=num_edges,
-                x=x,
-                hyperedge_index=edge_index,
-            )
+            if hasattr(data, "hyperedge_attr"):
+                self.hyperedge_attr = data.hyperedge_attr
+            else:
+                self.hyperedge_attr = self.init_hyperedge_attr(
+                    type=self.init_hedge,
+                    num_edges=num_edges,
+                    x=x,
+                    hyperedge_index=edge_index,
+                )
 
         for i, conv in enumerate(self.convs[:-1]):
             # print(i)
