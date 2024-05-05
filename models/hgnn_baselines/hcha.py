@@ -59,6 +59,7 @@ class HCHA(nn.Module):
                 self.MLP_hidden,
                 use_attention=use_attention,
                 heads=self.heads,
+                hyperedge_channels=in_channels,
             )
         )
 
@@ -69,12 +70,15 @@ class HCHA(nn.Module):
                     self.MLP_hidden,
                     use_attention=use_attention,
                     heads=self.heads,
+                    hyperedge_channels=in_channels,
                 )
             )
         # Output heads is set to 1 as default
         self.convs.append(
             HypergraphConv(
-                self.heads * self.MLP_hidden, out_channels, use_attention=False, heads=1
+                self.heads * self.MLP_hidden, out_channels, use_attention=False,
+                heads=1,
+                hyperedge_channels=in_channels
             )
         )
         if cuda in [0, 1]:
@@ -150,6 +154,7 @@ class HypergraphConv(MessagePassing):
         dropout=0,
         bias=True,
         residual=False,
+            hyperedge_channels=128,
         **kwargs
     ):
         kwargs.setdefault("aggr", "add")
@@ -166,11 +171,13 @@ class HypergraphConv(MessagePassing):
             self.negative_slope = negative_slope
             self.dropout = dropout
             self.lin = Linear(in_channels, heads * out_channels, bias=False)
+            self.he_lin = Linear(hyperedge_channels, heads * out_channels, bias=False)
             self.att = Parameter(torch.Tensor(1, heads, 2 * out_channels))
         else:
             self.heads = 1
             self.concat = True
             self.lin = Linear(in_channels, out_channels, bias=False)
+            self.he_lin = Linear(hyperedge_channels, out_channels, bias=False)
 
         if bias and concat:
             self.bias = Parameter(torch.Tensor(self.heads * out_channels))
@@ -183,6 +190,7 @@ class HypergraphConv(MessagePassing):
 
     def reset_parameters(self):
         self.lin.reset_parameters()
+        self.he_lin.reset_parameters()
         if self.use_attention:
             glorot(self.att)
         zeros(self.bias)
@@ -224,7 +232,7 @@ class HypergraphConv(MessagePassing):
         if self.use_attention:
             assert hyperedge_attr is not None
             x = x.view(-1, self.heads, self.out_channels)
-            hyperedge_attr = self.lin(hyperedge_attr)
+            hyperedge_attr = self.he_lin(hyperedge_attr)
             hyperedge_attr = hyperedge_attr.view(-1, self.heads, self.out_channels)
             x_i = x[hyperedge_index[0]]
             x_j = hyperedge_attr[hyperedge_index[1]]

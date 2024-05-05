@@ -1,9 +1,9 @@
 _target_: models.hgnn_baselines.HCHA
 in_channels: '${num_features}'
 out_channels: '${out_channels}'
-heads: 6
+heads: 3
 residual_connections: false
 hidden_channels: 64
-dropout: 0
-num_layers: 1
+dropout: 0.38954687415222417
+num_layers: 3
 
