@@ -19,4 +19,4 @@
 
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
 source ~/venv/bin/activate
-srun python -m wandb agent --count 1 "acs-thesis-lb2027/gnn-baselines/hzbdv67l"
+srun python -m wandb agent --count 1 "acs-thesis-lb2027/gnn-baselines/mzw1tc66"

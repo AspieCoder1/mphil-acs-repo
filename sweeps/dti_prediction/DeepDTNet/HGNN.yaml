@@ -23,10 +23,6 @@ parameters:
     values:
       - true
       - false
-  model.heads:
-    distribution: int_uniform
-    min: 1
-    max: 6
   out_channels:
     distribution: categorical
     values: [ 64, 128, 256 ]
