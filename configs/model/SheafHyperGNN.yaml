@@ -13,7 +13,7 @@ sheaf_normtype: sym_degree_norm  # the type of normalisation for the sheaf Lapla
 sheaf_act: tanh  # non-linear activation applied to the restriction maps. options: 'sigmoid', 'tanh', 'none'
 left_proj: False  # multiply to the left with IxW or not
 dynamic_sheaf: False  # infer a different sheaf at each layer or share one
-sheaf_pred_block: cp_decomp  # indicated the type of model used to predict the restriction maps. options: 'MLP_var1', 'MLP_var3' or 'cp_decomp'
+sheaf_pred_block: type_ensemble  # indicated the type of model used to predict the restriction maps. options: 'MLP_var1', 'MLP_var3' or 'cp_decomp'
 sheaf_dropout: False  # use dropout in the sheaf layer or not
 sheaf_special_head: False  # if True, add a head having just 1 on the diagonal. this should be similar to the normal hypergraph conv
 rank: 2  # only for LowRank type of sheaf. mention the rank of the reduction matrix

@@ -201,7 +201,7 @@ class DTIDataModule(L.LightningDataModule):
         self,
         dataset: DTIDatasets = "deepDTnet_20",
         split: int = 0,
-        num_workers: int = 7,
+        num_workers: int = 0,
     ):
         super(DTIDataModule, self).__init__()
         self.dataset = dataset
