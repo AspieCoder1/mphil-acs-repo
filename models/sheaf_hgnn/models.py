@@ -255,7 +255,7 @@ class SheafHyperGNN(nn.Module):
             # infer the sheaf as a sparse incidence matrix Nd x Ed, with each block being diagonal
             if i == 0 or self.dynamic_sheaf:
                 h_sheaf_index, h_sheaf_attributes = self.sheaf_builder[i](
-                    x, hyperedge_attr, edge_index
+                    x, hyperedge_attr, edge_index, data.node_types, data.hyperedge_types
                 )
             # Sheaf Laplacian Diffusion
             x = F.elu(

@@ -201,6 +201,7 @@ class DTIDataModule(L.LightningDataModule):
         self,
         dataset: DTIDatasets = "deepDTnet_20",
         split: int = 0,
+        num_workers: int = 7,
     ):
         super(DTIDataModule, self).__init__()
         self.dataset = dataset
@@ -211,6 +212,7 @@ class DTIDataModule(L.LightningDataModule):
             "KEGG_MED": "KEGG",
             "DTINet_17": "DTINet",
         }
+        self.num_workers = num_workers
 
     def prepare_data(self) -> None:
         DTIData(root_dir="data", dataset=self.dataset, split=self.split)
@@ -221,15 +223,15 @@ class DTIDataModule(L.LightningDataModule):
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return torch.utils.data.DataLoader([self.data], collate_fn=lambda xs: xs[0],
-                                           num_workers=31)
+                                           num_workers=self.num_workers)
 
     def test_dataloader(self) -> EVAL_DATALOADERS:
         return torch.utils.data.DataLoader([self.data], collate_fn=lambda xs: xs[0],
-                                           num_workers=31)
+                                           num_workers=self.num_workers)
 
     def val_dataloader(self) -> EVAL_DATALOADERS:
         return torch.utils.data.DataLoader([self.data], collate_fn=lambda xs: xs[0],
-                                           num_workers=31)
+                                           num_workers=self.num_workers)
 
     def __repr__(self):
         return self.name_mapping[self.dataset]

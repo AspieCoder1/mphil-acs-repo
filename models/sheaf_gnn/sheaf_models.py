@@ -356,7 +356,6 @@ class TypeEnsembleSheafLearner(SheafLearner):
         results = []
 
         for i, split in enumerate(edge_type_splits):
-            self.linear1[i](x_cat[split])
             results.append(self.linear1[i](x_cat[split]))
 
         stacked_maps = torch.row_stack(results)
