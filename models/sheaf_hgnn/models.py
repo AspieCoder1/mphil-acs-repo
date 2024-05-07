@@ -91,6 +91,7 @@ class SheafHyperGNN(nn.Module):
         self.residual = residual_connections
         self.is_vshae = is_vshae
         self.he_feat_type = he_feat_type
+        self.pred_block = sheaf_pred_block
 
         self.hyperedge_attr = None
         if cuda in [0, 1]:
@@ -149,6 +150,8 @@ class SheafHyperGNN(nn.Module):
                 sheaf_pred_block=sheaf_pred_block,
                 sheaf_dropout=sheaf_dropout,
                 sheaf_normtype=self.norm,
+                he_feat_type=he_feat_type,
+
 
             )
         )
@@ -201,6 +204,7 @@ class SheafHyperGNN(nn.Module):
                         sheaf_dropout=sheaf_dropout,
                         sheaf_normtype=self.norm,
                         rank=rank,
+                        he_feat_type=he_feat_type,
                     )
                 )
 
@@ -314,7 +318,7 @@ class SheafHyperGNN(nn.Module):
         return x
 
     def __repr__(self):
-        return "SheafHyperGNN"
+        return f"SheafHyperGNN-{self.pred_block}"
 
 
 class SheafHyperGCN(nn.Module):
