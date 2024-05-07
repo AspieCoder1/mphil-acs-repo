@@ -8,4 +8,10 @@ num_nodes: 3087
 num_hyperedges: 6147
 num_features: 128
 use_score_func: true
-output_channels: 64
+out_channels: 128
+
+model:
+  dropout: 0.020165495812141356
+  num_layers: 3
+  hidden_channels: 64
+  residual_connections: true
