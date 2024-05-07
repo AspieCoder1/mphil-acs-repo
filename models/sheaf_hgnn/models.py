@@ -61,7 +61,9 @@ class SheafHyperGNN(nn.Module):
         residual_connections: bool = False,
         use_lin2: bool = False,
         sheaf_special_head: bool = False,
-        sheaf_pred_block: str = "MLP_var1",
+            sheaf_pred_block: Literal[
+                'local_concat', 'type_concat', 'type_ensemble'] = "local_concat",
+            he_feat_type: Literal['var1', 'var2', 'var3', 'cp_decomp'] = 'var1',
         sheaf_dropout: bool = False,
         rank: int = 2,
         is_vshae: bool = False,
@@ -88,6 +90,7 @@ class SheafHyperGNN(nn.Module):
         )
         self.residual = residual_connections
         self.is_vshae = is_vshae
+        self.he_feat_type = he_feat_type
 
         self.hyperedge_attr = None
         if cuda in [0, 1]:
@@ -146,6 +149,7 @@ class SheafHyperGNN(nn.Module):
                 sheaf_pred_block=sheaf_pred_block,
                 sheaf_dropout=sheaf_dropout,
                 sheaf_normtype=self.norm,
+
             )
         )
 

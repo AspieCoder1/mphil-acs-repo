@@ -13,84 +13,35 @@ from ..hgnn_baselines.mlp import MLP
 
 
 # helper functions to predict sigma(MLP(x_v || h_e)) varying how thw attributes for hyperedge are computed
-def predict_blocks(x, e, hyperedge_index, sheaf_lin, sheaf_act):
-    # e_j = avg(x_v)
+
+def compute_hyperedge_features_var1(x, e, hyperedge_index):
     row, col = hyperedge_index
     xs = torch.index_select(x, dim=0, index=row)
     es = torch.index_select(e, dim=0, index=col)
 
-    # sigma(MLP(x_v || h_e))
-    h_sheaf = torch.cat((xs, es), dim=-1)  # sparse version of an NxEx2f tensor
-    h_sheaf = sheaf_lin(h_sheaf)  # sparse version of an NxExd tensor
-    if sheaf_act == "sigmoid":
-        h_sheaf = F.sigmoid(
-            h_sheaf
-        )  # output d numbers for every entry in the incidence matrix
-    elif sheaf_act == "tanh":
-        h_sheaf = F.tanh(
-            h_sheaf
-        )  # output d numbers for every entry in the incidence matrix
-    elif sheaf_act == "elu":
-        h_sheaf = F.elu(h_sheaf)
-    return h_sheaf
+    return xs, es
 
 
-def predict_blocks_var2(x, hyperedge_index, sheaf_lin, sheaf_act):
-    # e_j = avg(h_v)
+def compute_hyperedge_features_var2(x, hyperedge_index):
     row, col = hyperedge_index
     e = scatter_mean(x[row], col, dim=0)
 
     xs = torch.index_select(x, dim=0, index=row)
     es = torch.index_select(e, dim=0, index=col)
 
-    # sigma(MLP(x_v || h_e))
-    h_sheaf = torch.cat((xs, es), dim=-1)  # sparse version of an NxEx2f tensor
-    h_sheaf = sheaf_lin(h_sheaf)  # sparse version of an NxExd tensor
-    if sheaf_act == "sigmoid":
-        h_sheaf = F.sigmoid(
-            h_sheaf
-        )  # output d numbers for every entry in the incidence matrix
-    elif sheaf_act == "tanh":
-        h_sheaf = F.tanh(
-            h_sheaf
-        )  # output d numbers for every entry in the incidence matrix
-    elif sheaf_act == "elu":
-        h_sheaf = F.elu(h_sheaf)
-
-    return h_sheaf
+    return xs, es
 
 
-def predict_blocks_var3(x, hyperedge_index, sheaf_lin, sheaf_lin2, sheaf_act):
-    # universal approx according to  Equivariant Hypergraph Diffusion Neural Operators
-    # # e_j = sum(φ(x_v))
-
+def compute_hyperedge_features_var3(x, hyperedge_index, phi):
     row, col = hyperedge_index
-    xs = torch.index_select(x, dim=0, index=row)
-
-    # φ(x_v)
-    x_e = sheaf_lin2(x)
+    x_e = phi(x)
     # sum(φ(x_v)
     e = scatter_add(x_e[row], col, dim=0)
-    es = torch.index_select(e, dim=0, index=col)
-
-    # sigma(MLP(x_v || h_e))
-    h_sheaf = torch.cat((xs, es), dim=-1)  # sparse v ersion of an NxEx2f tensor
-    h_sheaf = sheaf_lin(h_sheaf)  # sparse version of an NxExd tensor
-    if sheaf_act == "sigmoid":
-        h_sheaf = F.sigmoid(
-            h_sheaf
-        )  # output d numbers for every entry in the incidence matrix
-    elif sheaf_act == "tanh":
-        h_sheaf = F.tanh(
-            h_sheaf
-        )  # output d numbers for every entry in the incidence matrix
-    elif sheaf_act == "elu":
-        h_sheaf = F.elu(h_sheaf)
-
-    return h_sheaf
+    return torch.index_select(x, dim=0, index=row), torch.index_select(e, dim=0,
+                                                                       index=col)
 
 
-def predict_blocks_cp_decomp(x, hyperedge_index, cp_W, cp_V, sheaf_lin, sheaf_act):
+def compute_hyperedge_index_cp_decomp(x, hyperedge_index, cp_W, cp_V):
     row, col = hyperedge_index
     xs = torch.index_select(x, dim=0, index=row)
 
@@ -103,9 +54,13 @@ def predict_blocks_cp_decomp(x, hyperedge_index, cp_W, cp_V, sheaf_lin, sheaf_ac
     e = e + torch.relu(scatter_add(x[row], col, dim=0))
     es = torch.index_select(e, dim=0, index=col)
 
-    # sigma(MLP(x_v || h_e))
-    h_sheaf = torch.cat((xs, es), dim=-1)  # sparse version of an NxEx2f tensor
-    h_sheaf = sheaf_lin(h_sheaf)  # sparse version of an NxExd tensor
+    return es, xs
+
+
+def predict_block_local_concat(xs, es, sheaf_lin, sheaf_act):
+    # sigma(MLP(x_v || h_e || t_v || t_u)))
+    h_sheaf = torch.cat((xs, es), dim=-1)
+    h_sheaf = sheaf_lin(h_sheaf)
     if sheaf_act == "sigmoid":
         h_sheaf = F.sigmoid(
             h_sheaf
@@ -114,16 +69,14 @@ def predict_blocks_cp_decomp(x, hyperedge_index, cp_W, cp_V, sheaf_lin, sheaf_ac
         h_sheaf = F.tanh(
             h_sheaf
         )  # output d numbers for every entry in the incidence matrix
+    elif sheaf_act == "elu":
+        h_sheaf = F.elu(h_sheaf)
     return h_sheaf
 
 
-# predicts restriction maps as sigma(MLP(x_u || h_e || t_u || t_e))
-def predict_block_type_concat(x, e, hyperedge_index, node_types, hyperedge_types,
+def predict_block_type_concat(xs, es, hyperedge_index, node_types, hyperedge_types,
                               sheaf_lin, sheaf_act):
     node, hyperedge = hyperedge_index
-    xs = torch.index_select(x, dim=0, index=node)
-    es = torch.index_select(e, dim=0, index=hyperedge)
-
     node_types_onehot = F.one_hot(node_types.to(torch.long))
     hyperedge_types_onehot = F.one_hot(hyperedge_types.to(torch.long))
     x_type = torch.index_select(node_types_onehot, dim=0, index=node)
@@ -147,12 +100,9 @@ def predict_block_type_concat(x, e, hyperedge_index, node_types, hyperedge_types
     return h_sheaf
 
 
-def predict_block_type_ensemble(x, e, hyperedge_index, hyperedge_types, sheaf_lins,
+def predict_block_type_ensemble(xs, es, hyperedge_index, hyperedge_types, sheaf_lins,
                                 sheaf_act):
     node, hyperedge = hyperedge_index
-    xs = torch.index_select(x, dim=0, index=node)
-    es = torch.index_select(e, dim=0, index=hyperedge)
-
     h_cat = torch.cat((xs, es), dim=-1)
 
     hyperedge_types = torch.index_select(hyperedge_types, dim=0, index=hyperedge).to(
@@ -192,12 +142,13 @@ class SheafBuilder(nn.Module):
             dropout: float = 0.6,
             allset_input_norm: bool = True,
             sheaf_special_head: bool = False,
-            sheaf_pred_block: str = "MLP_var1",
+            sheaf_pred_block: str = "local_concat",
             sheaf_dropout: bool = False,
             sheaf_act: str = "sigmoid",
             num_node_types: int = 3,
             num_edge_types: int = 6,
             sheaf_out_channels: Optional[int] = None,
+            he_feat_type: str = 'var1'
     ):
         super(SheafBuilder, self).__init__()
         self.prediction_type = (
@@ -212,24 +163,14 @@ class SheafBuilder(nn.Module):
         self.sheaf_act = sheaf_act
         self.num_node_types = num_node_types
         self.num_edge_types = num_edge_types
+        self.he_feat_type = he_feat_type
         if sheaf_out_channels is None:
             self.sheaf_out_channels = stalk_dimension
         else:
             self.sheaf_out_channels = sheaf_out_channels
 
-
-        self.sheaf_lin = MLP(
-            in_channels=2 * self.MLP_hidden,
-            hidden_channels=hidden_channels,
-            out_channels=self.sheaf_out_channels,
-            num_layers=1,
-            dropout=0.0,
-            normalisation="ln",
-            input_norm=self.norm,
-        )
-
-        if self.prediction_type == "MLP_var3":
-            self.sheaf_lin2 = MLP(
+        if self.he_feat_type == "var3":
+            self.sheaf_phi = MLP(
                 in_channels=self.MLP_hidden,
                 hidden_channels=hidden_channels,
                 out_channels=hidden_channels,
@@ -238,7 +179,7 @@ class SheafBuilder(nn.Module):
                 normalisation="ln",
                 input_norm=self.norm,
             )
-        elif self.prediction_type == "cp_decomp":
+        elif self.he_feat_type == "cp_decomp":
             self.cp_W = MLP(
                 in_channels=hidden_channels + 1,
                 hidden_channels=hidden_channels,
@@ -257,7 +198,18 @@ class SheafBuilder(nn.Module):
                 normalisation="ln",
                 input_norm=hidden_channels,
             )
-        elif self.prediction_type == "type_concat":
+
+        self.sheaf_lin = MLP(
+            in_channels=2 * self.MLP_hidden,
+            hidden_channels=hidden_channels,
+            out_channels=self.sheaf_out_channels,
+            num_layers=1,
+            dropout=0.0,
+            normalisation="ln",
+            input_norm=self.norm,
+        )
+
+        if self.prediction_type == "type_concat":
             self.sheaf_lin = MLP(
                 in_channels=2 * self.MLP_hidden + num_node_types + num_edge_types,
                 hidden_channels=hidden_channels,
@@ -267,7 +219,7 @@ class SheafBuilder(nn.Module):
                 normalisation="ln",
                 input_norm=self.norm, )
         elif self.prediction_type == "type_ensemble":
-            self.sheaf_lins = nn.ModuleList([
+            self.type_layers = nn.ModuleList([
                 MLP(
                     in_channels=2 * self.MLP_hidden,
                     hidden_channels=hidden_channels,
@@ -280,48 +232,35 @@ class SheafBuilder(nn.Module):
                 for _ in range(num_edge_types)
             ])
 
-    def predict_sheaf(self, x, e, hyperedge_index, node_types, hyperedge_types):
-        if self.prediction_type == "MLP_var1":
-            h_sheaf = predict_blocks(
-                x, e, hyperedge_index, self.sheaf_lin, self.sheaf_act
-            )
-        elif self.prediction_type == "MLP_var2":
-            h_sheaf = predict_blocks_var2(
-                x, hyperedge_index, self.sheaf_lin, self.sheaf_act
-            )
-        elif self.prediction_type == "MLP_var3":
-            return predict_blocks_var3(
-                x, hyperedge_index, self.sheaf_lin, self.sheaf_lin2, self.sheaf_act
-            )
-        elif self.prediction_type == "cp_decomp":
-            return predict_blocks_cp_decomp(
-                x,
-                hyperedge_index,
-                self.cp_W,
-                self.cp_V,
-                self.sheaf_lin,
-                sheaf_act=self.sheaf_act,
-            )
-        elif self.prediction_type == "type_concat":
+    def compute_node_hyperedge_features(self, x, e, hyperedge_index):
+        if self.he_feat_type == 'var1':
+            return compute_hyperedge_features_var1(x, e, hyperedge_index)
+        elif self.he_feat_type == 'var2':
+            return compute_hyperedge_features_var2(x, hyperedge_index)
+        elif self.he_feat_type == 'var3':
+            return compute_hyperedge_features_var3(x, hyperedge_index, self.sheaf_phi)
+        elif self.he_feat_type == 'cp_decomp':
+            return compute_hyperedge_index_cp_decomp(x, hyperedge_index, self.cp_W,
+                                                     self.cp_V)
+
+    def predict_sheaf(self, xs, es, hyperedge_index, node_types, hyperedge_types):
+        if self.prediction_type == "type_concat":
             return predict_block_type_concat(
-                x,
-                e,
-                hyperedge_index,
-                node_types,
-                hyperedge_types,
-                self.sheaf_lin,
-                sheaf_act=self.sheaf_act
+                xs, es, hyperedge_index, node_types, hyperedge_types, self.sheaf_lin,
+                self.sheaf_act
             )
-        elif self.prediction_type == "type_ensemble":
+        if self.prediction_type == "type_ensemble":
             return predict_block_type_ensemble(
-                x,
-                e,
+                xs,
+                es,
                 hyperedge_index,
                 hyperedge_types,
-                self.sheaf_lins,
-                sheaf_act=self.sheaf_act
+                self.type_layers,
+                self.sheaf_act
             )
-        return None
+        return predict_block_local_concat(
+            xs, es, self.sheaf_lin, self.sheaf_act
+        )
 
     @abc.abstractmethod
     def compute_restriction_maps(self, x, e, hyperedge_index, h_sheaf):
@@ -334,7 +273,9 @@ class SheafBuilder(nn.Module):
         e = e.view(num_edges, self.d, e.shape[-1]).mean(1)  # # x d x f -> E x f
 
         # predict (_ x d) elements
-        h_sheaf = self.predict_sheaf(x, e, hyperedge_index, node_types, hyperedge_types)
+        xs, es = self.compute_node_hyperedge_features(x, e, hyperedge_index)
+        h_sheaf = self.predict_sheaf(xs, es, hyperedge_index, node_types,
+                                     hyperedge_types)
 
         return self.compute_restriction_maps(x, e, hyperedge_index, h_sheaf)
 
@@ -348,11 +289,12 @@ class SheafBuilderDiag(SheafBuilder):
             dropout: float = 0.6,
             allset_input_norm: bool = True,
             sheaf_special_head: bool = False,
-            sheaf_pred_block: str = "MLP_var1",
+            sheaf_pred_block: str = 'local_concat',
             sheaf_dropout: bool = False,
             sheaf_act: str = "sigmoid",
             num_node_types: int = 3,
             num_edge_types: int = 6,
+            he_feat_type: str = 'var1',
             **_kwargs,
     ):
         super(SheafBuilderDiag, self).__init__(
@@ -365,7 +307,8 @@ class SheafBuilderDiag(SheafBuilder):
             sheaf_dropout=sheaf_dropout,
             sheaf_act=sheaf_act,
             num_node_types=num_node_types,
-            num_edge_types=num_edge_types
+            num_edge_types=num_edge_types,
+            he_feat_type=he_feat_type
         )
 
     def reset_parameters(self):
@@ -423,7 +366,7 @@ class SheafBuilderGeneral(SheafBuilder):
             dropout: float = 0.6,
             allset_input_norm: bool = True,
             sheaf_special_head: bool = False,
-            sheaf_pred_block: str = "MLP_var1",
+            sheaf_pred_block: str = "local_concat",
             sheaf_dropout: bool = False,
             sheaf_normtype: Literal[
                 "degree_norm", "block_norm", "sym_degree_norm", "sym_block_norm"
@@ -431,6 +374,7 @@ class SheafBuilderGeneral(SheafBuilder):
             sheaf_act: str = "sigmoid",
             num_node_types: int = 3,
             num_edge_types: int = 6,
+            he_feat_type: str = 'var1',
             **_kwargs
     ):
         super(SheafBuilderGeneral, self).__init__(
@@ -444,7 +388,8 @@ class SheafBuilderGeneral(SheafBuilder):
             sheaf_act=sheaf_act,
             num_node_types=num_node_types,
             num_edge_types=num_edge_types,
-            sheaf_out_channels=stalk_dimension * stalk_dimension
+            sheaf_out_channels=stalk_dimension * stalk_dimension,
+            he_feat_type=he_feat_type
         )
         self.norm_type = sheaf_normtype
 
@@ -502,11 +447,12 @@ class SheafBuilderOrtho(SheafBuilder):
             dropout: float = 0.6,
             allset_input_norm: bool = True,
             sheaf_special_head: bool = False,
-            sheaf_pred_block: str = "MLP_var1",
+            sheaf_pred_block: str = "local_concat",
             sheaf_dropout: bool = False,
             sheaf_act: str = "sigmoid",
             num_node_types: int = 3,
             num_edge_types: int = 6,
+            he_feat_type: str = 'var1',
             **_kwargs,
     ):
         super(SheafBuilderOrtho, self).__init__(
@@ -520,7 +466,8 @@ class SheafBuilderOrtho(SheafBuilder):
             sheaf_act=sheaf_act,
             num_node_types=num_node_types,
             num_edge_types=num_edge_types,
-            sheaf_out_channels=stalk_dimension * (stalk_dimension - 1) // 2
+            sheaf_out_channels=stalk_dimension * (stalk_dimension - 1) // 2,
+            he_feat_type=he_feat_type
         )
 
         self.orth_transform = Orthogonal(
@@ -597,13 +544,14 @@ class SheafBuilderLowRank(SheafBuilder):
             dropout: float = 0.6,
             allset_input_norm: bool = True,
             sheaf_special_head: bool = False,
-            sheaf_pred_block: str = "MLP_var1",
+            sheaf_pred_block: str = "local_concat",
             sheaf_dropout: bool = False,
             sheaf_act: str = "sigmoid",
             sheaf_normtype: str = "degree_norm",
             rank: int = 2,
             num_node_types: int = 4,
             num_edge_types: int = 6,
+            he_feat_type: str = 'var1',
             **_kwargs,
     ):
         super(SheafBuilderLowRank, self).__init__(
@@ -617,7 +565,8 @@ class SheafBuilderLowRank(SheafBuilder):
             sheaf_act=sheaf_act,
             num_node_types=num_node_types,
             num_edge_types=num_edge_types,
-            sheaf_out_channels=2 * stalk_dimension * rank + stalk_dimension
+            sheaf_out_channels=2 * stalk_dimension * rank + stalk_dimension,
+            he_feat_type=he_feat_type
         )
         self.rank = rank  # rank for the block matrices
         self.norm_type = sheaf_normtype
@@ -732,11 +681,100 @@ class SheafBuilderLowRank(SheafBuilder):
         # create the big matrix from the dxd blocks
         return h_sheaf_index, h_sheaf_attributes
 
+
 # the hidden dimensiuon are a bit differently computed
 # That's why the classes are separated.
 # We shoul merge them at some point
 # Moreover, the function only return the values, not the indices in this case
 
+# helper functions to predict sigma(MLP(x_v || h_e)) varying how thw attributes for hyperedge are computed
+def predict_blocks(x, e, hyperedge_index, sheaf_lin, args):
+    # e_j = avg(x_v)
+    row, col = hyperedge_index
+    xs = torch.index_select(x, dim=0, index=row)
+    es = torch.index_select(e, dim=0, index=col)
+
+    # sigma(MLP(x_v || h_e))
+    h_sheaf = torch.cat((xs, es), dim=-1)  # sparse version of an NxEx2f tensor
+    h_sheaf = sheaf_lin(h_sheaf)  # sparse version of an NxExd tensor
+    if args.sheaf_act == 'sigmoid':
+        h_sheaf = F.sigmoid(
+            h_sheaf)  # output d numbers for every entry in the incidence matrix
+    elif args.sheaf_act == 'tanh':
+        h_sheaf = F.tanh(
+            h_sheaf)  # output d numbers for every entry in the incidence matrix
+    return h_sheaf
+
+
+def predict_blocks_var2(x, hyperedge_index, sheaf_lin, args):
+    # e_j = avg(h_v)
+    row, col = hyperedge_index
+    e = scatter_mean(x[row], col, dim=0)
+
+    xs = torch.index_select(x, dim=0, index=row)
+    es = torch.index_select(e, dim=0, index=col)
+
+    # sigma(MLP(x_v || h_e))
+    h_sheaf = torch.cat((xs, es), dim=-1)  # sparse version of an NxEx2f tensor
+    h_sheaf = sheaf_lin(h_sheaf)  # sparse version of an NxExd tensor
+    if args.sheaf_act == 'sigmoid':
+        h_sheaf = F.sigmoid(
+            h_sheaf)  # output d numbers for every entry in the incidence matrix
+    elif args.sheaf_act == 'tanh':
+        h_sheaf = F.tanh(
+            h_sheaf)  # output d numbers for every entry in the incidence matrix
+
+    return h_sheaf
+
+
+def predict_blocks_var3(x, hyperedge_index, sheaf_lin, sheaf_lin2, args):
+    # universal approx according to  Equivariant Hypergraph Diffusion Neural Operators
+    # # e_j = sum(φ(x_v))
+
+    row, col = hyperedge_index
+    xs = torch.index_select(x, dim=0, index=row)
+
+    # φ(x_v)
+    x_e = sheaf_lin2(x)
+    # sum(φ(x_v)
+    e = scatter_add(x_e[row], col, dim=0)
+    es = torch.index_select(e, dim=0, index=col)
+
+    # sigma(MLP(x_v || h_e))
+    h_sheaf = torch.cat((xs, es), dim=-1)  # sparse v ersion of an NxEx2f tensor
+    h_sheaf = sheaf_lin(h_sheaf)  # sparse version of an NxExd tensor
+    if args.sheaf_act == 'sigmoid':
+        h_sheaf = F.sigmoid(
+            h_sheaf)  # output d numbers for every entry in the incidence matrix
+    elif args.sheaf_act == 'tanh':
+        h_sheaf = F.tanh(
+            h_sheaf)  # output d numbers for every entry in the incidence matrix
+
+    return h_sheaf
+
+
+def predict_blocks_cp_decomp(x, hyperedge_index, cp_W, cp_V, sheaf_lin, args):
+    row, col = hyperedge_index
+    xs = torch.index_select(x, dim=0, index=row)
+
+    xs_ones = torch.cat((xs, torch.ones(xs.shape[0], 1).to(xs.device)),
+                        dim=-1)  # nnz x f+1
+    xs_ones_proj = torch.tanh(cp_W(xs_ones))  # nnz x r
+    xs_prod = scatter(xs_ones_proj, col, dim=0, reduce="mul")  # edges x r
+    e = torch.relu(cp_V(xs_prod))  # edges x f
+    e = e + torch.relu(scatter_add(x[row], col, dim=0))
+    es = torch.index_select(e, dim=0, index=col)
+
+    # sigma(MLP(x_v || h_e))
+    h_sheaf = torch.cat((xs, es), dim=-1)  # sparse version of an NxEx2f tensor
+    h_sheaf = sheaf_lin(h_sheaf)  # sparse version of an NxExd tensor
+    if args.sheaf_act == 'sigmoid':
+        h_sheaf = F.sigmoid(
+            h_sheaf)  # output d numbers for every entry in the incidence matrix
+    elif args.sheaf_act == 'tanh':
+        h_sheaf = F.tanh(
+            h_sheaf)  # output d numbers for every entry in the incidence matrix
+    return h_sheaf
 
 class HGCNSheafBuilderDiag(nn.Module):
     def __init__(
@@ -1245,8 +1283,8 @@ class HGCNSheafBuilderLowRank(nn.Module):
             h_sheaf.shape[0], self.d, self.rank
         )  # nnz x d x r
         h_sheaf_B = h_sheaf[
-                            :, self.d * self.rank: 2 * self.d * self.rank
-                            ].reshape(
+                    :, self.d * self.rank: 2 * self.d * self.rank
+                    ].reshape(
             h_sheaf.shape[0], self.d, self.rank
         )  # nnz x d x r
         h_sheaf_C = h_sheaf[:, 2 * self.d * self.rank:].reshape(
