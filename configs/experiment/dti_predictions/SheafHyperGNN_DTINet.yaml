@@ -1,7 +1,7 @@
 # @package _global_
 defaults:
   - override /dataset: DTINet
-  - override /model: HCHA
+  - override /model: SheafHyperGNN
 
 
 num_nodes: 7823
