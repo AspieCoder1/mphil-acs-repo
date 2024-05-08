@@ -5,8 +5,6 @@ metric:
   goal: maximize
   name: val/accuracy
 parameters:
-  experiment:
-    value: dti_predictions/SheafHyperGNN_DTINet
   model.sheaf_type:
     distribution: categorical
     values:
@@ -36,11 +34,13 @@ parameters:
       - tanh
       - elu
   model.sheaf_pred_block:
+    value: local_concat
+  model.he_feat_type:
     distribution: categorical
     values:
-      - MLP_var1
-      - MLP_var2
-      - MLP_var3
+      - var1
+      - var2
+      - var3
       - cp_decomp
   out_channels:
     distribution: categorical
@@ -58,4 +58,5 @@ parameters:
 command:
   - python
   - ${program}
+  - experiment=dti_predictions/SheafHyperGNN_DTINet
   - ${args_no_hyphens}

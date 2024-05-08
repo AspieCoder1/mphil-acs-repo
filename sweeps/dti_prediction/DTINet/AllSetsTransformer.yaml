@@ -5,8 +5,6 @@ metric:
   goal: maximize
   name: val/accuracy
 parameters:
-  experiment:
-    value: dti_predictions/AllSetsTransformer_DTINet
   model.num_layers:
     distribution: int_uniform
     min: 2
@@ -40,4 +38,5 @@ parameters:
 command:
   - python
   - ${program}
+  - experiment=dti_predictions/AllSetsTransformer_DTINet
   - ${args_no_hyphens}
