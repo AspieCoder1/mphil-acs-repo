@@ -5,7 +5,7 @@ defaults:
 
 
 num_nodes: 5589
-num_hyperedges: 11177
+num_hyperedges: 11178
 num_features: 128
 use_score_func: true
 out_channels: 64
