@@ -2,7 +2,7 @@ _target_: models.sheaf_hgnn.models.SheafHyperGNN
 sheaf_type: DiagSheafs
 in_channels: '${num_features}'
 out_channels: '${out_channels}'
-num_layers: 2  # number of layeers
+num_layers: 2  # number of layers
 dropout: 0.3  # dropout rate
 hidden_channels: 64  # dimension of hidden state (for most of the layers)
 allset_input_norm: True  # normalising the input at each layer
@@ -19,6 +19,5 @@ sheaf_special_head: False  # if True, add a head having just 1 on the diagonal. 
 rank: 2  # only for LowRank type of sheaf. mention the rank of the reduction matrix
 mediators: True  # only for the Non-Linear sheaf laplacian. Indicates if mediators are used when computing the non-linear Laplacian (same as in HyperGCN)
 cuda: 0
-output_channels: '${output_channels}'
 he_feat_type: cp_decomp # 'var1', 'var2', 'var3' or 'cp_decomp'
 use_lin2: true
