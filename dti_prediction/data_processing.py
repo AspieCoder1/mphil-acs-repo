@@ -173,7 +173,6 @@ class DTIData(InMemoryDataset):
         data.train_idx = train_idx
         data.val_idx = val_idx
         data.test_idx = test_idx
-        data.edge_index[1] -= data.edge_index[1].min()
         data.norm = torch.ones_like(data.edge_index[0])
 
         data = data if self.pre_transform is None else self.pre_transform(data)
@@ -201,7 +200,7 @@ class DTIDataModule(L.LightningDataModule):
         self,
         dataset: DTIDatasets = "deepDTnet_20",
         split: int = 0,
-        num_workers: int = 0,
+        num_workers: int = 31,
     ):
         super(DTIDataModule, self).__init__()
         self.dataset = dataset
@@ -250,3 +249,4 @@ if __name__ == "__main__":
     print(data.train_idx.shape[1] / total)
     print(data.val_idx.shape[1] / total)
     print(data.test_idx.shape[1] / total)
+    print(data.edge_index[1].max().item() + 1)

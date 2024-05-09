@@ -88,6 +88,8 @@ def generate_hyperedge_index(
     hyperedge_types = torch.cat(edge_types, dim=0)
     node_types = torch.cat(node_types, dim=0)
 
+    hyperedge_index[1] -= hyperedge_index[1].min()
+
     return HyperedgeIndex(
         hyperedge_index=hyperedge_index,
         hyperedge_types=hyperedge_types,
