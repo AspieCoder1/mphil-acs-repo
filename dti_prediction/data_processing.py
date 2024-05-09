@@ -152,9 +152,7 @@ class DTIData(InMemoryDataset):
             generator=generator1)
 
         train_idx = train_idx_dataset[train_split.indices][0].T.to(torch.long)
-        print(train_idx)
         val_idx = train_idx_dataset[val_split.indices][0].T.to(torch.long)
-        print(val_idx)
 
         test_idx = (
                 torch.Tensor(np.genfromtxt(f"{self.raw_dir}/test_{self.split}.txt"))
