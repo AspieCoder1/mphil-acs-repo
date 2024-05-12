@@ -1,0 +1,23 @@
+# @package _global_
+defaults:
+  - override /dataset: DeepDTNet
+  - override /model: SheafHyperGNN
+
+
+num_nodes: 3087
+num_hyperedges: 6147
+num_features: 128
+use_score_func: true
+out_channels: 256
+
+model:
+  dropout: 0.3678358540805298
+  left_proj: false
+  sheaf_act: none
+  num_layers: 4
+  sheaf_type: DiagSheafs
+  hidden_channels: 64
+  stalk_dimension: 7
+  sheaf_pred_block: type_concat
+  he_feat_type: var1
+  residual_connections: false

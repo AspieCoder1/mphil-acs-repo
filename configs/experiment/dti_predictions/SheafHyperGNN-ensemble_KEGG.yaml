@@ -1,0 +1,23 @@
+# @package _global_
+defaults:
+  - override /dataset: KEGG
+  - override /model: SheafHyperGNN
+
+
+num_nodes: 5589
+num_hyperedges: 11178
+num_features: 128
+use_score_func: true
+out_channels: 64
+
+model:
+  dropout: 0.020924910973199064
+  left_proj: false
+  sheaf_act: sigmoid
+  num_layers: 8
+  sheaf_type: GeneralSheafs
+  he_feat_type: var2
+  hidden_channels: 64
+  stalk_dimension: 6
+  sheaf_pred_block: type_ensemble
+  residual_connections: true
