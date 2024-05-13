@@ -15,3 +15,13 @@ model:
   num_layers: 3
   hidden_channels: 64
   residual_connections: true
+
+tags:
+  - exp4
+  - dti
+  - DeepDTNet
+  - HGNN
+
+callbacks:
+  model_checkpoint:
+    filename: HGNN-DeepDTNet

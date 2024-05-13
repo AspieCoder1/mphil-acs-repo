@@ -16,3 +16,13 @@ model:
   num_layers: 2
   hidden_channels: 64
   residual_connections: false
+
+tags:
+  - exp4
+  - dti
+  - DeepDTNet
+  - HCHA
+
+callbacks:
+  model_checkpoint:
+    filename: HCHA-DeepDTNet

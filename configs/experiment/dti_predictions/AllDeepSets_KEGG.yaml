@@ -18,3 +18,13 @@ model:
   residual_connections: true
   classifier_hidden_dim: 16
   num_classifier_layers: 3
+
+tags:
+  - exp4
+  - dti
+  - KEGG
+  - AllDeepSets
+
+callbacks:
+  model_checkpoint:
+    filename: AllDeepSets-KEGG

@@ -17,3 +17,13 @@ model:
   residual_connections: false
   classifier_hidden_dim: 128
   num_classifier_layers: 3
+
+tags:
+  - exp4
+  - dti
+  - KEGG
+  - AllSetsTransformer
+
+callbacks:
+  model_checkpoint:
+    filename: AllSetsTransformer-KEGG

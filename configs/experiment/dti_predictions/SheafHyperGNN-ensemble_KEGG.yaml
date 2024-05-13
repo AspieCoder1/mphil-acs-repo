@@ -21,3 +21,13 @@ model:
   stalk_dimension: 6
   sheaf_pred_block: type_ensemble
   residual_connections: true
+
+tags:
+  - exp4
+  - dti
+  - KEGG
+  - SheafHyperGNN-ensemble
+
+callbacks:
+  model_checkpoint:
+    filename: SheafHyperGNNensemble-KEGG

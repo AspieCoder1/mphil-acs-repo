@@ -15,3 +15,13 @@ model:
   num_layers: 5
   hidden_channels: 128
   residual_connections: true
+
+tags:
+  - exp4
+  - dti
+  - KEGG
+  - HGNN
+
+callbacks:
+  model_checkpoint:
+    filename: HGNN-KEGG

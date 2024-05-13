@@ -21,3 +21,13 @@ model:
   sheaf_pred_block: local_concat
   he_feat_type: var1
   residual_connections: false
+
+tags:
+  - exp4
+  - dti
+  - DeepDTNet
+  - SheafHyperGNN
+
+callbacks:
+  model_checkpoint:
+    filename: SheafHyperGNN-DeepDTNet

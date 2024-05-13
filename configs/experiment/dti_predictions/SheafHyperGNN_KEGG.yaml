@@ -21,3 +21,13 @@ model:
   stalk_dimension: 6
   sheaf_pred_block: local_concat
   residual_connections: true
+
+tags:
+  - exp4
+  - dti
+  - KEGG
+  - SheafHyperGNN
+
+callbacks:
+  model_checkpoint:
+    filename: SheafHyperGNN-KEGG

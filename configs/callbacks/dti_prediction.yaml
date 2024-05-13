@@ -1,5 +1,6 @@
 defaults:
   - early_stopping
+  - model_checkpoints
   - timer
 
 early_stopping:

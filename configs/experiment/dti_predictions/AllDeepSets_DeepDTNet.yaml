@@ -18,3 +18,13 @@ model:
   residual_connections: true
   classifier_hidden_dim: 8
   num_classifier_layers: 3
+
+tags:
+  - exp4
+  - dti
+  - DeepDTNet
+  - AllDeepSets
+
+callbacks:
+  model_checkpoint:
+    filename: AllDeepSets-DeepDTNet

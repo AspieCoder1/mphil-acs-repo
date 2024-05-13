@@ -16,3 +16,13 @@ model:
   num_layers: 2
   hidden_channels: 64
   residual_connections: true
+
+tags:
+  - exp4
+  - dti
+  - DeepDTNet
+  - KEGG
+
+callbacks:
+  model_checkpoint:
+    filename: HCHA-KEGG
