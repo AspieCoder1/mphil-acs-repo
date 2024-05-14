@@ -1,8 +1,14 @@
 defaults:
   - early_stopping
-  - model_checkpoints
+  - model_checkpoint
   - timer
 
 early_stopping:
   patience: 100
   monitor: val/loss
+
+model_checkpoint:
+  dirpath: checkpoints/dti_checkpoints
+  mode: 'max'
+  save_top_k: 1
+  monitor: 'val/accuracy'
