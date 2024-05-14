@@ -265,7 +265,7 @@ class GNNRecommender(L.LightningModule):
             [torch.ones(len(pos_scores)), torch.zeros(len(neg_scores))]
         ).to(torch.long)
 
-        return loss, scores, labels
+        return loss, scores, labels.to(scores)
 
     def training_step(self, batch: DataOrHeteroData, batch_idx: int) -> STEP_OUTPUT:
         loss, scores, gt = self.common_step(batch)
