@@ -57,7 +57,7 @@ def main(cfg: DictConfig):
         homogeneous=cfg.dataset.homogeneous,
         batch_size=datamodule.batch_size,
         hidden_channels=cfg.hidden_dim,
-        use_rec_metrics=cfg.recsys_metrics,
+        use_rec_metrics=False,
         node_type_names=datamodule.node_type_names,
         edge_type_names=datamodule.edge_type_names,
     )

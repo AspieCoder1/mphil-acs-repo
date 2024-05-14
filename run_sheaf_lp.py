@@ -54,7 +54,7 @@ def main(cfg: DictConfig) -> None:
         hidden_channels=model.hidden_dim,
         edge_target=dm.target,
         homogeneous=True,
-        use_rec_metrics=cfg.recsys_metrics,
+        use_rec_metrics=False,
         node_type_names=dm.node_type_names,
         edge_type_names=dm.edge_type_names,
     )
