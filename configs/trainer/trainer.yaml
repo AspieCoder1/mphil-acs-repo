@@ -6,4 +6,3 @@ strategy: auto
 fast_dev_run: false
 log_every_n_steps: 1
 max_epochs: 200
-precision: bf16-mixed
