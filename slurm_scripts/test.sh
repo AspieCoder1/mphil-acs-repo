@@ -3,14 +3,14 @@
 # License: MIT
 #
 
-MODELS=( AllDeepSets AllSetsTransformer HCHA HGNN SheafHyperGNN SheafHyperGNN-TE SheafHyperGNN-ensemble )
-DATASETS=( DeepDTNet KEGG )
+MODELS=( gat gcn han hgt rgcn )
+DATASETS=( last_fm amazon_books movie_lens )
 
 N_SEEDS=10
 N_DATASETS=${#DATASETS[@]}
 N_MODELS=${#MODELS[@]}
 
-for IDX in {0..139}
+for IDX in {0..149}
 do
 N_RUN=$(( IDX / N_SEEDS ))
 MODEL_IDX=$(( N_RUN / N_DATASETS ))

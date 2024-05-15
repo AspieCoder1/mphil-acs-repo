@@ -20,19 +20,6 @@ from torchmetrics.collections import MetricCollection
 from node_classification.node_classifier import CommonStepOutput
 
 
-class EdgeDecoder(nn.Module):
-    def __init__(self, in_dims, out_dims):
-        super(EdgeDecoder, self).__init__()
-        self.lin = nn.Linear(2 * in_dims, out_dims)
-
-    def forward(self, x, edge_index):
-        h_src = x[edge_index[0]]
-        h_dest = x[edge_index[1]]
-        concat = torch.concat((h_src, h_dest), dim=1)
-
-        return self.lin(concat)
-
-
 class SheafLinkPredictor(L.LightningModule):
     def __init__(
         self,
@@ -44,7 +31,7 @@ class SheafLinkPredictor(L.LightningModule):
         super(SheafLinkPredictor, self).__init__()
         self.encoder = model
         self.batch_size = batch_size
-        self.decoder = EdgeDecoder(hidden_dim, num_classes)
+        self.decoder = nn.Linear(2*hidden_dim, num_classes)
 
         self.train_metrics = MetricCollection(
             {
@@ -67,17 +54,19 @@ class SheafLinkPredictor(L.LightningModule):
         y = batch.edge_label[label_idx]
 
         # (2) Compute the hidden representation of nodes
-        h = self.encoder(batch)
+        h, _ = self.encoder(batch)
 
-        # (3) reduced edge_index
-        edge_index = batch.edge_label_index[:, label_idx]
+        # (3) reduced edge_label_index
+        edge_label_index = batch.edge_label_index[:, label_idx]
 
-        # (4) Calculate dot product h[i].h[j] for i, j in edge_index
-        y_hat = self.decoder(h, edge_index).flatten()
+        # (4) Calculate dot product h[i].h[j] for i, j in edge_label_index
+        h_src = h[edge_label_index[0, :]]
+        h_dest = h[edge_label_index[1, :]]
+        y_hat = self.decoder(torch.concat((h_src, h_dest), dim=1)).flatten()
         loss = F.binary_cross_entropy_with_logits(y_hat, y)
         y_hat = F.sigmoid(y_hat)
 
-        return CommonStepOutput(loss=loss, y=y, y_hat=y_hat)
+        return CommonStepOutput(loss=loss, y=y.to(torch.long), y_hat=y_hat)
 
     def training_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
         y, y_hat, loss = self.common_step(batch)

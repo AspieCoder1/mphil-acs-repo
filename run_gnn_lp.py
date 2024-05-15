@@ -12,6 +12,7 @@ from omegaconf import DictConfig
 
 from core.sheaf_configs import SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
+from link_prediction import LinkPredictor
 from models.recommender.recommender import GNNRecommender
 from run_gnn_nc import ModelConfig
 from utils.instantiators import instantiate_loggers, instantiate_callbacks
@@ -51,13 +52,13 @@ def main(cfg: DictConfig):
     #     cfg.model.type, datamodule, hidden_channels=cfg.hidden_dim
     # )
 
-    link_predictor = GNNRecommender(
+    link_predictor = LinkPredictor(
         model,
         edge_target=datamodule.target,
         homogeneous=cfg.dataset.homogeneous,
         batch_size=datamodule.batch_size,
-        hidden_channels=cfg.hidden_dim,
-        use_rec_metrics=False,
+        # hidden_channels=cfg.hidden_dim,
+        # use_rec_metrics=False,
         node_type_names=datamodule.node_type_names,
         edge_type_names=datamodule.edge_type_names,
     )

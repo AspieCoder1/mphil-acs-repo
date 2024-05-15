@@ -1,14 +1,16 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
+from typing import Optional, Union
 
 import lightning.pytorch as L
 import torch
 import torch.nn.functional as F
 from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn
-from torch_geometric.data import HeteroData
+from torch_geometric.data import HeteroData, Data
 from torchmetrics import MetricCollection
-from torchmetrics.classification import BinaryAccuracy, BinaryF1Score, BinaryAUROC, BinaryAveragePrecision
+from torchmetrics.classification import (BinaryAccuracy, BinaryAUROC,
+                                         BinaryAveragePrecision, )
 
 from node_classification.node_classifier import CommonStepOutput
 
@@ -40,10 +42,12 @@ class LinkPredictor(L.LightningModule):
         edge_target: tuple[str, str, str] = ("user", "rates", "movie"),
         homogeneous: bool = False,
         batch_size: int = 1,
+            node_type_names: Optional[list[str]] = None,
+            edge_type_names: Optional[list[tuple[str, str, str]]] = None,
     ):
         super(LinkPredictor, self).__init__()
         self.encoder = model
-        self.decoder = EdgeDecoder(target=edge_target, hidden_dim=256, out_dim=1)
+        self.score_func = nn.Linear(512, 1)
         self.homogeneous = homogeneous
         self.target = edge_target
 
@@ -59,20 +63,49 @@ class LinkPredictor(L.LightningModule):
         self.valid_metrics = self.train_metrics.clone(prefix="valid/")
         self.test_metrics = self.train_metrics.clone(prefix="test/")
         self.batch_size = batch_size
+
+        if node_type_names and edge_type_names:
+            self.src_type = node_type_names.index(edge_target[0])
+            self.dst_type = node_type_names.index(edge_target[-1])
+            self.edge_type = edge_type_names.index(edge_target)
+
         self.save_hyperparameters(ignore="model")
 
-    def common_step(self, batch: HeteroData) -> CommonStepOutput:
-        if self.homogeneous:
-            x_dict = self.encoder(batch)
-        else:
-            x_dict = self.encoder(batch)
+    def common_step_homo(self, batch: Data) -> CommonStepOutput:
+        label_idx = ~batch.edge_label.isnan()
+        y = batch.edge_label[label_idx]
+        edge_label_idx = batch.edge_label_index[:, label_idx]
 
-        y_hat = self.decoder(x_dict, batch[self.target].edge_label_index).flatten()
-        y = batch[self.target].edge_label
+        out = self.encoder(batch)
+
+        h_src = out[edge_label_idx[0]]
+        h_dst = out[edge_label_idx[1]]
+        h_cat = torch.cat([h_src, h_dst], dim=1)
+        y_hat = self.score_func(h_cat).flatten()
 
         loss = F.binary_cross_entropy_with_logits(y_hat, y)
         y_hat = F.sigmoid(y_hat)
-        return CommonStepOutput(y, y_hat, loss)
+        return CommonStepOutput(y.to(torch.long), y_hat, loss)
+
+    def common_step_hetero(self, batch: HeteroData):
+        edge_label_idx = batch[self.target].edge_label_index
+        y = batch[self.target].edge_label
+        out = self.encoder(batch)
+
+        h_src = out[self.target[0]][edge_label_idx[0]]
+        h_dst = out[self.target[-1]][edge_label_idx[1]]
+        h_cat = torch.cat([h_src, h_dst], dim=1)
+
+        y_hat = self.score_func(h_cat).flatten()
+
+        loss = F.binary_cross_entropy_with_logits(y_hat, y)
+        y_hat = F.sigmoid(y_hat)
+        return CommonStepOutput(y.to(torch.long), y_hat, loss)
+
+    def common_step(self, batch: Union[Data, HeteroData]):
+        if isinstance(batch, HeteroData):
+            return self.common_step_hetero(batch)
+        return self.common_step_homo(batch)
 
     def training_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
         y, y_hat, loss = self.common_step(batch)

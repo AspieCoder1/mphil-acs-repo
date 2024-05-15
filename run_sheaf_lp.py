@@ -15,6 +15,7 @@ from omegaconf import DictConfig
 from core.sheaf_configs import SheafModelCfg, SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
 from models.recommender.recommender import GNNRecommender
+from link_prediction import SheafLinkPredictor
 from models.sheaf_gnn.config import IndSheafModelArguments, SheafLearners
 from utils.instantiators import instantiate_callbacks, instantiate_loggers
 
@@ -50,15 +51,11 @@ def main(cfg: DictConfig) -> None:
         },
     )
 
-    sheaf_lp = GNNRecommender(
+    sheaf_lp = SheafLinkPredictor(
         model=model,
         batch_size=dm.batch_size,
-        hidden_channels=model.hidden_dim,
-        edge_target=dm.target,
-        homogeneous=True,
-        use_rec_metrics=False,
-        node_type_names=dm.node_type_names,
-        edge_type_names=dm.edge_type_names,
+        hidden_dim=model.hidden_dim,
+        num_classes=1
     )
 
 
