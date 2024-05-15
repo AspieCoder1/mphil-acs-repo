@@ -1,2 +1,4 @@
+defaults:
+  - trainer
 accelerator: cpu
 device: 1

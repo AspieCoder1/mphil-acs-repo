@@ -14,3 +14,6 @@ recsys_metrics: true
 hidden_dim: 256
 
 tags: [ GNN, link_prediction ]
+
+trainer:
+  precision: bf16-mixed
