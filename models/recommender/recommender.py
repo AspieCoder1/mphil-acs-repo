@@ -263,9 +263,9 @@ class GNNRecommender(L.LightningModule):
         scores = torch.column_stack([pos_scores, neg_scores])
         labels = torch.column_stack(
             [torch.ones(len(pos_scores)), torch.zeros(len(neg_scores))]
-        ).to(torch.long)
+        ).to(scores)
 
-        return loss, scores, labels.to(scores)
+        return loss, scores, labels.to(torch.long)
 
     def training_step(self, batch: DataOrHeteroData, batch_idx: int) -> STEP_OUTPUT:
         loss, scores, gt = self.common_step(batch)
