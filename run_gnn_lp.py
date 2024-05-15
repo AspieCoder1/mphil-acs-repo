@@ -4,6 +4,7 @@
 from dataclasses import dataclass, field
 
 import hydra
+import torch
 from hydra.core.config_store import ConfigStore
 from lightning.pytorch.callbacks import Timer
 from lightning.pytorch.loggers import WandbLogger
@@ -32,10 +33,9 @@ cs.store("config", Config)
 
 @hydra.main(version_base=None, config_path="configs", config_name="lp_config")
 def main(cfg: DictConfig):
+    torch.set_float32_matmul_precision('high')
     datamodule = hydra.utils.instantiate(cfg.dataset)
     datamodule.prepare_data()
-
-    print(datamodule)
 
     model = hydra.utils.instantiate(
         cfg.model,

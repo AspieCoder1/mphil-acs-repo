@@ -5,6 +5,7 @@ from dataclasses import field, dataclass
 from typing import List
 
 import hydra
+import torch
 from hydra.core.config_store import ConfigStore
 from lightning import Trainer, Callback
 from lightning.pytorch.callbacks import Timer
@@ -35,6 +36,7 @@ cs.store("base_config", Config)
 
 @hydra.main(version_base="1.2", config_path="configs", config_name="sheaf_config_lp")
 def main(cfg: DictConfig) -> None:
+    torch.set_float32_matmul_precision('high')
     dm = hydra.utils.instantiate(cfg.dataset)
     dm.prepare_data()
 
