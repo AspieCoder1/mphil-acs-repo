@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - override /dataset: lastfm
+  - override /dataset: last_fm
   - override /model: gat
 
 callbacks:
