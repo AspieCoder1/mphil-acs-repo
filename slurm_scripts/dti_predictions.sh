@@ -9,15 +9,15 @@
 #SBATCH --error=slurm_output/dti_predictions/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=1:00:00
-#SBATCH -a 0-139%10
+#SBATCH -a 0-9%10
 #SBATCH -p ampere
 #SBATCH --nodes 1
 #SBATCH --gres=gpu:1
 #SBATCH --gpu-bind=none
 #SBATCH --mail-type=ALL
 
-MODELS=( AllDeepSets AllSetsTransformer HCHA HGNN SheafHyperGNN SheafHyperGNN-TE SheafHyperGNN-ensemble )
-DATASETS=( DeepDTNet KEGG )
+MODELS=( SheafHyperGNN )
+DATASETS=( DeepDTNet )
 
 N_SEEDS=10
 N_DATASETS=${#DATASETS[@]}
