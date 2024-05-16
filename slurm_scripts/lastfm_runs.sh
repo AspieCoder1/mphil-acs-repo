@@ -16,7 +16,7 @@
 #SBATCH --gpu-bind=none
 #SBATCH --mail-type=ALL
 
-MODEL_PARAMS=( ghan hgt rgcn )
+MODEL_PARAMS=( han hgt rgcn )
 DATASETS=( last_fm )
 
 N_TRIALS=10
