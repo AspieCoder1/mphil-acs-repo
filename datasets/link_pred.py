@@ -75,8 +75,8 @@ class LinkPredBase(L.LightningDataModule):
             data = data.to_homogeneous()
             self.graph_size = data.num_nodes
             self.in_channels = data.num_features
-            self.num_node_types = len(data.node_types)
-            self.num_edge_types = len(data.edge_types)
+            self.num_node_types = data.num_node_types
+            self.num_edge_types = data.num_edge_types
             self.node_type_names = data._node_type_names
             self.edge_type_names = data._edge_type_names
 
