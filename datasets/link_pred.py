@@ -71,39 +71,25 @@ class LinkPredBase(L.LightningDataModule):
             node_type: data[node_type].num_features for node_type in data.node_types
         }
 
-        # if self.is_homogeneous:
-        #     data = data.to_homogeneous()
-        # self.graph_size = data.num_nodes
-        # self.in_channels = data.num_features
-        # self.num_node_types = len(data.node_types)
-        # self.num_edge_types = len(data.edge_types)
-        # self.node_type_names = data._node_type_names
-        # self.edge_type_names = data._edge_type_names
+        if self.is_homogeneous:
+            data = data.to_homogeneous()
+            self.graph_size = data.num_nodes
+            self.in_channels = data.num_features
+            self.num_node_types = len(data.node_types)
+            self.num_edge_types = len(data.edge_types)
+            self.node_type_names = data._node_type_names
+            self.edge_type_names = data._edge_type_names
 
         split = T.RandomLinkSplit(
-            edge_types=self.target,
+            edge_types=None if self.is_homogeneous else self.target,
             is_undirected=True,
             # split_labels=True,
-            key='edge_label',
             add_negative_train_samples=True,
             neg_sampling_ratio=0.6,
             rev_edge_types=self.rev_target,
         )
 
         self.train_data, self.val_data, self.test_data = split(data)
-
-        if self.is_homogeneous:
-            self.train_data = self.train_data.to_homogeneous()
-            self.val_data = self.val_data.to_homogeneous()
-            self.test_data = self.test_data.to_homogeneous()
-
-            data = data.to_homogeneous()
-            self.graph_size = data.num_nodes
-            self.in_channels = data.num_features
-            self.num_node_types = data.num_node_types
-            self.num_edge_types = data.num_edge_types
-            self.node_type_names = data._node_type_names
-            self.edge_type_names = data._edge_type_names
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return LightningLinkData(self.train_data, loader="full").full_dataloader()
