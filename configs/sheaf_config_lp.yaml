@@ -18,5 +18,3 @@ tags:
   - sheaf
   - lp
   - exp2
-trainer:
-  precision: bf16-mixed
