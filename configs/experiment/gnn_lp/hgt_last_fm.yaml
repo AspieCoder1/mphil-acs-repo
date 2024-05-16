@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - override /data: last_fm
+  - override /dataset: last_fm
   - override /model: hgt
 
 callbacks:
@@ -13,3 +13,6 @@ tags:
   - lp
   - gnn
   - exp2
+
+dataset:
+  homogeneous: false

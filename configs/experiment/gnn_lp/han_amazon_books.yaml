@@ -13,3 +13,6 @@ tags:
   - lp
   - gnn
   - exp2
+
+dataset:
+  homogeneous: false

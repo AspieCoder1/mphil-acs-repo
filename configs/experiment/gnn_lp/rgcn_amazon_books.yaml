@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - override /data: amazon_books
+  - override /dataset: amazon_books
   - override /model: rgcn
 
 callbacks:
@@ -13,3 +13,6 @@ tags:
   - lp
   - gnn
   - exp2
+
+dataset:
+  homogeneous: false
