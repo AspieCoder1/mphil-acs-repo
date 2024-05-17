@@ -111,6 +111,7 @@ class SheafHyperGNN(nn.Module):
             input_norm=False,
         )
         self.use_lin2 = use_lin2
+        self.sheaf_type = sheaf_type
 
         # define the model and sheaf generator according to the type of sheaf wanted
         # The diuffusion does not change, however tha implementation for diag and ortho is more efficient
@@ -318,7 +319,7 @@ class SheafHyperGNN(nn.Module):
         return x
 
     def __repr__(self):
-        return f"SheafHyperGNN-{self.pred_block}"
+        return f"SheafHyperGNN-{self.sheaf_type}-{self.pred_block}"
 
 
 class SheafHyperGCN(nn.Module):
