@@ -26,21 +26,18 @@ class HGT(nn.Module):
                     in_channels,
                     hidden_channels,
                     heads=8,
-                    dropout=0.6,
                     metadata=metadata,
                 ),
                 HGTConv(
                     hidden_channels,
                     hidden_channels,
                     heads=8,
-                    dropout=0.6,
                     metadata=metadata,
                 ),
                 HGTConv(
                     hidden_channels,
                     hidden_channels,
                     heads=8,
-                    dropout=0.6,
                     metadata=metadata,
                 ),
             ]
