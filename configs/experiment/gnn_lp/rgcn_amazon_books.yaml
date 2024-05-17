@@ -15,4 +15,4 @@ tags:
   - exp2
 
 dataset:
-  homogeneous: false
+  homogeneous: true

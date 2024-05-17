@@ -3,7 +3,7 @@
 
 import torch.nn.functional as F
 from torch import nn
-from torch_geometric.data import HeteroData
+from torch_geometric.data import Data
 from torch_geometric.nn import RGCNConv
 
 
@@ -15,19 +15,14 @@ class RGCN(nn.Module):
         self.conv1 = RGCNConv(num_nodes, hidden_channels, num_relations)
         self.conv2 = RGCNConv(hidden_channels, hidden_channels, num_relations)
 
-    def forward(self, data: HeteroData):
-        node_type_names = data.node_types
-        data = data.to_homogeneous()
+    def forward(self, data: Data):
 
         edge_type, edge_index = data.edge_type, data.edge_index
         x = self.conv1(None, edge_index, edge_type)
         x = F.elu(x)
         x = self.conv2(x, edge_index, edge_type)
         x = F.elu(x)
-
-        data.update({"x": x})
-        data = data.to_heterogeneous(node_type_names=node_type_names)
-        return data.x_dict
+        return x
 
     def __repr__(self):
         return "RGCN"
