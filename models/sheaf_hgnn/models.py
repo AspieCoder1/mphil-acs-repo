@@ -67,6 +67,8 @@ class SheafHyperGNN(nn.Module):
         sheaf_dropout: bool = False,
         rank: int = 2,
         is_vshae: bool = False,
+            num_node_types: int = 3,
+            num_hyperedge_types: int = 6,
         **_kwargs,
     ):
         super(SheafHyperGNN, self).__init__()
@@ -152,8 +154,8 @@ class SheafHyperGNN(nn.Module):
                 sheaf_dropout=sheaf_dropout,
                 sheaf_normtype=self.norm,
                 he_feat_type=he_feat_type,
-
-
+                num_node_types=num_node_types,
+                num_hyperedge_types=num_hyperedge_types
             )
         )
 
@@ -206,6 +208,8 @@ class SheafHyperGNN(nn.Module):
                         sheaf_normtype=self.norm,
                         rank=rank,
                         he_feat_type=he_feat_type,
+                        num_node_types=num_node_types,
+                        num_hyperedge_types=num_hyperedge_types
                     )
                 )
 
@@ -319,7 +323,7 @@ class SheafHyperGNN(nn.Module):
         return x
 
     def __repr__(self):
-        return f"SheafHyperGNN-{self.sheaf_type}-{self.pred_block}"
+        return f"SheafHyperGNN-{self.pred_block}"
 
 
 class SheafHyperGCN(nn.Module):

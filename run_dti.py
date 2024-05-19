@@ -36,6 +36,10 @@ def main(cfg: DictConfig) -> None:
         assert isinstance(logger[0], WandbLogger)
         logger[0].experiment.config["model"] = f"{model}"
         logger[0].experiment.config["dataset"] = f"{dm}"
+        if "he_feat_type" in cfg.model:
+            logger[0].experiment.config["he_feat"] = f"{cfg.model['he_feat_type']}"
+        if "sheaf_type" in cfg.model:
+            logger[0].experiment.config["sheaf_type"] = f"{cfg.model['sheaf_type']}"
 
     # initialise callbacks
     callbacks: List[Callback] = instantiate_callbacks(cfg.get("callbacks"))
