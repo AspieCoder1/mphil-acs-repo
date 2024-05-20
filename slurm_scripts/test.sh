@@ -3,20 +3,29 @@
 # License: MIT
 #
 
-MODELS=( gat gcn han hgt rgcn )
-DATASETS=( last_fm amazon_books movie_lens )
-
 N_SEEDS=10
-N_DATASETS=${#DATASETS[@]}
-N_MODELS=${#MODELS[@]}
+DATASETS=( DeepDTNet KEGG )
+MAP_TYPES=( DiagSheafs GeneralSheafs OrthoSheafs LowRankSheafs )
 
-for IDX in {0..149}
+N_DATASETS=${#DATASETS[@]}
+N_FEATS=${#MAP_TYPES[@]}
+
+#IDX=${SLURM_ARRAY_TASK_ID}
+#N_RUN=$(( IDX / N_SEEDS ))
+#FEAT_IDX=$(( N_RUN / N_DATASETS ))
+#DATA_IDX=$(( N_RUN % N_DATASETS ))
+#
+#SHEAF_TYPE=${MAP_TYPES[FEAT_IDX]}
+#DATASET=${DATASETS[DATA_IDX]}
+#SPLIT=$(( IDX % N_TRIALS ))
+
+for IDX in {0..79}
 do
 N_RUN=$(( IDX / N_SEEDS ))
 MODEL_IDX=$(( N_RUN / N_DATASETS ))
 DATA_IDX=$(( N_RUN % N_DATASETS ))
 
-MODEL=${MODELS[MODEL_IDX]}
+MODEL=${MAP_TYPES[MODEL_IDX]}
 DATASET=${DATASETS[DATA_IDX]}
 SPLIT=$(( IDX % N_SEEDS ))
   echo "($IDX)" "$MODEL" "$DATASET" "$SPLIT"

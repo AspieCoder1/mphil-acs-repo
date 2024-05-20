@@ -1,11 +1,11 @@
 defaults:
-  - _self_
   - dataset: KEGG
   - logger: wandb
   - trainer: trainer
   - callbacks: dti_prediction
   - model: VSHAE
   - experiment: null
+  - _self_
 
 
 num_nodes: ???
