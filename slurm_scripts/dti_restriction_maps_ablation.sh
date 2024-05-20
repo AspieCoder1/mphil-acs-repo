@@ -34,4 +34,4 @@ SPLIT=$(( IDX % N_TRIALS ))
 export WANDB_CACHE_DIR=".wandb"
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
 source ~/venv/bin/activate
-srun python run_dti.py dataset.split="${SPLIT}" experiment="dti_predictions/SheafHyperGNN-TE_${DATASET}" model.sheaf_type="${SHEAF_TYPE}" tags="[exp6]"
+srun python run_dti.py dataset.split="${SPLIT}" experiment="dti_predictions/SheafHyperGNN_${DATASET}" model.sheaf_type="${SHEAF_TYPE}" tags="[exp6]"
