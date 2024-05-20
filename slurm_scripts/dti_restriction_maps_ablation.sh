@@ -21,10 +21,9 @@ DATASETS=( DeepDTNet KEGG )
 MAP_TYPES=( DiagSheafs GeneralSheafs OrthoSheafs LowRankSheafs )
 
 N_DATASETS=${#DATASETS[@]}
-N_FEATS=${#MAP_TYPES[@]}
 
 IDX=${SLURM_ARRAY_TASK_ID}
-N_RUN=$(( IDX / N_SEEDS ))
+N_RUN=$(( IDX / N_TRIALS ))
 FEAT_IDX=$(( N_RUN / N_DATASETS ))
 DATA_IDX=$(( N_RUN % N_DATASETS ))
 
