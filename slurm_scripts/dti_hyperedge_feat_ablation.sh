@@ -21,7 +21,6 @@ DATASETS=( DeepDTNet KEGG )
 FEAT_TYPES=( var1 var2 var3 cp_decomp )
 
 N_DATASETS=${#DATASETS[@]}
-N_FEATS=${#FEAT_TYPES[@]}
 
 IDX=${SLURM_ARRAY_TASK_ID}
 N_RUN=$(( IDX / N_TRIALS ))
