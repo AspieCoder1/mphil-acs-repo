@@ -9,14 +9,14 @@
 #SBATCH --error=slurm_output/dti_restriction_map_ablation/err/%A_%a.err
 #SBATCH -A COMPUTERLAB-SL2-GPU
 #SBATCH --time=1:00:00
-#SBATCH -a 0-39%10
+#SBATCH -a 0-79%10
 #SBATCH -p ampere
 #SBATCH --nodes 1
 #SBATCH --gres=gpu:1
 #SBATCH --gpu-bind=none
 #SBATCH --mail-type=ALL
 
-N_TRIALS=5
+N_TRIALS=10
 DATASETS=( DeepDTNet KEGG )
 MAP_TYPES=( DiagSheafs GeneralSheafs OrthoSheafs LowRankSheafs )
 
