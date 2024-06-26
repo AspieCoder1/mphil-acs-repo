@@ -45,9 +45,8 @@ class TrainValNodeSplit(BaseTransform):
         for store in data.node_stores:
             if self.key is not None and not hasattr(store, self.key):
                 continue
-            print(store)
+
             train_mask, val_mask = self._split(store)
-            print(train_mask, val_mask)
             store.train_mask = train_mask
             store.val_mask = val_mask
         return data
@@ -61,7 +60,6 @@ class TrainValNodeSplit(BaseTransform):
 
         num_val = round(num_nodes * self.val_ratio)
         perm = torch.randperm(train_idx_org.shape[0])
-        print(perm.shape)
 
         train_idx = train_idx_org[perm][:num_val]
         val_idx = train_idx_org[perm][num_val:]

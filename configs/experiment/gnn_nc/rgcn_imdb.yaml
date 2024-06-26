@@ -7,4 +7,7 @@ callbacks:
   model_checkpoint:
     filename: RGCN-IMDB
 
+dataset:
+  homogeneous: true
+
 tags: [ RGCN, IMDB, exp1_1, nc, gnn ]
