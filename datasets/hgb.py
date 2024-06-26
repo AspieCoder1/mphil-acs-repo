@@ -11,7 +11,7 @@ from torch_geometric.data import HeteroData, Data
 from torch_geometric.data.lightning import LightningNodeData
 from torch_geometric.datasets import HGBDataset
 
-from datasets.utils import RemoveSelfLoops
+from datasets.utils import RemoveSelfLoops, TrainValNodeSplit
 
 DATA_DIR = "data"
 
@@ -48,7 +48,7 @@ class HGBBaseDataModule(L.LightningDataModule):
         transform = T.Compose(
             [
                 T.Constant(node_types=None),
-                T.RandomNodeSplit(),
+                TrainValNodeSplit(),
                 T.ToUndirected(),
                 RemoveSelfLoops(),
                 T.NormalizeFeatures(),
