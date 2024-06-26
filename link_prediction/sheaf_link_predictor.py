@@ -1,7 +1,7 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 
-from typing import Callable
+from typing import Callable, NamedTuple
 
 import lightning as L
 import torch
@@ -16,8 +16,14 @@ from torchmetrics.classification import (
     BinaryAveragePrecision,
 )
 from torchmetrics.collections import MetricCollection
+from torchmetrics.retrieval import RetrievalMRR
 
-from node_classification.node_classifier import CommonStepOutput
+
+class CommonStepOutput(NamedTuple):
+    y: torch.Tensor
+    y_hat: torch.Tensor
+    loss: torch.Tensor
+    indexes: torch.Tensor
 
 
 class SheafLinkPredictor(L.LightningModule):
@@ -38,6 +44,7 @@ class SheafLinkPredictor(L.LightningModule):
                 "accuracy": BinaryAccuracy(),
                 "AUROC": BinaryAUROC(),
                 "AUPR": BinaryAveragePrecision(),
+                "MRR": RetrievalMRR()
             },
             prefix="train/",
         )
@@ -66,12 +73,13 @@ class SheafLinkPredictor(L.LightningModule):
         loss = F.binary_cross_entropy_with_logits(y_hat, y)
         y_hat = F.sigmoid(y_hat)
 
-        return CommonStepOutput(loss=loss, y=y.to(torch.long), y_hat=y_hat)
+        return CommonStepOutput(loss=loss, y=y.to(torch.long), y_hat=y_hat,
+                                indexes=edge_label_index[0, :])
 
     def training_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss = self.common_step(batch)
+        y, y_hat, loss, indexes = self.common_step(batch)
 
-        metrics = self.train_metrics(y_hat, y)
+        metrics = self.train_metrics(preds=y_hat, target=y, indexes=indexes)
 
         self.log_dict(
             metrics,
@@ -86,9 +94,9 @@ class SheafLinkPredictor(L.LightningModule):
         return loss
 
     def validation_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss = self.common_step(batch)
+        y, y_hat, loss, indexes = self.common_step(batch)
 
-        metrics = self.valid_metrics(y_hat, y)
+        metrics = self.valid_metrics(preds=y_hat, target=y, indexes=indexes)
 
         self.log_dict(
             metrics,
@@ -102,9 +110,9 @@ class SheafLinkPredictor(L.LightningModule):
         return loss
 
     def test_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss = self.common_step(batch)
+        y, y_hat, loss, indexes = self.common_step(batch)
 
-        metrics = self.test_metrics(y_hat, y)
+        metrics = self.test_metrics(preds=y_hat, target=y, indexes=indexes)
 
         self.log_dict(
             metrics,

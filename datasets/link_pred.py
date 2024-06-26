@@ -85,7 +85,6 @@ class LinkPredBase(L.LightningDataModule):
             is_undirected=True,
             # split_labels=True,
             add_negative_train_samples=True,
-            neg_sampling_ratio=0.6,
             rev_edge_types=self.rev_target,
         )
 
