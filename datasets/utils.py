@@ -56,13 +56,13 @@ class TrainValNodeSplit(BaseTransform):
         assert num_nodes is not None
 
         train_idx_org = mask_to_index(store['train_mask'])
-        print(train_idx_org.shape)
 
         num_val = round(num_nodes * self.val_ratio)
         perm = torch.randperm(train_idx_org.shape[0])
 
         train_idx = train_idx_org[perm][:num_val]
         val_idx = train_idx_org[perm][num_val:]
+
         return index_to_mask(train_idx, num_nodes), index_to_mask(val_idx, num_nodes)
 
 
