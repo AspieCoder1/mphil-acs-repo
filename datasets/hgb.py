@@ -9,9 +9,9 @@ from pytorch_lightning.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADER
 from torch_geometric import transforms as T
 from torch_geometric.data import HeteroData, Data
 from torch_geometric.data.lightning import LightningNodeData
-from torch_geometric.datasets import HGBDataset
 
-from datasets.utils import RemoveSelfLoops, TrainValNodeSplit
+from datasets.utils.data import HGBDatasetNC
+from datasets.utils.transforms import RemoveSelfLoops, TrainValNodeSplit
 
 DATA_DIR = "data"
 
@@ -23,7 +23,7 @@ class HGBBaseDataModule(L.LightningDataModule):
         num_classes: int = 4,
         data_dir: str = DATA_DIR,
         task: Literal["multiclass", "multilabel", "binary"] = "multiclass",
-        dataset: Literal["IMDB", "DBLP", "ACM", "Freebase"] = "DBLP",
+            dataset: Literal["IMDB", "DBLP", "ACM", "Freebase", "PubMed"] = "DBLP",
         homogeneous: bool = False,
     ):
         super().__init__()
@@ -55,7 +55,8 @@ class HGBBaseDataModule(L.LightningDataModule):
                 T.RemoveDuplicatedEdges(),
             ]
         )
-        dataset = HGBDataset(root=self.data_dir, name=self.dataset, transform=transform)
+        dataset = HGBDatasetNC(root=self.data_dir, name=self.dataset,
+                               transform=transform, force_reload=True)
 
         data: Union[HeteroData, Data] = dataset[0].coalesce()
         input_nodes = data[self.target]
@@ -155,6 +156,21 @@ class FreebaseDataModule(HGBBaseDataModule):
 
     def __str__(self):
         return "Freebase"
+
+
+class PubMedDataModule(HGBBaseDataModule):
+    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
+        super().__init__(
+            dataset="PubMed",
+            num_classes=8,
+            target="DISEASE",
+            task="multiclass",
+            data_dir=data_dir,
+            homogeneous=homogeneous,
+        )
+
+    def __str__(self):
+        return "DBLP"
 
 
 if __name__ == "__main__":

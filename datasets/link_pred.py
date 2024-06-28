@@ -11,7 +11,7 @@ from torch_geometric.data import HeteroData, Data
 from torch_geometric.data.lightning import LightningLinkData
 from torch_geometric.datasets import MovieLens, LastFM, AmazonBook
 
-from .utils import RemoveSelfLoops
+from .utils.transforms import RemoveSelfLoops
 
 DATA_DIR = "data"
 

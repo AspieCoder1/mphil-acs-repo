@@ -1,14 +1,12 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
-
 from typing import Union, Optional
 
 import torch
 from torch_geometric.data import Data, HeteroData
-from torch_geometric.transforms import BaseTransform
-from torch_geometric.transforms.mask import mask_to_index, index_to_mask
 from torch_geometric.data.storage import NodeStorage
-from torch_geometric.utils import remove_self_loops
+from torch_geometric.transforms import BaseTransform
+from torch_geometric.utils import remove_self_loops, mask_to_index, index_to_mask
 
 
 class RemoveSelfLoops(BaseTransform):
@@ -64,5 +62,3 @@ class TrainValNodeSplit(BaseTransform):
         val_idx = train_idx_org[perm][num_val:]
 
         return index_to_mask(train_idx, num_nodes), index_to_mask(val_idx, num_nodes)
-
-
