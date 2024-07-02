@@ -10,7 +10,7 @@ from torch_geometric import transforms as T
 from torch_geometric.data import HeteroData, Data
 from torch_geometric.data.lightning import LightningNodeData
 
-from datasets.utils.data import HGBDatasetNC
+from datasets.utils.hgb_dataset_nc import HGBDatasetNC
 from datasets.utils.transforms import RemoveSelfLoops, TrainValNodeSplit
 
 DATA_DIR = "data"
