@@ -6,14 +6,17 @@ import os.path as osp
 from collections import defaultdict
 from typing import Callable, Dict, List, Optional
 
+import numpy as np
 import torch
-
 from torch_geometric.data import (
     HeteroData,
     InMemoryDataset,
     download_google_url,
     extract_zip,
 )
+from torch_geometric.utils import to_edge_index
+
+from .hgb_loaders import HGBDataLoaderLP
 
 
 class HGBDatasetNC(InMemoryDataset):
@@ -214,3 +217,130 @@ class HGBDatasetNC(InMemoryDataset):
 
     def __repr__(self) -> str:
         return f'{self.names[self.name]}()'
+
+
+class HGBDatasetLP(InMemoryDataset):
+    names = {
+        "lastfm": "LastFM",
+        "pubmed": "PubMed_LP",
+    }
+    file_ids = {
+        "lastfm": "1busKxUoPOWZa7xJIV0kgPfteDn6bpYKK",
+    }
+    targets = {
+        "lastfm": 0
+    }
+
+    def __init__(
+            self,
+            root: str,
+            name: str,
+            transform: Optional[Callable] = None,
+            pre_transform: Optional[Callable] = None,
+            force_reload: bool = False,
+    ) -> None:
+        self.name = name.lower()
+        assert self.name in set(self.names.keys())
+        super().__init__(root, transform, pre_transform,
+                         force_reload=force_reload)
+        self.load(self.processed_paths[0], data_cls=HeteroData)
+
+    @property
+    def raw_dir(self) -> str:
+        return osp.join(self.root, self.name, 'raw')
+
+    @property
+    def processed_dir(self) -> str:
+        return osp.join(self.root, self.name, 'processed')
+
+    @property
+    def raw_file_names(self) -> List[str]:
+        x = ['info.dat', 'node.dat', 'link.dat', 'link.dat.test']
+        return [osp.join(self.names[self.name], f) for f in x]
+
+    @property
+    def processed_file_names(self) -> str:
+        return 'data.pt'
+
+    def download(self) -> None:
+        id = self.file_ids[self.name]
+        path = download_google_url(id, self.raw_dir, 'data.zip')
+        print(self.raw_dir)
+        print(path)
+        extract_zip(path, self.raw_dir)
+        os.unlink(path)
+
+    def process(self):
+        data = HeteroData()
+
+        # 1. Get correct data loader from dataset
+        dl = HGBDataLoaderLP(path=osp.join(self.raw_dir, self.names[self.name]))
+
+        # 2. get correct metadata object
+        e_types, n_types = self.get_metadata()
+
+        # 3. generate node features
+        for index, node_type in n_types.items():
+            data[node_type].x = dl.nodes['attr'][index]
+            data[node_type].num_nodes = dl.nodes['count'][index]
+
+        # 4. add edge indices
+        for index, e_type in e_types.items():
+            src_type, dst_type = dl.links["meta"][index]
+            csr = dl.links['data'][index]
+
+            sparse_adj = torch.sparse_coo_tensor(np.array(csr.nonzero()), csr.data,
+                                                 csr.shape)
+            edge_index, _ = to_edge_index(sparse_adj)
+            offset = torch.tensor(
+                [[dl.nodes['shift'][src_type]], [dl.nodes['shift'][dst_type]]])
+
+            edge_index -= offset
+            data[e_type].edge_index = edge_index
+
+        target = self.targets[self.name]
+
+        # 4. add train samples
+        train_pos, train_neg = torch.tensor(dl.train_pos[target]), torch.tensor(
+            dl.train_neg[target])
+        train_edge_label_index = torch.column_stack([train_pos, train_neg])
+        train_edge_label = torch.cat(
+            [torch.ones(train_pos.shape[1]),
+             torch.zeros(train_neg.shape[1])], dim=-1)
+        data[e_types[target]].train_edge_label_index = train_edge_label_index
+        data[e_types[target]].train_edge_label = train_edge_label
+
+        # 5. add validation samples
+        val_pos, val_neg = torch.tensor(dl.valid_pos[target]), torch.tensor(
+            dl.valid_neg[target])
+        val_edge_label_index = torch.column_stack([val_pos, val_neg])
+        val_edge_label = torch.cat(
+            [torch.ones(val_pos.shape[1]),
+             torch.zeros(val_neg.shape[1])], dim=-1)
+        data[e_types[target]].val_edge_label_index = val_edge_label_index
+        data[e_types[target]].val_edge_label = val_edge_label
+
+        # 6. add test samples
+        test_neigh, test_labels = dl.get_test_neigh()
+        test_edge_label_index = torch.tensor(test_neigh[target])
+        test_edge_label = torch.tensor(test_labels[target])
+        data[e_types[target]].test_edge_label_index = test_edge_label_index
+        data[e_types[target]].test_edge_label = test_edge_label
+
+        self.save([data], self.processed_paths[0])
+
+    def get_metadata(self):
+        with open(self.raw_paths[0]) as f:  # `info.dat`
+            info = json.load(f)
+        # print(info)
+        n_types = info['node.dat']
+        n_types = {int(k): v for k, v in n_types.items()}
+        e_types = info['link.dat']
+        e_types = {int(k): tuple(v.values()) for k, v in e_types.items()}
+        for key, (src, dst, rel) in e_types.items():
+            src, dst = n_types[int(src)], n_types[int(dst)]
+            rel = rel.split('-')[1]
+            rel = rel if rel != dst and rel[1:] != dst else 'to'
+            e_types[key] = (src, rel, dst)
+
+        return e_types, n_types
