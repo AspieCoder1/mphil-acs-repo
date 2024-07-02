@@ -52,7 +52,7 @@ class HGBDatasetNC(InMemoryDataset):
         'dblp': 'DBLP',
         'freebase': 'Freebase',
         'imdb': 'IMDB',
-        'pubmed': 'PubMed_NC'
+        'pubmed_nc': 'PubMed_NC'
     }
 
     file_ids = {
@@ -60,7 +60,7 @@ class HGBDatasetNC(InMemoryDataset):
         'dblp': '1fLLoy559V7jJaQ_9mQEsC06VKd6Qd3SC',
         'freebase': '1vw-uqbroJZfFsWpriC1CWbtHCJMGdWJ7',
         'imdb': '18qXmmwKJBrEJxVQaYwKTL3Ny3fPqJeJ2',
-        'pubmed': '18symt1BUf4d6Gge_uapt3B0rh9ohux7c',
+        'pubmed_nc': '18symt1BUf4d6Gge_uapt3B0rh9ohux7c',
     }
 
     def __init__(
@@ -222,13 +222,11 @@ class HGBDatasetNC(InMemoryDataset):
 class HGBDatasetLP(InMemoryDataset):
     names = {
         "lastfm": "LastFM",
-        "pubmed": "PubMed_LP",
+        "pubmed_lp": "PubMed_LP",
     }
     file_ids = {
         "lastfm": "1busKxUoPOWZa7xJIV0kgPfteDn6bpYKK",
-    }
-    targets = {
-        "lastfm": 0
+        "pubmed_lp": "1syDE6wacF6f3XezcU66RiTlRGABI6ktC",
     }
 
     def __init__(
@@ -298,7 +296,7 @@ class HGBDatasetLP(InMemoryDataset):
             edge_index -= offset
             data[e_type].edge_index = edge_index
 
-        target = self.targets[self.name]
+        target = dl.test_types[0]
 
         # 4. add train samples
         train_pos, train_neg = torch.tensor(dl.train_pos[target]), torch.tensor(
@@ -333,9 +331,13 @@ class HGBDatasetLP(InMemoryDataset):
         with open(self.raw_paths[0]) as f:  # `info.dat`
             info = json.load(f)
         # print(info)
-        n_types = info['node.dat']
+        if self.name == 'LastFM':
+            n_types = info['node.dat']
+            e_types = info['link.dat']
+        else:
+            n_types = info['node.dat']['node type']
+            e_types = info['link.dat']['link type']
         n_types = {int(k): v for k, v in n_types.items()}
-        e_types = info['link.dat']
         e_types = {int(k): tuple(v.values()) for k, v in e_types.items()}
         for key, (src, dst, rel) in e_types.items():
             src, dst = n_types[int(src)], n_types[int(dst)]
