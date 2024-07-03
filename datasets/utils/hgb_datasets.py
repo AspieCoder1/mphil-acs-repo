@@ -236,12 +236,15 @@ class HGBDatasetLP(InMemoryDataset):
             transform: Optional[Callable] = None,
             pre_transform: Optional[Callable] = None,
             force_reload: bool = False,
+            n_splits = 5
     ) -> None:
         self.name = name.lower()
         assert self.name in set(self.names.keys())
         super().__init__(root, transform, pre_transform,
                          force_reload=force_reload)
         self.load(self.processed_paths[0], data_cls=HeteroData)
+        self.n_splits = n_splits
+        self.dl: Optional[HGBDataLoaderLP] = None
 
     @property
     def raw_dir(self) -> str:
@@ -272,35 +275,35 @@ class HGBDatasetLP(InMemoryDataset):
         data = HeteroData()
 
         # 1. Get correct data loader from dataset
-        dl = HGBDataLoaderLP(path=osp.join(self.raw_dir, self.names[self.name]))
+        self.dl = HGBDataLoaderLP(path=osp.join(self.raw_dir, self.names[self.name]))
 
         # 2. get correct metadata object
         e_types, n_types = self.get_metadata()
 
         # 3. generate node features
         for index, node_type in n_types.items():
-            data[node_type].x = dl.nodes['attr'][index]
-            data[node_type].num_nodes = dl.nodes['count'][index]
+            data[node_type].x = self.dl.nodes['attr'][index]
+            data[node_type].num_nodes = self.dl.nodes['count'][index]
 
         # 4. add edge indices
         for index, e_type in e_types.items():
-            src_type, dst_type = dl.links["meta"][index]
-            csr = dl.links['data'][index]
+            src_type, dst_type = self.dl.links["meta"][index]
+            csr = self.dl.links['data'][index]
 
             sparse_adj = torch.sparse_coo_tensor(np.array(csr.nonzero()), csr.data,
                                                  csr.shape)
             edge_index, _ = to_edge_index(sparse_adj)
             offset = torch.tensor(
-                [[dl.nodes['shift'][src_type]], [dl.nodes['shift'][dst_type]]])
+                [[self.dl.nodes['shift'][src_type]], [self.dl.nodes['shift'][dst_type]]])
 
             edge_index -= offset
             data[e_type].edge_index = edge_index
 
-        target = dl.test_types[0]
+        target = self.dl.test_types[0]
 
         # 4. add train samples
-        train_pos, train_neg = torch.tensor(dl.train_pos[target]), torch.tensor(
-            dl.train_neg[target])
+        train_pos, train_neg = torch.tensor(self.dl.train_pos[target]), torch.tensor(
+            self.dl.train_neg[target])
         train_edge_label_index = torch.column_stack([train_pos, train_neg])
         train_edge_label = torch.cat(
             [torch.ones(train_pos.shape[1]),
@@ -309,8 +312,8 @@ class HGBDatasetLP(InMemoryDataset):
         data[e_types[target]].train_edge_label = train_edge_label
 
         # 5. add validation samples
-        val_pos, val_neg = torch.tensor(dl.valid_pos[target]), torch.tensor(
-            dl.valid_neg[target])
+        val_pos, val_neg = torch.tensor(self.dl.valid_pos[target]), torch.tensor(
+            self.dl.valid_neg[target])
         val_edge_label_index = torch.column_stack([val_pos, val_neg])
         val_edge_label = torch.cat(
             [torch.ones(val_pos.shape[1]),
@@ -319,7 +322,7 @@ class HGBDatasetLP(InMemoryDataset):
         data[e_types[target]].val_edge_label = val_edge_label
 
         # 6. add test samples
-        test_neigh, test_labels = dl.get_test_neigh()
+        test_neigh, test_labels = self.dl.get_test_neigh()
         test_edge_label_index = torch.tensor(test_neigh[target])
         test_edge_label = torch.tensor(test_labels[target])
         data[e_types[target]].test_edge_label_index = test_edge_label_index
