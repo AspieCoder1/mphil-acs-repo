@@ -282,7 +282,10 @@ class HGBDatasetLP(InMemoryDataset):
 
         # 3. generate node features
         for index, node_type in n_types.items():
-            data[node_type].x = self.dl.nodes['attr'][index]
+            if self.dl.nodes['attr'][index] is None:
+                data[node_type].x = self.dl.nodes['attr'][index]
+            else:
+                data[node_type].x = torch.tensor(self.dl.nodes['attr'][index])
             data[node_type].num_nodes = self.dl.nodes['count'][index]
 
         # 4. add edge indices
@@ -334,7 +337,7 @@ class HGBDatasetLP(InMemoryDataset):
         with open(self.raw_paths[0]) as f:  # `info.dat`
             info = json.load(f)
         # print(info)
-        if self.name == 'LastFM':
+        if self.name == 'lastfm':
             n_types = info['node.dat']
             e_types = info['link.dat']
         else:
