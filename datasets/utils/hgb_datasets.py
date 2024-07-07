@@ -304,27 +304,7 @@ class HGBDatasetLP(InMemoryDataset):
 
         target = self.dl.test_types[0]
 
-        # 4. add train samples
-        train_pos, train_neg = torch.tensor(self.dl.train_pos[target]), torch.tensor(
-            self.dl.train_neg[target])
-        train_edge_label_index = torch.column_stack([train_pos, train_neg])
-        train_edge_label = torch.cat(
-            [torch.ones(train_pos.shape[1]),
-             torch.zeros(train_neg.shape[1])], dim=-1)
-        data[e_types[target]].train_edge_label_index = train_edge_label_index
-        data[e_types[target]].train_edge_label = train_edge_label
-
-        # 5. add validation samples
-        val_pos, val_neg = torch.tensor(self.dl.valid_pos[target]), torch.tensor(
-            self.dl.valid_neg[target])
-        val_edge_label_index = torch.column_stack([val_pos, val_neg])
-        val_edge_label = torch.cat(
-            [torch.ones(val_pos.shape[1]),
-             torch.zeros(val_neg.shape[1])], dim=-1)
-        data[e_types[target]].val_edge_label_index = val_edge_label_index
-        data[e_types[target]].val_edge_label = val_edge_label
-
-        # 6. add test samples
+        # 4. add test samples
         test_neigh, test_labels = self.dl.get_test_neigh()
         test_edge_label_index = torch.tensor(test_neigh[target])
         test_edge_label = torch.tensor(test_labels[target])

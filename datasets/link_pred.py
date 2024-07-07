@@ -1,18 +1,16 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 
-from typing import Optional, Union
+from typing import Optional
 
 import lightning as L
-import torch
 import torch_geometric.transforms as T
 from lightning.pytorch.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADERS
-from torch_geometric.data import HeteroData, Data
+from torch_geometric.data import HeteroData
 from torch_geometric.data.lightning import LightningLinkData
-from torch_geometric.datasets import MovieLens, LastFM, AmazonBook
-from .utils.hgb_datasets import HGBDatasetLP
 
-from .utils.transforms import RemoveSelfLoops
+from .utils.hgb_datasets import HGBDatasetLP
+from .utils.transforms import RemoveSelfLoops, TrainValEdgeSplit
 
 DATA_DIR = "data"
 
@@ -40,6 +38,7 @@ class LinkPredBase(L.LightningDataModule):
                 T.ToUndirected(),
                 T.NormalizeFeatures(),
                 RemoveSelfLoops(),
+                TrainValEdgeSplit(target=self.target)
             ]
         )
         self.rev_target = rev_target
@@ -100,7 +99,11 @@ class LastFMDataModule(LinkPredBase):
         )
 
     def download_data(self) -> HeteroData:
-        data = HGBDatasetLP(root=self.data_dir, name='lastfm', transform=self.transform)[0]
+        data = HGBDatasetLP(
+            root=self.data_dir,
+            name='lastfm',
+            transform=self.transform
+        )[0]
         return data
 
     def __repr__(self):
@@ -121,11 +124,16 @@ class PubMedLPDataModule(LinkPredBase):
                 T.ToUndirected(),
                 T.NormalizeFeatures(),
                 RemoveSelfLoops(),
+                TrainValEdgeSplit(target=self.target)
             ]
         )
 
     def download_data(self) -> HeteroData:
-        data = HGBDatasetLP(root=self.data_dir, name='pubmed_lp', transform=self.transform)[0]
+        data = HGBDatasetLP(
+            root=self.data_dir,
+            name='pubmed_lp',
+            transform=self.transform
+        )[0]
         return data
 
     def __repr__(self):
