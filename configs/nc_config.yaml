@@ -12,7 +12,7 @@ defaults:
 #  - GNN
 #  - sheaf
 #  - node_classification
-tags: [ GNN, node_classification, exp1_1, test ]
+tags: [ GNN, node_classification, exp1 ]
 
 dataset:
   homogeneous: true

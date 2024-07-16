@@ -6,6 +6,13 @@ defaults:
 dataset:
   homogeneous: true
 
+tags:
+  - sheaf
+  - nc
+  - exp1
+  - DBLP
+  - GeneralSheaf
+
 model:
   args:
     device: cuda

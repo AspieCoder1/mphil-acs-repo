@@ -13,6 +13,13 @@ callbacks:
   model_checkpoint:
     filename: 'BundleSheaf-${sheaf_learner}-ACM'
 
+tags:
+  - sheaf
+  - nc
+  - exp1
+  - ACM
+  - BundleSheaf
+
 model:
   args:
     dropout: 0.6202018384278907

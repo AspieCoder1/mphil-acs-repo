@@ -3,6 +3,13 @@ defaults:
   - override /dataset: imdb
   - override /model: general_sheaf
 
+tags:
+  - sheaf
+  - nc
+  - exp1
+  - IMDB
+  - GeneralSheaf
+
 dataset:
   homogeneous: true
 

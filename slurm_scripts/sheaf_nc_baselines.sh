@@ -17,10 +17,10 @@
 #SBATCH --mail-type=ALL
 
 MODEL_PARAMS=(diag_sheaf bundle_sheaf general_sheaf)
-SHEAF_LEARNERS=(node_type_concat edge_type_concat node_type edge_type)
+SHEAF_LEARNERS=(local_concat type_concat type_ensemble node_type_concat edge_type_concat node_type edge_type node_edge_types)
 DATASETS=(dblp acm imdb)
 
-N_TRIALS=10
+N_TRIALS=5
 N_DATASETS=${#DATASETS[@]}
 N_MODELS=${#MODEL_PARAMS[@]}
 N_SHEAF_LEARNERS=${#SHEAF_LEARNERS[@]}

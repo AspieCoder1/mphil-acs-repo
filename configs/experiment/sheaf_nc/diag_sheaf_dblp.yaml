@@ -3,6 +3,13 @@ defaults:
   - override /dataset: dblp
   - override /model: diag_sheaf
 
+tags:
+  - sheaf
+  - nc
+  - exp1
+  - DBLP
+  - DiagSheaf
+
 dataset:
   homogeneous: true
 
