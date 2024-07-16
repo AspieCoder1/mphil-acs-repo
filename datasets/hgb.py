@@ -56,7 +56,7 @@ class HGBBaseDataModule(L.LightningDataModule):
             ]
         )
         dataset = HGBDatasetNC(root=self.data_dir, name=self.dataset,
-                               transform=transform, force_reload=True)
+                               transform=transform)
 
         data: Union[HeteroData, Data] = dataset[0].coalesce()
         input_nodes = data[self.target]
