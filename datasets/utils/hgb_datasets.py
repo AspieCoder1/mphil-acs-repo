@@ -212,7 +212,6 @@ class HGBDatasetNC(InMemoryDataset):
         if self.pre_transform is not None:
             data = self.pre_transform(data)
 
-        print(data)
         self.save([data], self.processed_paths[0])
 
     def __repr__(self) -> str:
@@ -266,8 +265,6 @@ class HGBDatasetLP(InMemoryDataset):
     def download(self) -> None:
         id = self.file_ids[self.name]
         path = download_google_url(id, self.raw_dir, 'data.zip')
-        print(self.raw_dir)
-        print(path)
         extract_zip(path, self.raw_dir)
         os.unlink(path)
 
@@ -316,7 +313,6 @@ class HGBDatasetLP(InMemoryDataset):
     def get_metadata(self):
         with open(self.raw_paths[0]) as f:  # `info.dat`
             info = json.load(f)
-        # print(info)
         if self.name == 'lastfm':
             n_types = info['node.dat']
             e_types = info['link.dat']

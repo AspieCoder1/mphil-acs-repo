@@ -176,4 +176,3 @@ class PubMedDataModule(HGBBaseDataModule):
 if __name__ == "__main__":
     dm = FreebaseDataModule(data_dir="../data", homogeneous=True)
     dm.prepare_data()
-    print(dm.pyg_datamodule.data.node_type[0])
