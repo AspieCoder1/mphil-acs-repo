@@ -659,3 +659,6 @@ class TypeSheafLearner(SheafLearner):
             return maps.view(-1, self.out_shape[0], self.out_shape[1])
         else:
             return maps.view(-1, self.out_shape[0])
+
+    def __str__(self):
+        return "types"
