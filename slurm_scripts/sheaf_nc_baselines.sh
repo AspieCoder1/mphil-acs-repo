@@ -7,7 +7,7 @@
 #SBATCH -J sheafnc_baselines
 #SBATCH --output=slurm_output/sheafnc_baselines/out/%A_%a.out
 #SBATCH --error=slurm_output/sheafnc_baselines/err/%A_%a.err
-#SBATCH -A COMPUTERLAB-SL2-GPU
+#SBATCH -A plio-sl2-gpu
 #SBATCH --time=3:00:00
 #SBATCH -a 0-359
 #SBATCH -p ampere
