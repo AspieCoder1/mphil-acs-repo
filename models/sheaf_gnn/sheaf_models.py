@@ -601,3 +601,61 @@ class EdgeTypeSheafLearner(SheafLearner):
 
     def __str__(self):
         return "edge_type"
+
+
+class TypeSheafLearner(SheafLearner):
+    def __init__(
+            self,
+            in_channels: int,
+            out_shape: Tuple[int, ...],
+            sheaf_act: Literal["id", "tanh", "elu"] = "tanh",
+            num_node_types: int = 4,
+            num_edge_types: int = 12,
+    ):
+        super(TypeSheafLearner, self).__init__()
+        assert len(out_shape) in [1, 2]
+        self.out_shape = out_shape
+        self.linear1 = torch.nn.Linear(
+            2 * num_node_types + num_edge_types,
+            int(np.prod(out_shape)),
+            bias=False,
+        )
+        self.num_node_types = num_node_types
+        self.num_edge_types = num_edge_types
+
+        if sheaf_act == "id":
+            self.act = lambda x: x
+        elif sheaf_act == "tanh":
+            self.act = torch.tanh
+        elif sheaf_act == "elu":
+            self.act = F.elu
+        else:
+            raise ValueError(f"Unsupported act {sheaf_act}")
+
+    def forward(
+            self,
+            x: InputNodes,
+            edge_index: Adj,
+            edge_types: OptTensor = None,
+            node_types: OptTensor = None,
+    ):
+        edge_type = F.one_hot(edge_types, num_classes=self.num_edge_types).to(
+            torch.float
+        )
+        src, dst = edge_index
+        node_types_one_hot = F.one_hot(node_types, self.num_node_types)
+        src_type = torch.index_select(node_types_one_hot, dim=0, index=src)
+        dst_type = torch.index_select(node_types_one_hot, dim=0, index=dst)
+
+        x_cat = torch.cat(
+            [src_type, dst_type, edge_type],
+            dim=1,
+        ).to(torch.float)
+
+        maps = self.linear1(x_cat)
+        maps = self.act(maps)
+
+        if len(self.out_shape) == 2:
+            return maps.view(-1, self.out_shape[0], self.out_shape[1])
+        else:
+            return maps.view(-1, self.out_shape[0])
