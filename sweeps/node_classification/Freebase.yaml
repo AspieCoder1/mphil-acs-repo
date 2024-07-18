@@ -59,5 +59,4 @@ command:
   - python
   - ${program}
   - dataset=freebase
-  - model.args.device=cuda
   - ${args_no_hyphens}
