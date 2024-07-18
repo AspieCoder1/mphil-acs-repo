@@ -38,6 +38,8 @@ def main(cfg: DictConfig) -> None:
         target=datamodule.target,
         task=datamodule.task,
         homogeneous_model=True,
+        weight_decay=cfg.get('weight_decay', 1e-2),
+        learning_rate=cfg.get('learning_rate', 1e-3),
     )
 
     logger: List[Logger] = instantiate_loggers(cfg.get("logger"))

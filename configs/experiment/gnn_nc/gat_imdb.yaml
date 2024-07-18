@@ -10,4 +10,4 @@ callbacks:
 dataset:
   homogeneous: true
 
-tags: [ GAT, IMDB, exp1_1, nc, gnn ]
+tags: [ GAT, IMDB, exp1_1, node_classification, gnn ]

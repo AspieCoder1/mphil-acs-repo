@@ -7,4 +7,4 @@ callbacks:
   model_checkpoint:
     filename: HGT-IMDB
 
-tags: [ HGT, IMDB, exp1_1, nc, gnn ]
+tags: [ HGT, IMDB, exp1_1, node_classification, gnn ]

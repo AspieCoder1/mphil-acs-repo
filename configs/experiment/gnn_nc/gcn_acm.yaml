@@ -10,4 +10,4 @@ callbacks:
 dataset:
   homogeneous: true
 
-tags: [ GCN, ACM, exp1_1, nc, gnn ]
+tags: [ GCN, ACM, exp1_1, node_classification, gnn ]

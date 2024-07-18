@@ -7,4 +7,4 @@ callbacks:
   model_checkpoint:
     filename: HAN-ACM
 
-tags: [ HAN, ACM, exp1_1, nc, gnn ]
+tags: [ HAN, ACM, exp1_1, node_classification, gnn ]

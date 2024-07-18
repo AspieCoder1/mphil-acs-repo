@@ -7,4 +7,4 @@ callbacks:
   model_checkpoint:
     filename: HAN-DBLP
 
-tags: [ HAN, DBLP, exp1_1, nc, gnn ]
+tags: [ HAN, DBLP, exp1_1, node_classification, gnn ]

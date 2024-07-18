@@ -31,12 +31,16 @@ class NodeClassifier(L.LightningModule):
         task: Literal["binary", "multiclass", "multilabel"] = "multilabel",
         homogeneous_model: bool = False,
         sheaf_model: bool = False,
+        learning_rate: float = 1e-3,
+        weight_decay: float = 1e-2,
     ):
         super().__init__()
         self.encoder = model
         self.decoder = Linear(hidden_channels, out_channels)
         self.homogeneous = homogeneous_model
         self.sheaf = sheaf_model
+        self.lr = learning_rate
+        self.weight_decay = weight_decay
 
         metrics_params = {
             "task": task,
@@ -172,7 +176,8 @@ class NodeClassifier(L.LightningModule):
         return loss
 
     def configure_optimizers(self) -> OptimizerLRScheduler:
-        optimiser = torch.optim.AdamW(self.parameters())
+        optimiser = torch.optim.AdamW(self.parameters(), lr=self.lr,
+                                      weight_decay=self.weight_decay)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             optimiser, T_max=1_000, eta_min=1e-6
         )

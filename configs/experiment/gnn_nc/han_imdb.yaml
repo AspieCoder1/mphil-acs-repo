@@ -7,4 +7,4 @@ callbacks:
   model_checkpoint:
     filename: HAN-IMDB
 
-tags: [ HAN, IMDB, exp1_1, nc, gnn ]
+tags: [ HAN, IMDB, exp1_1, node_classification, gnn ]

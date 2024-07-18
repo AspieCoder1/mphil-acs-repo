@@ -7,4 +7,4 @@ callbacks:
   model_checkpoint:
     filename: HGT-ACM
 
-tags: [ HGT, ACM, exp1_1, nc, gnn ]
+tags: [ HGT, ACM, exp1_1, node_classification, gnn ]

@@ -17,7 +17,6 @@ tags: [ GNN, node_classification, exp1 ]
 dataset:
   homogeneous: true
 
-
 callbacks:
   early_stopping:
     monitor: 'valid/loss'

@@ -1,0 +1,63 @@
+name:  IMDB - NC
+program: run_sheaf_nc.py
+method: bayes
+metric:
+  goal: maximize
+  name: test/micro-f1
+parameters:
+  model:
+    distribution: categorical
+    values:
+      - GeneralSheaf
+      - DiagSheaf
+      - OrthoSheaf
+  sheaf_learner:
+    values:
+      - local_concat
+      - type_concat
+      - type_ensemble
+      - node_type_concat
+      - edge_type_concat
+      - node_type
+      - edge_type
+      - node_edge_types
+  model_args.d:
+    distribution: int_uniform
+    min: 2
+    max: 5
+  model_args.layers:
+    distribution: int_uniform
+    min: 2
+    max: 8
+  model_args.hidden_channels:
+    distribution: categorical
+    values: [ 8, 16, 32, 64 ]
+  model_args.input_dropout:
+    distribution: uniform
+    min: 0
+    max: 0.9
+  model_args.dropout:
+    distribution: uniform
+    min: 0
+    max: 0.9
+  model_args.initial_dropout:
+    distribution: uniform
+    min: 0
+    max: 0.9
+  trainer.patience:
+    distribution: categorical
+    values: [ 10, 25, 50, 75, 100 ]
+  learning_rate:
+    values: [ 1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3, 1e-2, 5e-2 ]
+  weight_decay:
+    values: [ 1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3 ]
+early_terminate:
+  type: hyperband
+  max_iter: 27
+  s: 2
+command:
+  - python
+  - ${program}
+  - dataset=imdb
+  - model_args.device=cuda
+  - ${args_no_hyphens}

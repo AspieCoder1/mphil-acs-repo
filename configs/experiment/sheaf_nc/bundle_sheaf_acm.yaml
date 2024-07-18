@@ -15,7 +15,7 @@ callbacks:
 
 tags:
   - sheaf
-  - nc
+  - node_classification
   - exp1
   - ACM
   - BundleSheaf

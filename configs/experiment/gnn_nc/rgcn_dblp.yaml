@@ -10,4 +10,4 @@ callbacks:
 dataset:
   homogeneous: true
 
-tags: [ RGCN, DBLP, exp1_1, nc, gnn ]
+tags: [ RGCN, DBLP, exp1_1, node_classification, gnn ]

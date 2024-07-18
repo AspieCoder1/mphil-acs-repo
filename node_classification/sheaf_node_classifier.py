@@ -31,6 +31,8 @@ class SheafNodeClassifier(NodeClassifier):
         target: str = "author",
         task: Literal["binary", "multiclass", "multilabel"] = "multilabel",
         homogeneous_model: bool = False,
+        learning_rate: float = 1e-3,
+        weight_decay: float = 1e-2,
     ):
         super().__init__(
             model=model,
@@ -39,6 +41,8 @@ class SheafNodeClassifier(NodeClassifier):
             target=target,
             task=task,
             homogeneous_model=homogeneous_model,
+            learning_rate=learning_rate,
+            weight_decay=weight_decay
         )
         self.save_hyperparameters(ignore=["model"])
 

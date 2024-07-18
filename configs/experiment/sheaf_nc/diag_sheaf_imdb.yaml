@@ -5,7 +5,7 @@ defaults:
 
 tags:
   - sheaf
-  - nc
+  - node_classification
   - exp1
   - DiagSheaf
   - IMDB
