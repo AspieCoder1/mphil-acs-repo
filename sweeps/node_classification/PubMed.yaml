@@ -3,7 +3,7 @@ program: run_sheaf_nc.py
 method: bayes
 metric:
   goal: maximize
-  name: test/micro-f1
+  name: val/micro-f1
 parameters:
   model:
     distribution: categorical
