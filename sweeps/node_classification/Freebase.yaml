@@ -8,9 +8,9 @@ parameters:
   model:
     distribution: categorical
     values:
-      - GeneralSheaf
-      - DiagSheaf
-      - OrthoSheaf
+      - general_sheaf
+      - diag_sheaf
+      - bundle_sheaf
   sheaf_learner:
     values:
       - local_concat
