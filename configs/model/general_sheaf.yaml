@@ -1,5 +1,12 @@
 _target_: models.sheaf_gnn.DiscreteGeneralSheafDiffusion
 args:
   _target_: models.sheaf_gnn.config.SheafModelArguments
+  dropout: 0.6202018384278907
+  hidden_channels: 64
+  initial_dropout: 0.19820021933740484
+  input_dropout: 0.7640130970045499
+  layers: 5
+  d: 5
+  device: cuda
 #edge_index:
 sheaf_learner: '${sheaf_learner}'
