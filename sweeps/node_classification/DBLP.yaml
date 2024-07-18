@@ -44,7 +44,7 @@ parameters:
     distribution: uniform
     min: 0
     max: 0.9
-  trainer.patience:
+  callbacks.early_stopping.patience:
     distribution: categorical
     values: [ 10, 25, 50, 75, 100 ]
   learning_rate:

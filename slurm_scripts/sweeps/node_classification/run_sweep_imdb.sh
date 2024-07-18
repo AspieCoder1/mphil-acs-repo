@@ -18,4 +18,4 @@
 
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
 source ~/venv/bin/activate
-srun python -m wandb agent --count 1 "acs-thesis-lb2027/hetero-sheaf-paper/gthsh9d6"
+srun python -m wandb agent --count 1 "acs-thesis-lb2027/hetero-sheaf-paper/gm83k1cq"
