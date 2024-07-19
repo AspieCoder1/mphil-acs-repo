@@ -174,7 +174,7 @@ class HGBDatasetNC(InMemoryDataset):
                 data[e_type].edge_weight = edge_weight
 
         # Node classification:
-        if self.name in ['acm', 'dblp', 'freebase', 'imdb', 'pubmed']:
+        if self.name in ['acm', 'dblp', 'freebase', 'imdb', 'pubmed_nc']:
             with open(self.raw_paths[3]) as f:  # `label.dat`
                 train_ys = [v.split('\t') for v in f.read().split('\n')[:-1]]
             with open(self.raw_paths[4]) as f:  # `label.dat.test`
