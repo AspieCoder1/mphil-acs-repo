@@ -170,7 +170,7 @@ class PubMedDataModule(HGBBaseDataModule):
         )
 
     def __str__(self):
-        return "DBLP"
+        return "PubMed_NC"
 
 
 if __name__ == "__main__":
