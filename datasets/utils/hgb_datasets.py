@@ -72,7 +72,7 @@ class HGBDatasetNC(InMemoryDataset):
         force_reload: bool = False,
     ) -> None:
         self.name = name.lower()
-        assert self.name in set(self.names.keys())
+        assert self.name in self.names
         super().__init__(root, transform, pre_transform,
                          force_reload=force_reload)
         self.load(self.processed_paths[0], data_cls=HeteroData)
@@ -105,7 +105,7 @@ class HGBDatasetNC(InMemoryDataset):
 
         # node_types = {0: 'paper', 1, 'author', ...}
         # edge_types = {0: ('paper', 'cite', 'paper'), ...}
-        if self.name in ['acm', 'dblp', 'imdb', 'pubmed']:
+        if self.name in ['acm', 'dblp', 'imdb', 'pubmed_nc']:
             with open(self.raw_paths[0]) as f:  # `info.dat`
                 info = json.load(f)
             n_types = info['node.dat']['node type']

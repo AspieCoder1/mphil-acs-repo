@@ -23,7 +23,7 @@ class HGBBaseDataModule(L.LightningDataModule):
         num_classes: int = 4,
         data_dir: str = DATA_DIR,
         task: Literal["multiclass", "multilabel", "binary"] = "multiclass",
-            dataset: Literal["IMDB", "DBLP", "ACM", "Freebase", "PubMed"] = "DBLP",
+            dataset: Literal["IMDB", "DBLP", "ACM", "Freebase", "PubMed_NC"] = "DBLP",
         homogeneous: bool = False,
     ):
         super().__init__()
@@ -161,7 +161,7 @@ class FreebaseDataModule(HGBBaseDataModule):
 class PubMedDataModule(HGBBaseDataModule):
     def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
         super().__init__(
-            dataset="PubMed",
+            dataset="PubMed_NC",
             num_classes=8,
             target="DISEASE",
             task="multiclass",
