@@ -53,15 +53,17 @@ class TrainValNodeSplit(BaseTransform):
     def _split(self, store: NodeStorage):
         num_nodes = store.num_nodes
         assert num_nodes is not None
-
         train_idx_org = mask_to_index(store['train_mask'])
+        print(torch.unique(store['y'][train_idx_org]))
 
-        num_val = round(num_nodes * self.val_ratio)
+        if train_idx_org.shape[0] < num_nodes:
+            num_val = round(train_idx_org.shape[0] * self.val_ratio)
+        else:
+            num_val = round(num_nodes * self.val_ratio)
+
         perm = torch.randperm(train_idx_org.shape[0])
-
-        train_idx = train_idx_org[perm][:num_val]
-        val_idx = train_idx_org[perm][num_val:]
-
+        val_idx = train_idx_org[perm][:num_val]
+        train_idx = train_idx_org[perm][num_val:]
         return index_to_mask(train_idx, num_nodes), index_to_mask(val_idx, num_nodes)
 
 
