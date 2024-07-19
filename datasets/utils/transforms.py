@@ -54,7 +54,6 @@ class TrainValNodeSplit(BaseTransform):
         num_nodes = store.num_nodes
         assert num_nodes is not None
         train_idx_org = mask_to_index(store['train_mask'])
-        print(torch.unique(store['y'][train_idx_org]))
 
         if train_idx_org.shape[0] < num_nodes:
             num_val = round(train_idx_org.shape[0] * self.val_ratio)
