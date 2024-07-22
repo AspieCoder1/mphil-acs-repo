@@ -1,3 +1,4 @@
+# @package _global_
 defaults:
   - override /dataset: imdb
 dataset:
@@ -12,7 +13,7 @@ tags:
 callbacks.early_stopping.patience: 75
 homogeneous_model: true
 learning_rate: 0.01
-model: bundle_sheaf
+model: general_sheaf
 model.args.d: 2
 model.args.dropout: 0.5166916766636378
 model.args.hidden_channels: 32
