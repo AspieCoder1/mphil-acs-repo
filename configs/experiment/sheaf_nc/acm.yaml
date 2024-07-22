@@ -1,0 +1,16 @@
+callbacks.early_stopping.patience: 25
+dataset: ACM
+homogeneous_model: true
+learning_rate: 0.01
+model: general_sheaf
+model.args.d: 4
+model.args.dropout: 0.30241942182614384
+model.args.hidden_channels: 64
+model.args.initial_dropout: 0.49205804154919136
+model.args.input_dropout: 0.5796364648617516
+model.args.layers: 4
+out_channels: 3
+sheaf_learner: node_edge_types
+target: paper
+task: multiclass
+weight_decay: 0.005

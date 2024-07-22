@@ -1,0 +1,16 @@
+callbacks.early_stopping.patience: 100
+dataset: PubMed_NC
+homogeneous_model: true
+learning_rate: 0.0005
+model: general_sheaf
+model.args.d: 5
+model.args.dropout: 0.0797022945859454
+model.args.hidden_channels: 32
+model.args.initial_dropout: 0.25677142950530424
+model.args.input_dropout: 0.8633177153951034
+model.args.layers: 5
+out_channels: 8
+sheaf_learner: node_type_concat
+target: DISEASE
+task: multiclass
+weight_decay: 0.005
