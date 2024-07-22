@@ -1,5 +1,15 @@
+defaults:
+  - override /dataset: imdb
+dataset:
+  homogeneous: true
+
+tags:
+  - sheaf
+  - node_classification
+  - exp1
+  - IMDB
+
 callbacks.early_stopping.patience: 75
-dataset: IMDB
 homogeneous_model: true
 learning_rate: 0.01
 model: bundle_sheaf
@@ -9,8 +19,5 @@ model.args.hidden_channels: 32
 model.args.initial_dropout: 0.01185275446395252
 model.args.input_dropout: 0.04704875549931128
 model.args.layers: 2
-out_channels: 5
 sheaf_learner: edge_type_concat
-target: movie
-task: multilabel
 weight_decay: 0.0005
