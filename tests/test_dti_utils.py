@@ -38,7 +38,7 @@ def hyperedge_index():
 def test_generates_correct_hyperedge_index(incidence_matrices):
     result = utils.generate_hyperedge_index(
         incidence_matrices, EDGE_TYPE_MAP, EDGE_TYPE_NAMES, NODE_TYPE_NAMES
-    )
+    ).hyperedge_index
 
     expected_idx = torch.Tensor(
         [
@@ -47,7 +47,7 @@ def test_generates_correct_hyperedge_index(incidence_matrices):
         ]
     ).to(torch.long)
 
-    assert torch.allclose(result.hyperedge_index, expected_idx)
+    assert torch.allclose(result, expected_idx)
 
 
 def test_correct_hyperedge_types(incidence_matrices):
@@ -70,13 +70,13 @@ def test_correct_node_types(incidence_matrices):
     assert torch.allclose(result.node_types, expected_node_types)
 
 
-def test_correct_hyperedge_index_with_empty_row(incidence_matrices_empty_column):
+def test_correct_hyperedge_index_with_empty_column(incidence_matrices_empty_column):
     result = utils.generate_hyperedge_index(
         incidence_matrices_empty_column,
         EDGE_TYPE_MAP,
         EDGE_TYPE_NAMES,
         NODE_TYPE_NAMES,
-    )
+    ).hyperedge_index
 
     expected_idx = torch.Tensor(
         [
@@ -85,7 +85,7 @@ def test_correct_hyperedge_index_with_empty_row(incidence_matrices_empty_column)
         ]
     ).to(torch.long)
 
-    assert torch.allclose(expected_idx, result.hyperedge_index, rtol=1e-6)
+    assert torch.allclose(expected_idx, result, rtol=1e-6)
 
 
 def test_generate_incidence_graph():
