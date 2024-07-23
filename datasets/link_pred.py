@@ -23,7 +23,7 @@ class LinkPredBase(L.LightningDataModule):
         data_dir: str = DATA_DIR,
         is_homogeneous: bool = False,
         num_classes: int = 1,
-            hyperparam_tuning: bool = False
+        hyperparam_tuning: bool = False
     ):
         super(LinkPredBase, self).__init__()
         self.target: tuple[str, str, str] = target
@@ -92,12 +92,14 @@ class LinkPredBase(L.LightningDataModule):
 
 
 class LastFMDataModule(LinkPredBase):
-    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
+    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False,
+                 hyperparam_tuning: bool = False):
         super(LastFMDataModule, self).__init__(
             data_dir=f"{data_dir}",
             target=("user", "to", "artist"),
             rev_target=("artist", "to", "user"),
             is_homogeneous=homogeneous,
+            hyperparam_tuning=hyperparam_tuning
         )
 
     def download_data(self) -> HeteroData:
@@ -113,12 +115,14 @@ class LastFMDataModule(LinkPredBase):
 
 
 class PubMedLPDataModule(LinkPredBase):
-    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
+    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False,
+                 hyperparam_tuning: bool = False):
         super(PubMedLPDataModule, self).__init__(
             data_dir=f"{data_dir}",
             target=("DISEASE", "and", "DISEASE"),
             rev_target=("DISEASE", "and", "DISEASE"),
             is_homogeneous=homogeneous,
+            hyperparam_tuning=hyperparam_tuning
         )
         self.transform = T.Compose(
             [
@@ -126,7 +130,8 @@ class PubMedLPDataModule(LinkPredBase):
                 T.ToUndirected(),
                 T.NormalizeFeatures(),
                 RemoveSelfLoops(),
-                TrainValEdgeSplit(target=self.target)
+                TrainValEdgeSplit(target=self.target,
+                                  hyperparam_tuning=hyperparam_tuning)
             ]
         )
 

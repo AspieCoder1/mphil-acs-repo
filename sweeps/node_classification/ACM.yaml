@@ -59,4 +59,5 @@ command:
   - python
   - ${program}
   - dataset=acm
+  - dataset.hyperparam_tuning=true
   - ${args_no_hyphens}

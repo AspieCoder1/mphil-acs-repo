@@ -8,6 +8,7 @@ from torch_geometric.data.storage import NodeStorage, EdgeStorage, EdgeType
 from torch_geometric.transforms import BaseTransform
 from torch_geometric.utils import (remove_self_loops, mask_to_index, index_to_mask,
                                    negative_sampling, )
+import random
 
 
 class RemoveSelfLoops(BaseTransform):
@@ -105,6 +106,7 @@ class TrainValEdgeSplit(BaseTransform):
 
         if self.hyperparam_tuning:
             torch.manual_seed(42)
+            random.seed(42)
 
         train_index_neg = negative_sampling(store.edge_index,
                                             num_neg_samples=train_index_pos.shape[1])
@@ -147,7 +149,11 @@ class TrainValEdgeSplit(BaseTransform):
 
         remaining_edge_index = store.edge_index[:, remaining_mask]
 
-        train_mask = torch.randn(remaining_edge_index.shape[1]) < self.train_ratio
+        if self.hyperparam_tuning:
+            g_train = torch.manual_seed(42)
+            train_mask = torch.randn(remaining_edge_index.shape[1], generator=g_train) < self.train_ratio
+        else:
+            train_mask = torch.randn(remaining_edge_index.shape[1]) < self.train_ratio
 
         train_edge_index = torch.cat(
             (train_edge_index_init, store.edge_index[:, train_mask]), dim=1)

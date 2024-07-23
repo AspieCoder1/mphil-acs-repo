@@ -59,4 +59,5 @@ command:
   - python
   - ${program}
   - dataset=pubmed_nc
+  - dataset.hyperparam_tuning=true
   - ${args_no_hyphens}

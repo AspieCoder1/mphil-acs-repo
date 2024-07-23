@@ -101,7 +101,8 @@ class HGBBaseDataModule(L.LightningDataModule):
 
 
 class IMDBDataModule(HGBBaseDataModule):
-    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
+    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False,
+                 hyperparam_tuning: bool = False):
         super().__init__(
             data_dir=data_dir,
             task="multilabel",
@@ -109,6 +110,7 @@ class IMDBDataModule(HGBBaseDataModule):
             dataset="IMDB",
             target="movie",
             homogeneous=homogeneous,
+            hyperparam_tuning=hyperparam_tuning
         )
 
     def __str__(self):
@@ -116,7 +118,8 @@ class IMDBDataModule(HGBBaseDataModule):
 
 
 class DBLPDataModule(HGBBaseDataModule):
-    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
+    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False,
+                 hyperparam_tuning: bool = False):
         super().__init__(
             dataset="DBLP",
             num_classes=4,
@@ -124,6 +127,7 @@ class DBLPDataModule(HGBBaseDataModule):
             task="multiclass",
             data_dir=data_dir,
             homogeneous=homogeneous,
+            hyperparam_tuning=hyperparam_tuning
         )
 
     def __str__(self):
@@ -131,7 +135,8 @@ class DBLPDataModule(HGBBaseDataModule):
 
 
 class ACMDataModule(HGBBaseDataModule):
-    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
+    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False,
+                 hyperparam_tuning: bool = False):
         super().__init__(
             data_dir=data_dir,
             dataset="ACM",
@@ -139,6 +144,7 @@ class ACMDataModule(HGBBaseDataModule):
             target="paper",
             task="multiclass",
             homogeneous=homogeneous,
+            hyperparam_tuning=hyperparam_tuning
         )
 
     def __str__(self):
@@ -146,7 +152,8 @@ class ACMDataModule(HGBBaseDataModule):
 
 
 class FreebaseDataModule(HGBBaseDataModule):
-    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
+    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False,
+                 hyperparam_tuning: bool = False):
         super().__init__(
             data_dir=data_dir,
             dataset="Freebase",
@@ -154,6 +161,7 @@ class FreebaseDataModule(HGBBaseDataModule):
             target="book",
             task="multiclass",
             homogeneous=homogeneous,
+            hyperparam_tuning=hyperparam_tuning
         )
 
     def __str__(self):
@@ -161,7 +169,8 @@ class FreebaseDataModule(HGBBaseDataModule):
 
 
 class PubMedDataModule(HGBBaseDataModule):
-    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
+    def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False,
+                 hyperparam_tuning: bool = False):
         super().__init__(
             dataset="PubMed_NC",
             num_classes=8,
@@ -169,6 +178,7 @@ class PubMedDataModule(HGBBaseDataModule):
             task="multiclass",
             data_dir=data_dir,
             homogeneous=homogeneous,
+            hyperparam_tuning=hyperparam_tuning
         )
 
     def __str__(self):
