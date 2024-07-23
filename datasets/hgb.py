@@ -25,6 +25,7 @@ class HGBBaseDataModule(L.LightningDataModule):
         task: Literal["multiclass", "multilabel", "binary"] = "multiclass",
             dataset: Literal["IMDB", "DBLP", "ACM", "Freebase", "PubMed_NC"] = "DBLP",
         homogeneous: bool = False,
+        hyperparam_tuning: bool = False,
     ):
         super().__init__()
         self.data_dir = data_dir
@@ -43,12 +44,13 @@ class HGBBaseDataModule(L.LightningDataModule):
         self.num_edge_types: Optional[int] = None
         self.node_type_names: Optional[list[str]] = None
         self.edge_type_names: Optional[list[str]] = None
+        self.hyperparam_tuning = hyperparam_tuning
 
     def prepare_data(self) -> None:
         transform = T.Compose(
             [
                 T.Constant(node_types=None),
-                TrainValNodeSplit(),
+                TrainValNodeSplit(hyperparam_tuning=self.hyperparam_tuning),
                 T.ToUndirected(),
                 RemoveSelfLoops(),
                 T.NormalizeFeatures(),

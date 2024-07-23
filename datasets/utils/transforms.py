@@ -32,10 +32,16 @@ class RemoveSelfLoops(BaseTransform):
 
 
 class TrainValNodeSplit(BaseTransform):
-    def __init__(self, val_ratio: float = 0.2, key: Optional[str] = "y"):
+    def __init__(
+            self,
+            val_ratio: float = 0.2,
+            key: Optional[str] = "y",
+            hyperparam_tuning: bool = False,
+    ):
         super().__init__()
         self.val_ratio = val_ratio
         self.key = key
+        self.hyperparam_tuning = hyperparam_tuning
 
     def forward(
             self,
@@ -60,7 +66,11 @@ class TrainValNodeSplit(BaseTransform):
         else:
             num_val = round(num_nodes * self.val_ratio)
 
-        perm = torch.randperm(train_idx_org.shape[0])
+        if self.hyperparam_tuning:
+            g_split = torch.manual_seed(42)
+            perm = torch.randperm(train_idx_org.shape[0], generator=g_split)
+        else:
+            perm = torch.randperm(train_idx_org.shape[0])
         val_idx = train_idx_org[perm][:num_val]
         train_idx = train_idx_org[perm][num_val:]
         return index_to_mask(train_idx, num_nodes), index_to_mask(val_idx, num_nodes)
@@ -69,7 +79,9 @@ class TrainValNodeSplit(BaseTransform):
 class TrainValEdgeSplit(BaseTransform):
 
     def __init__(self, train_ratio: float = 0.9,
-                 target: Optional[EdgeType] = None):
+                 target: Optional[EdgeType] = None,
+                 hyperparam_tuning: bool = False,
+                 ):
         """
         Transformation to perform splitting of edge index into a train and validation
         set. Adapted from the HGB link prediction splitting code avaliable at:
@@ -82,6 +94,7 @@ class TrainValEdgeSplit(BaseTransform):
 
         self.train_ratio = train_ratio
         self.edge_type = target
+        self.hyperparam_tuning = hyperparam_tuning
 
     def forward(self, data: HeteroData) -> HeteroData:
         assert isinstance(data, HeteroData), 'data must be of type HeteroData'
@@ -89,6 +102,9 @@ class TrainValEdgeSplit(BaseTransform):
         store = data[self.edge_type]
 
         train_index_pos, valid_index_pos = self.get_pos_samples(store)
+
+        if self.hyperparam_tuning:
+            torch.manual_seed(42)
 
         train_index_neg = negative_sampling(store.edge_index,
                                             num_neg_samples=train_index_pos.shape[1])

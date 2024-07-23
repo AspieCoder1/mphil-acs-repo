@@ -23,6 +23,7 @@ class LinkPredBase(L.LightningDataModule):
         data_dir: str = DATA_DIR,
         is_homogeneous: bool = False,
         num_classes: int = 1,
+            hyperparam_tuning: bool = False
     ):
         super(LinkPredBase, self).__init__()
         self.target: tuple[str, str, str] = target
@@ -38,7 +39,8 @@ class LinkPredBase(L.LightningDataModule):
                 T.ToUndirected(),
                 T.NormalizeFeatures(),
                 RemoveSelfLoops(),
-                TrainValEdgeSplit(target=self.target)
+                TrainValEdgeSplit(target=self.target,
+                                  hyperparam_tuning=hyperparam_tuning)
             ]
         )
         self.rev_target = rev_target
