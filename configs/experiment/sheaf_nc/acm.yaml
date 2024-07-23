@@ -1,17 +1,19 @@
 # @package _global_
 defaults:
   - override /dataset: acm
+  - override /model: general_sheaf
 
 callbacks.early_stopping.patience: 25
 homogeneous_model: true
 learning_rate: 0.01
-model: general_sheaf
-model.args.d: 4
-model.args.dropout: 0.30241942182614384
-model.args.hidden_channels: 64
-model.args.initial_dropout: 0.49205804154919136
-model.args.input_dropout: 0.5796364648617516
-model.args.layers: 4
+model:
+  args:
+  d: 4
+  dropout: 0.30241942182614384
+  hidden_channels: 64
+  initial_dropout: 0.49205804154919136
+  input_dropout: 0.5796364648617516
+  layers: 4
 sheaf_learner: node_edge_types
 weight_decay: 0.005
 

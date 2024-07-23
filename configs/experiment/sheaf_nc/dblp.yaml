@@ -1,6 +1,7 @@
 # @package _global_
 defaults:
   - override /dataset: dblp
+  - override /model: general_sheaf
 dataset:
   homogeneous: true
 
@@ -13,13 +14,14 @@ tags:
 callbacks.early_stopping.patience: 100
 homogeneous_model: true
 learning_rate: 0.005
-model: general_sheaf
-model.args.d: 5
-model.args.dropout: 0.5009899355186479
-model.args.hidden_channels: 16
-model.args.initial_dropout: 0.3833219886653431
-model.args.input_dropout: 0.7653242973597238
-model.args.layers: 5
+model:
+  args:
+    d: 5
+    dropout: 0.5009899355186479
+    hidden_channels: 16
+    initial_dropout: 0.3833219886653431
+    input_dropout: 0.7653242973597238
+    layers: 5
 sheaf_learner: node_edge_types
 weight_decay: 0.0005
 
