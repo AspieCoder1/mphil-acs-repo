@@ -8,12 +8,12 @@ homogeneous_model: true
 learning_rate: 0.01
 model:
   args:
-  d: 4
-  dropout: 0.30241942182614384
-  hidden_channels: 64
-  initial_dropout: 0.49205804154919136
-  input_dropout: 0.5796364648617516
-  layers: 4
+    d: 4
+    dropout: 0.30241942182614384
+    hidden_channels: 64
+    initial_dropout: 0.49205804154919136
+    input_dropout: 0.5796364648617516
+    layers: 4
 sheaf_learner: node_edge_types
 weight_decay: 0.005
 
