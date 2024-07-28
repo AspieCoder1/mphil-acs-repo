@@ -20,8 +20,9 @@ from datasets.hgt import (
 from datasets.link_pred import (
     LinkPredBase,
     LastFMDataModule,
-    AmazonBooksDataModule,
-    MovieLensDatamodule,
+    # AmazonBooksDataModule,
+    # MovieLensDatamodule,
+    PubMedLPDataModule
 )
 
 
@@ -60,7 +61,4 @@ def get_dataset_lp(
 ) -> LinkPredBase:
     if dataset == LinkPredDatasets.LastFM:
         return LastFMDataModule(homogeneous=is_homogeneous)
-    elif dataset == LinkPredDatasets.AmazonBooks:
-        return AmazonBooksDataModule(homogeneous=is_homogeneous)
-    else:
-        return MovieLensDatamodule(homogeneous=is_homogeneous)
+    return PubMedLPDataModule(homogeneous=is_homogeneous)

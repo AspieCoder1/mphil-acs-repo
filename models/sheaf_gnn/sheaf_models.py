@@ -109,6 +109,8 @@ class LocalConcatSheafLearnerVariant(SheafLearner):
             self.act = torch.tanh
         elif sheaf_act == "elu":
             self.act = F.elu
+        elif sheaf_act == 'sigmoid':
+            self.act = F.sigmoid
         else:
             raise ValueError(f"Unsupported act {sheaf_act}")
 
