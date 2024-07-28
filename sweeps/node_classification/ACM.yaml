@@ -1,9 +1,9 @@
 name: ACM - NC
 program: run_sheaf_nc.py
-method: bayes
+method: random
 metric:
   goal: maximize
-  name: valid/micro-f1
+  name: valid/accuracy
 parameters:
   model:
     distribution: categorical
