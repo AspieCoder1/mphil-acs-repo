@@ -1,7 +1,7 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 
-from typing import Callable, NamedTuple
+from typing import Callable, NamedTuple, Literal
 
 import lightning as L
 import torch
@@ -55,16 +55,20 @@ class SheafLinkPredictor(L.LightningModule):
 
         self.save_hyperparameters(ignore="model")
 
-    def common_step(self, batch: Data) -> CommonStepOutput:
-        # (1) Remove NaNs from edge_labels
-        label_idx = ~batch.edge_label.isnan()
-        y = batch.edge_label[label_idx]
+    def common_step(self, batch: Data,
+                    stage: Literal['train', 'val', 'test']) -> CommonStepOutput:
+        edge_label = batch[f'{stage}_edge_label']
+        edge_label_index = batch[f'{stage}_edge_label_index']
+
+        # (1) Remove NaNs from edge_label
+        label_idx = ~edge_label.isnan()
+        y = edge_label[label_idx]
 
         # (2) Compute the hidden representation of nodes
         h, _ = self.encoder(batch)
 
         # (3) reduced edge_label_index
-        edge_label_index = batch.edge_label_index[:, label_idx]
+        edge_label_index = edge_label_index[:, label_idx]
 
         # (4) Calculate dot product h[i].h[j] for i, j in edge_label_index
         h_src = h[edge_label_index[0, :]]
@@ -77,7 +81,7 @@ class SheafLinkPredictor(L.LightningModule):
                                 indexes=edge_label_index[0, :])
 
     def training_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss, indexes = self.common_step(batch)
+        y, y_hat, loss, indexes = self.common_step(batch, 'train')
 
         metrics = self.train_metrics(preds=y_hat, target=y, indexes=indexes)
 
@@ -94,7 +98,7 @@ class SheafLinkPredictor(L.LightningModule):
         return loss
 
     def validation_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss, indexes = self.common_step(batch)
+        y, y_hat, loss, indexes = self.common_step(batch, 'val')
 
         metrics = self.valid_metrics(preds=y_hat, target=y, indexes=indexes)
 
@@ -110,7 +114,7 @@ class SheafLinkPredictor(L.LightningModule):
         return loss
 
     def test_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss, indexes = self.common_step(batch)
+        y, y_hat, loss, indexes = self.common_step(batch, 'test')
 
         metrics = self.test_metrics(preds=y_hat, target=y, indexes=indexes)
 
