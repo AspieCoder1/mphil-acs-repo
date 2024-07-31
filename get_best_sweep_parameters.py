@@ -16,10 +16,10 @@ def get_best_parameters(sweep_id: str) -> str:
 
 def main():
     names = {
-        "dblp": "udl9xl76",
-        "acm": "innurdsp",
-        "imdb": "phsd9cm9",
-        "pubmed_nc": "4sl4f8sx",
+        "dblp": "ut44kg0x",
+        "acm": "r5lbekp9",
+        "imdb": "pa34zw8d",
+        "pubmed_nc": "6ggi1v3z",
     }
     for dataset, sweep_id in names.items():
         click.secho(f"Processing {dataset}", bold=True)

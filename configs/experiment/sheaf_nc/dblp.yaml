@@ -1,7 +1,7 @@
 # @package _global_
 defaults:
   - override /dataset: dblp
-  - override /model: diag_sheaf
+  - override /model: bundle_sheaf
 dataset:
   homogeneous: true
 
@@ -11,17 +11,17 @@ tags:
   - exp1
   - DBLP
 
-callbacks.early_stopping.patience: 100
+callbacks.early_stopping.patience: 10
 homogeneous_model: true
-learning_rate: 0.005
+learning_rate: 0.001
 model:
   args:
-    d: 5
-    dropout: 0.5009899355186479
-    hidden_channels: 16
-    initial_dropout: 0.3833219886653431
-    input_dropout: 0.7653242973597238
+    d: 3
+    dropout: 0.5723713268648419
+    hidden_channels: 8
+    initial_dropout: 0.6352552310030072
+    input_dropout: 0.6075853109695322
     layers: 5
-sheaf_learner: node_edge_types
-weight_decay: 0.0005
+sheaf_learner: type_ensemble
+weight_decay: 0.0001
 

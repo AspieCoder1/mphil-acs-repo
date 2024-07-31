@@ -1,7 +1,7 @@
 # @package _global_
 defaults:
   - override /dataset: imdb
-  - override /model: bundle_sheaf
+  - override /model: diag_sheaf
 dataset:
   homogeneous: true
 
@@ -11,16 +11,16 @@ tags:
   - exp1
   - IMDB
 
-callbacks.early_stopping.patience: 75
+callbacks.early_stopping.patience: 25
 homogeneous_model: true
-learning_rate: 0.01
+learning_rate: 0.005
 model:
   args:
-    d: 2
-    dropout: 0.5166916766636378
-    hidden_channels: 32
-    initial_dropout: 0.01185275446395252
-    input_dropout: 0.04704875549931128
-    layers: 2
-sheaf_learner: edge_type_concat
-weight_decay: 0.0005
+    d: 3
+    dropout: 0.7083114275923803
+    hidden_channels: 64
+    initial_dropout: 0.5194498014426826
+    input_dropout: 0.30604026233966036
+    layers: 7
+sheaf_learner: local_concat
+weight_decay: 5e-05
