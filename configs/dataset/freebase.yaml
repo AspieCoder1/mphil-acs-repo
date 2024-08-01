@@ -1,2 +1,3 @@
 _target_: datasets.hgb.FreebaseDataModule
 hyperparam_tuning: false
+feat_type: feat2

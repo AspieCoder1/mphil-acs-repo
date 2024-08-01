@@ -7,12 +7,13 @@ import lightning as L
 import torch
 from pytorch_lightning.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADERS
 from torch_geometric import transforms as T
-from torch_geometric.data import HeteroData, Data
+from torch_geometric.data import HeteroData
 from torch_geometric.data.hetero_data import to_homogeneous_edge_index
 from torch_geometric.data.lightning import LightningNodeData
 
 from datasets.utils.hgb_datasets import HGBDatasetNC
-from datasets.utils.transforms import (RemoveSelfLoops, TrainValNodeSplit, GenerateNodeFeatures)
+from datasets.utils.transforms import (RemoveSelfLoops, TrainValNodeSplit,
+                                       GenerateNodeFeatures, )
 
 DATA_DIR = "data"
 
@@ -27,6 +28,7 @@ class HGBBaseDataModule(L.LightningDataModule):
             dataset: Literal["IMDB", "DBLP", "ACM", "Freebase", "PubMed_NC"] = "DBLP",
         homogeneous: bool = False,
         hyperparam_tuning: bool = False,
+            feat_type: Literal['feat0', 'feat1', 'feat2'] = 'feat0',
     ):
         super().__init__()
         self.data_dir = data_dir
@@ -46,12 +48,13 @@ class HGBBaseDataModule(L.LightningDataModule):
         self.node_type_names: Optional[list[str]] = None
         self.edge_type_names: Optional[list[str]] = None
         self.hyperparam_tuning = hyperparam_tuning
+        self.feat_type = feat_type
 
     def prepare_data(self) -> None:
         transform = T.Compose(
             [
                 T.Constant(node_types=None),
-                GenerateNodeFeatures(target=self.target, feat_type='feat0'),
+                GenerateNodeFeatures(target=self.target, feat_type=self.feat_type),
                 TrainValNodeSplit(hyperparam_tuning=self.hyperparam_tuning),
                 RemoveSelfLoops(),
                 T.AddSelfLoops(),
@@ -62,7 +65,7 @@ class HGBBaseDataModule(L.LightningDataModule):
         dataset = HGBDatasetNC(root=self.data_dir, name=self.dataset,
                                transform=transform)
 
-        data: HeteroData = dataset.coalesce()
+        data: HeteroData = dataset[0].coalesce()
         self.in_channels = {
             node_type: data[node_type].num_features for node_type in data.node_types
         }
@@ -96,7 +99,8 @@ class HGBBaseDataModule(L.LightningDataModule):
 
 class IMDBDataModule(HGBBaseDataModule):
     def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False,
-                 hyperparam_tuning: bool = False):
+                 hyperparam_tuning: bool = False,
+                 feat_type: Literal['feat0', 'feat1', 'feat2'] = 'feat0', ):
         super().__init__(
             data_dir=data_dir,
             task="multilabel",
@@ -104,7 +108,8 @@ class IMDBDataModule(HGBBaseDataModule):
             dataset="IMDB",
             target="movie",
             homogeneous=homogeneous,
-            hyperparam_tuning=hyperparam_tuning
+            hyperparam_tuning=hyperparam_tuning,
+            feat_type=feat_type,
         )
 
     def __str__(self):
@@ -113,7 +118,8 @@ class IMDBDataModule(HGBBaseDataModule):
 
 class DBLPDataModule(HGBBaseDataModule):
     def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False,
-                 hyperparam_tuning: bool = False):
+                 hyperparam_tuning: bool = False,
+                 feat_type: Literal['feat0', 'feat1', 'feat2'] = 'feat0', ):
         super().__init__(
             dataset="DBLP",
             num_classes=4,
@@ -121,7 +127,8 @@ class DBLPDataModule(HGBBaseDataModule):
             task="multiclass",
             data_dir=data_dir,
             homogeneous=homogeneous,
-            hyperparam_tuning=hyperparam_tuning
+            hyperparam_tuning=hyperparam_tuning,
+            feat_type=feat_type
         )
 
     def __str__(self):
@@ -130,7 +137,8 @@ class DBLPDataModule(HGBBaseDataModule):
 
 class ACMDataModule(HGBBaseDataModule):
     def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False,
-                 hyperparam_tuning: bool = False):
+                 hyperparam_tuning: bool = False,
+                 feat_type: Literal['feat0', 'feat1', 'feat2'] = 'feat0', ):
         super().__init__(
             data_dir=data_dir,
             dataset="ACM",
@@ -138,7 +146,8 @@ class ACMDataModule(HGBBaseDataModule):
             target="paper",
             task="multiclass",
             homogeneous=homogeneous,
-            hyperparam_tuning=hyperparam_tuning
+            hyperparam_tuning=hyperparam_tuning,
+            feat_type=feat_type
         )
 
     def __str__(self):
@@ -147,7 +156,8 @@ class ACMDataModule(HGBBaseDataModule):
 
 class FreebaseDataModule(HGBBaseDataModule):
     def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False,
-                 hyperparam_tuning: bool = False):
+                 hyperparam_tuning: bool = False,
+                 feat_type: Literal['feat0', 'feat1', 'feat2'] = 'feat0', ):
         super().__init__(
             data_dir=data_dir,
             dataset="Freebase",
@@ -155,7 +165,8 @@ class FreebaseDataModule(HGBBaseDataModule):
             target="book",
             task="multiclass",
             homogeneous=homogeneous,
-            hyperparam_tuning=hyperparam_tuning
+            hyperparam_tuning=hyperparam_tuning,
+            feat_type=feat_type
         )
 
     def __str__(self):
@@ -164,7 +175,8 @@ class FreebaseDataModule(HGBBaseDataModule):
 
 class PubMedDataModule(HGBBaseDataModule):
     def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False,
-                 hyperparam_tuning: bool = False):
+                 hyperparam_tuning: bool = False,
+                 feat_type: Literal['feat0', 'feat1', 'feat2'] = 'feat0', ):
         super().__init__(
             dataset="PubMed_NC",
             num_classes=8,
@@ -172,7 +184,8 @@ class PubMedDataModule(HGBBaseDataModule):
             task="multiclass",
             data_dir=data_dir,
             homogeneous=homogeneous,
-            hyperparam_tuning=hyperparam_tuning
+            hyperparam_tuning=hyperparam_tuning,
+            feat_type=feat_type
         )
 
     def __str__(self):

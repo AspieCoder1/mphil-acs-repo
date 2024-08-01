@@ -1,2 +1,3 @@
 _target_: datasets.link_pred.LastFMDataModule
 hyperparam_tuning: false
+feat_type: feat2
