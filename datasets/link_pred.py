@@ -17,6 +17,7 @@ DATA_DIR = "data"
 
 logger = logging.getLogger(__name__)
 
+
 class LinkPredBase(L.LightningDataModule):
     def __init__(
         self,

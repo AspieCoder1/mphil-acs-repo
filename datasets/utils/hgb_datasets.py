@@ -306,7 +306,7 @@ class HGBDatasetLP(InMemoryDataset):
         self.dl = HGBDataLoaderLP(path=osp.join(self.raw_dir, self.names[self.name]))
 
         # 2. get correct metadata object
-        e_types, n_types = self.get_metadata()
+        e_types, n_types, n_types_inv = self.get_metadata()
 
         # 3. generate node features
         for index, node_type in n_types.items():
@@ -334,7 +334,11 @@ class HGBDatasetLP(InMemoryDataset):
 
         # 4. add test samples
         test_neigh, test_labels = self.dl.get_test_neigh()
-        test_edge_label_index = torch.tensor(test_neigh[target])
+        src, _, dst = e_types[target]
+        src, dst = n_types_inv[src], n_types_inv[dst]
+        offset = torch.tensor(
+            [[self.dl.nodes['shift'][src]], [self.dl.nodes['shift'][dst]]])
+        test_edge_label_index = torch.tensor(test_neigh[target]) - offset
         test_edge_label = torch.tensor(test_labels[target])
         data[e_types[target]].test_edge_label_index = test_edge_label_index
         data[e_types[target]].test_edge_label = test_edge_label
@@ -365,6 +369,7 @@ class HGBDatasetLP(InMemoryDataset):
             n_types = info['node.dat']['node type']
             e_types = info['link.dat']['link type']
         n_types = {int(k): v for k, v in n_types.items()}
+        n_types_inv = {v: int(k) for k, v in n_types.items()}
         e_types = {int(k): tuple(v.values()) for k, v in e_types.items()}
         for key, (src, dst, rel) in e_types.items():
             src, dst = n_types[int(src)], n_types[int(dst)]
@@ -372,4 +377,4 @@ class HGBDatasetLP(InMemoryDataset):
             rel = rel if rel != dst and rel[1:] != dst else 'to'
             e_types[key] = (src, rel, dst)
 
-        return e_types, n_types
+        return e_types, n_types, n_types_inv

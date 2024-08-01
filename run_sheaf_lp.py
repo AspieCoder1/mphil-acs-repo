@@ -67,7 +67,9 @@ def main(cfg: DictConfig) -> None:
         in_feat=cfg.get("input_dim", 64),
         in_channels=dm.in_channels,
         target=dm.target,
-        num_classes=1
+        num_classes=1,
+        weight_decay=cfg.get('weight_decay', 1e-2),
+        learning_rate=cfg.get('learning_rate', 1e-3),
     )
 
 

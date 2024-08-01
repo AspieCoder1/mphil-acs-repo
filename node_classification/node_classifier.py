@@ -178,6 +178,17 @@ class NodeClassifier(L.LightningModule):
     def configure_optimizers(self) -> OptimizerLRScheduler:
         optimiser = torch.optim.AdamW(self.parameters(), lr=self.lr,
                                       weight_decay=self.weight_decay)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimiser, T_max=1_000, eta_min=1e-6
+        )
+
+        return {
+            "optimizer": optimiser,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "monitor": "valid/loss",
+            },
+        }
 
         return {
             "optimizer": optimiser,

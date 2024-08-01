@@ -37,6 +37,8 @@ class SheafLinkPredictor(L.LightningModule):
         batch_size: int = 1,
         hidden_dim: int = 64,
         num_classes: int = 1,
+            learning_rate: float = 1e-3,
+            weight_decay: float = 1e-2,
     ):
         super(SheafLinkPredictor, self).__init__()
         self.encoder = model
@@ -59,6 +61,8 @@ class SheafLinkPredictor(L.LightningModule):
         self.valid_metrics = self.train_metrics.clone(prefix="valid/")
         self.test_metrics = self.train_metrics.clone(prefix="test/")
         self.loss_fn: Callable = F.binary_cross_entropy_with_logits
+        self.lr = learning_rate
+        self.weight_decay = weight_decay
 
         self.save_hyperparameters(ignore="model")
 
@@ -139,7 +143,8 @@ class SheafLinkPredictor(L.LightningModule):
         return loss
 
     def configure_optimizers(self) -> OptimizerLRScheduler:
-        optimiser = torch.optim.AdamW(self.parameters())
+        optimiser = torch.optim.AdamW(self.parameters(), lr=self.lr,
+                                      weight_decay=self.weight_decay)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             optimiser, T_max=1_000, eta_min=1e-6
         )
