@@ -98,6 +98,7 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
         for i in range(self.layers):
             self.epsilons.append(nn.Parameter(torch.zeros((self.final_d, 1))))
 
+        print(self.input_dim)
         self.lin1 = nn.Linear(self.input_dim, self.hidden_dim)
         if self.second_linear:
             self.lin12 = nn.Linear(self.hidden_dim, self.hidden_dim)

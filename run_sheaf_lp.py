@@ -1,6 +1,6 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
-
+import logging
 from dataclasses import field, dataclass
 from typing import List
 
@@ -19,6 +19,7 @@ from link_prediction import SheafLinkPredictor
 from models.sheaf_gnn.config import IndSheafModelArguments, SheafLearners
 from utils.instantiators import instantiate_callbacks, instantiate_loggers
 
+hydra_logger = logging.getLogger(__name__)
 
 @dataclass
 class Config:
@@ -38,23 +39,34 @@ cs.store("base_config", Config)
 @hydra.main(version_base="1.2", config_path="configs", config_name="sheaf_config_lp")
 def main(cfg: DictConfig) -> None:
     torch.set_float32_matmul_precision('high')
+    hydra_logger.info("Instantiating dataset")
     dm = hydra.utils.instantiate(cfg.dataset)
-    dm.prepare_data()
 
+    hydra_logger.info("Preparing dataset")
+    dm.prepare_data()
+    edge_index = dm.edge_index.to(cfg.model.args.device)
+
+    hydra_logger.info("Instantiating model")
     model = hydra.utils.instantiate(
         cfg.model,
+        edge_index=edge_index,
         args={
             "graph_size": dm.graph_size,
-            "input_dim": dm.in_channels,
+            "input_dim": cfg.get("input_dim", 64),
+            "output_dim": 1,
             "num_edge_types": dm.num_edge_types,
             "num_node_types": dm.num_node_types,
         },
     )
 
+    hydra_logger.info("Creating sheaf link predictor")
     sheaf_lp = SheafLinkPredictor(
         model=model,
         batch_size=dm.batch_size,
         hidden_dim=model.hidden_dim,
+        in_feat=cfg.get("input_dim", 64),
+        in_channels=dm.in_channels,
+        target=dm.target,
         num_classes=1
     )
 

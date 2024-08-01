@@ -8,10 +8,11 @@ import torch
 from pytorch_lightning.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADERS
 from torch_geometric import transforms as T
 from torch_geometric.data import HeteroData, Data
+from torch_geometric.data.hetero_data import to_homogeneous_edge_index
 from torch_geometric.data.lightning import LightningNodeData
 
 from datasets.utils.hgb_datasets import HGBDatasetNC
-from datasets.utils.transforms import RemoveSelfLoops, TrainValNodeSplit
+from datasets.utils.transforms import (RemoveSelfLoops, TrainValNodeSplit, GenerateNodeFeatures)
 
 DATA_DIR = "data"
 
@@ -50,9 +51,10 @@ class HGBBaseDataModule(L.LightningDataModule):
         transform = T.Compose(
             [
                 T.Constant(node_types=None),
+                GenerateNodeFeatures(target=self.target, feat_type='feat0'),
                 TrainValNodeSplit(hyperparam_tuning=self.hyperparam_tuning),
-                T.ToUndirected(),
                 RemoveSelfLoops(),
+                T.AddSelfLoops(),
                 T.NormalizeFeatures(),
                 T.RemoveDuplicatedEdges(),
             ]
@@ -60,32 +62,24 @@ class HGBBaseDataModule(L.LightningDataModule):
         dataset = HGBDatasetNC(root=self.data_dir, name=self.dataset,
                                transform=transform)
 
-        data: Union[HeteroData, Data] = dataset[0].coalesce()
-        input_nodes = data[self.target]
-
-        self.edge_index = data.edge_index_dict
+        data: HeteroData = dataset.coalesce()
         self.in_channels = {
             node_type: data[node_type].num_features for node_type in data.node_types
         }
         self.metadata = data.metadata()
         self.num_nodes = data.num_nodes
-
-        if self.homogeneous:
-            data = data.to_homogeneous()
-            self.edge_index = data.edge_index
-            input_nodes = data
-            self.graph_size = data.x.size(0)
-            self.in_channels = data.num_features
-            self.num_node_types = data.num_node_types
-            self.num_edge_types = data.num_edge_types
-            self.node_type_names = data._node_type_names
-            self.edge_type_names = data._edge_type_names
+        self.edge_index, _, _ = to_homogeneous_edge_index(data)
+        self.num_node_types = len(data.node_types)
+        self.num_edge_types = len(data.edge_types)
+        self.edge_type_names = data.edge_types
+        self.node_type_names = data.node_types
+        self.graph_size = data.num_nodes
 
         self.pyg_datamodule = LightningNodeData(
             data,
-            input_train_nodes=(self.target, input_nodes.train_mask),
-            input_val_nodes=(self.target, input_nodes.val_mask),
-            input_test_nodes=(self.target, input_nodes.test_mask),
+            input_train_nodes=(self.target, data[self.target].train_mask),
+            input_val_nodes=(self.target, data[self.target].val_mask),
+            input_test_nodes=(self.target, data[self.target].test_mask),
             loader="full",
             batch_size=1,
         )

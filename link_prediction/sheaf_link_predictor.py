@@ -1,7 +1,7 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 
-from typing import Callable, NamedTuple, Literal
+from typing import Callable, NamedTuple, Literal, Optional
 
 import lightning as L
 import torch
@@ -9,7 +9,8 @@ from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn, Tensor
 from torch.nn import functional as F
 from torch.nn.modules.loss import _Loss
-from torch_geometric.data import Data
+from torch_geometric.data import Data, HeteroData
+from torch_geometric.nn import HeteroDictLinear
 from torchmetrics.classification import (
     BinaryAUROC,
     BinaryAccuracy,
@@ -30,6 +31,9 @@ class SheafLinkPredictor(L.LightningModule):
     def __init__(
         self,
         model: nn.Module,
+        target: tuple[str, str, str],
+        in_channels: Optional[dict[str, int]] = None,
+        in_feat: int = 64,
         batch_size: int = 1,
         hidden_dim: int = 64,
         num_classes: int = 1,
@@ -38,6 +42,9 @@ class SheafLinkPredictor(L.LightningModule):
         self.encoder = model
         self.batch_size = batch_size
         self.decoder = nn.Linear(2*hidden_dim, num_classes)
+        self.target = target
+        self.fc = HeteroDictLinear(in_channels=in_channels,
+                                   out_channels=in_feat)
 
         self.train_metrics = MetricCollection(
             {
@@ -55,32 +62,33 @@ class SheafLinkPredictor(L.LightningModule):
 
         self.save_hyperparameters(ignore="model")
 
-    def common_step(self, batch: Data,
-                    stage: Literal['train', 'val', 'test']) -> CommonStepOutput:
-        edge_label = batch[f'{stage}_edge_label']
-        edge_label_index = batch[f'{stage}_edge_label_index']
+    def preprocess(self, data: HeteroData) -> (Tensor, Tensor, Tensor, Tensor):
+        x_dict = self.fc(data.x_dict)
+        x = torch.cat(tuple(x_dict.values()), dim=0)
 
-        # (1) Remove NaNs from edge_label
-        label_idx = ~edge_label.isnan()
-        y = edge_label[label_idx]
+        return x, data.node_type, data.edge_type
+
+    def common_step(self, batch: HeteroData,
+                    stage: Literal['train', 'val', 'test']) -> CommonStepOutput:
+        edge_label = batch[self.target][f'{stage}_edge_label']
+        edge_label_index = batch[self.target][f'{stage}_edge_label_index']
+        x, node_types, edge_types = self.preprocess(batch)
 
         # (2) Compute the hidden representation of nodes
-        h, _ = self.encoder(batch)
-
-        # (3) reduced edge_label_index
-        edge_label_index = edge_label_index[:, label_idx]
+        data = Data(x=x, node_type=node_types, edge_type=edge_types)
+        h, _ = self.encoder(data)
 
         # (4) Calculate dot product h[i].h[j] for i, j in edge_label_index
-        h_src = h[edge_label_index[0, :]]
-        h_dest = h[edge_label_index[1, :]]
+        h_src = h[batch.node_offsets[self.target[0]] + edge_label_index[0, :]]
+        h_dest = h[batch.node_offsets[self.target[-1]] + edge_label_index[1, :]]
         y_hat = self.decoder(torch.concat((h_src, h_dest), dim=1)).flatten()
-        loss = F.binary_cross_entropy_with_logits(y_hat, y)
+        loss = F.binary_cross_entropy_with_logits(y_hat, edge_label.to(torch.float))
         y_hat = F.sigmoid(y_hat)
 
-        return CommonStepOutput(loss=loss, y=y.to(torch.long), y_hat=y_hat,
-                                indexes=edge_label_index[0, :])
+        return CommonStepOutput(loss=loss, y=edge_label.to(torch.long), y_hat=y_hat,
+                                indexes=edge_label_index[0, :].to(torch.long))
 
-    def training_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
+    def training_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
         y, y_hat, loss, indexes = self.common_step(batch, 'train')
 
         metrics = self.train_metrics(preds=y_hat, target=y, indexes=indexes)
@@ -93,11 +101,11 @@ class SheafLinkPredictor(L.LightningModule):
             batch_size=1,
             sync_dist=True,
         )
-        self.log("train/loss", loss)
+        self.log("train/loss", loss, batch_size=1)
 
         return loss
 
-    def validation_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
+    def validation_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
         y, y_hat, loss, indexes = self.common_step(batch, 'val')
 
         metrics = self.valid_metrics(preds=y_hat, target=y, indexes=indexes)
@@ -110,10 +118,10 @@ class SheafLinkPredictor(L.LightningModule):
             batch_size=1,
             sync_dist=True,
         )
-        self.log("valid/loss", loss)
+        self.log("valid/loss", loss, batch_size=1)
         return loss
 
-    def test_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
+    def test_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
         y, y_hat, loss, indexes = self.common_step(batch, 'test')
 
         metrics = self.test_metrics(preds=y_hat, target=y, indexes=indexes)
@@ -126,7 +134,7 @@ class SheafLinkPredictor(L.LightningModule):
             batch_size=1,
             sync_dist=True,
         )
-        self.log("test/loss", loss)
+        self.log("test/loss", loss, batch_size=1)
 
         return loss
 

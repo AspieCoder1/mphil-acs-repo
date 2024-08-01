@@ -1,19 +1,21 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
-
+import logging
 from typing import Optional
 
 import lightning as L
 import torch_geometric.transforms as T
 from lightning.pytorch.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADERS
 from torch_geometric.data import HeteroData
+from torch_geometric.data.hetero_data import to_homogeneous_edge_index
 from torch_geometric.data.lightning import LightningLinkData
 
 from .utils.hgb_datasets import HGBDatasetLP
-from .utils.transforms import RemoveSelfLoops, TrainValEdgeSplit
+from .utils.transforms import RemoveSelfLoops, TrainValEdgeSplit, GenerateNodeFeatures
 
 DATA_DIR = "data"
 
+logger = logging.getLogger(__name__)
 
 class LinkPredBase(L.LightningDataModule):
     def __init__(
@@ -31,12 +33,13 @@ class LinkPredBase(L.LightningDataModule):
         self.metadata = None
         self.data = None
         self.pyg_datamodule = None
+        self.edge_index=None
         self.in_channels = None
         self.num_nodes = None
         self.transform = T.Compose(
             [
                 T.Constant(),
-                T.ToUndirected(),
+                GenerateNodeFeatures(target=self.target, feat_type='feat2'),
                 T.NormalizeFeatures(),
                 RemoveSelfLoops(),
                 TrainValEdgeSplit(target=self.target,
@@ -60,24 +63,18 @@ class LinkPredBase(L.LightningDataModule):
     def prepare_data(self) -> None:
         data = self.download_data()
 
-        self.metadata = data.metadata()
-        self.num_nodes = data.num_nodes
-        self.num_node_types = len(data.node_types)
-        self.num_edge_types = len(data.edge_types)
-        self.num_edges = data.num_edges
-
+        data: HeteroData = data.coalesce()
         self.in_channels = {
             node_type: data[node_type].num_features for node_type in data.node_types
         }
-
-        if self.is_homogeneous:
-            data = data.to_homogeneous()
-            self.graph_size = data.num_nodes
-            self.in_channels = data.num_features
-            self.num_node_types = data.num_node_types
-            self.num_edge_types = data.num_edge_types
-            self.node_type_names = data._node_type_names
-            self.edge_type_names = data._edge_type_names
+        self.metadata = data.metadata()
+        self.num_nodes = data.num_nodes
+        self.edge_index, _, _ = to_homogeneous_edge_index(data)
+        self.num_node_types = len(data.node_types)
+        self.num_edge_types = len(data.edge_types)
+        self.edge_type_names = data.edge_types
+        self.node_type_names = data.node_types
+        self.graph_size = data.num_nodes
 
         self.data = data
 
@@ -127,11 +124,11 @@ class PubMedLPDataModule(LinkPredBase):
         self.transform = T.Compose(
             [
                 # T.Constant(),
-                T.ToUndirected(),
+                GenerateNodeFeatures(target=self.target, feat_type='feat2'),
                 T.NormalizeFeatures(),
                 RemoveSelfLoops(),
                 TrainValEdgeSplit(target=self.target,
-                                  hyperparam_tuning=hyperparam_tuning)
+                                  hyperparam_tuning=hyperparam_tuning),
             ]
         )
 
@@ -145,45 +142,3 @@ class PubMedLPDataModule(LinkPredBase):
 
     def __repr__(self):
         return "PubMed_LP"
-
-
-
-# class AmazonBooksDataModule(LinkPredBase):
-#     def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
-#         super(AmazonBooksDataModule, self).__init__(
-#             data_dir=f"{data_dir}/amazon_books",
-#             target=("user", "rates", "book"),
-#             rev_target=("book", "rated_by", "user"),
-#             is_homogeneous=homogeneous,
-#         )
-#
-#     def download_data(self) -> HeteroData:
-#         data = AmazonBook(self.data_dir, transform=self.transform)[0]
-#         return data
-#
-#     def __repr__(self):
-#         return "AmazonBooks"
-#
-#
-# class MovieLensDatamodule(LinkPredBase):
-#     def __init__(self, data_dir: str = DATA_DIR, homogeneous: bool = False):
-#         super(MovieLensDatamodule, self).__init__(
-#             data_dir=f"{data_dir}/movie_lens",
-#             target=("user", "rates", "movie"),
-#             rev_target=("movie", "rev_rates", "user"),
-#             is_homogeneous=homogeneous,
-#         )
-#
-#     def download_data(self) -> HeteroData:
-#         data = MovieLens(self.data_dir, transform=self.transform)[0]
-#         del data[self.target]["edge_label"]
-#         del data[self.rev_target]["edge_label"]
-#         # new_edge_labels = torch.ones_like(data[self.target].edge_label)
-#         # data[self.target].edge_label = new_edge_labels
-#         # data[self.rev_target].edge_label = new_edge_labels
-#
-#         # print(data[self.target].edge_label)
-#         return data
-#
-#     def __repr__(self):
-#         return "MovieLens"

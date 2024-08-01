@@ -1,7 +1,7 @@
 defaults:
   - _self_
   - trainer: trainer
-  - model: ind_diag_sheaf
+  - model: diag_sheaf
   - dataset: last_fm
   - callbacks: sheaf_lp
   - logger: wandb

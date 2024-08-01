@@ -1,5 +1,6 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
+import random
 from typing import Union, Optional
 
 import torch
@@ -7,8 +8,7 @@ from torch_geometric.data import Data, HeteroData
 from torch_geometric.data.storage import NodeStorage, EdgeStorage, EdgeType
 from torch_geometric.transforms import BaseTransform
 from torch_geometric.utils import (remove_self_loops, mask_to_index, index_to_mask,
-                                   negative_sampling, )
-import random
+                                   negative_sampling, one_hot, )
 
 
 class RemoveSelfLoops(BaseTransform):
@@ -75,7 +75,6 @@ class TrainValNodeSplit(BaseTransform):
         val_idx = train_idx_org[perm][:num_val]
         train_idx = train_idx_org[perm][num_val:]
         return index_to_mask(train_idx, num_nodes), index_to_mask(val_idx, num_nodes)
-
 
 class TrainValEdgeSplit(BaseTransform):
 
@@ -160,3 +159,32 @@ class TrainValEdgeSplit(BaseTransform):
         val_edge_index = store.edge_index[:, ~train_mask]
 
         return train_edge_index, val_edge_index
+
+
+class GenerateNodeFeatures(BaseTransform):
+    def __init__(self, target: str, feat_type='feat1'):
+        self.feat_type = feat_type
+        self.target = target
+
+    def forward(self, data: HeteroData) -> HeteroData:
+
+        if self.feat_type == 'feat1':
+            return self.gen_feat1(data)
+        if self.feat_type == 'feat2':
+            return gen_feat2(data)
+        return data
+
+    def gen_feat1(self, data: HeteroData) -> HeteroData:
+        for node_type in data.node_types:
+            if node_type != self.target:
+                data[node_type].x = torch.zeros_like(data[node_type].x)
+        return data
+
+
+def gen_feat2(data: HeteroData):
+    for i, node_type in enumerate(data.node_types):
+        data[node_type].x = one_hot(
+            i * torch.ones(data[node_type].x.shape[0]).to(torch.long),
+            len(data.node_types), dtype=torch.float)
+
+    return data

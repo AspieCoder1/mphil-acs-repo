@@ -1,14 +1,16 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 
-from typing import Literal, NamedTuple, TypedDict
+from typing import Literal, NamedTuple, TypedDict, Optional
 
 import torch
 from lightning.pytorch.utilities.types import STEP_OUTPUT
-from torch_geometric.data import Data
+from torch import Tensor
+from torch_geometric.data import Data, HeteroData
+from torch_geometric.nn import HeteroDictLinear
 
-from .node_classifier import NodeClassifier
 from models.sheaf_gnn.transductive.disc_models import DiscreteSheafDiffusion
+from .node_classifier import NodeClassifier
 
 
 class SheafNCSStepOutput(NamedTuple):
@@ -30,6 +32,8 @@ class SheafNodeClassifier(NodeClassifier):
         out_channels: int = 10,
         target: str = "author",
         task: Literal["binary", "multiclass", "multilabel"] = "multilabel",
+        in_channels: Optional[dict[str, int]] = None,
+        in_feat: int = 64,
         homogeneous_model: bool = False,
         learning_rate: float = 1e-3,
         weight_decay: float = 1e-2,
@@ -45,18 +49,32 @@ class SheafNodeClassifier(NodeClassifier):
             weight_decay=weight_decay
         )
         self.save_hyperparameters(ignore=["model"])
+        self.fc = HeteroDictLinear(in_channels=in_channels,
+                                   out_channels=in_feat)
 
-    def common_step(self, batch: Data, mask: torch.Tensor) -> SheafNCSStepOutput:
+    def preprocess(self, data: HeteroData) -> (Tensor, Tensor, Tensor):
+        x_dict = self.fc(data.x_dict)
+        x = torch.cat(tuple(x_dict.values()), dim=0)
+
+        return x, data.node_type, data.edge_type
+
+    def common_step(self, batch: HeteroData, step: str = 'train') -> SheafNCSStepOutput:
+        x, node_types, edge_types = self.preprocess(batch)
+        mask = batch[self.target][f'{step}_mask']
+
         if self.task == "multilabel":
-            target_mask = torch.any(~batch.y.isnan(), dim=1)
-        else:
-            target_mask = batch.y != -1
+            mask = torch.any(~batch[self.target].y.isnan(), dim=1)
 
-        mask = torch.logical_and(target_mask, mask)
-        y = batch.y[mask]
-        logits, maps = self.encoder(batch)
+        y = batch[self.target].y[mask]
 
-        y_hat = self.decoder(logits)[mask]
+        data = Data(x=x, node_type=node_types, edge_type=edge_types)
+
+        logits, maps = self.encoder(data)
+
+        offset = batch.node_offsets[self.target]
+
+        y_hat = self.decoder(logits)[offset:offset + batch[self.target].x.shape[0]][
+            mask]
 
         loss = self.loss_fn(y_hat, y)
         y_hat = self.act_fn(y_hat)
@@ -64,8 +82,8 @@ class SheafNodeClassifier(NodeClassifier):
 
         return SheafNCSStepOutput(y=y, y_hat=y_hat, loss=loss, maps=maps)
 
-    def training_step(self, batch: Data, batch_idx: int) -> TrainStepOutput:
-        y, y_hat, loss, maps = self.common_step(batch, batch.train_mask)
+    def training_step(self, batch: HeteroData, batch_idx: int) -> TrainStepOutput:
+        y, y_hat, loss, maps = self.common_step(batch, 'train')
 
         output = self.train_metrics(y_hat, y)
         self.log_dict(output, prog_bar=True, on_step=False, on_epoch=True, batch_size=1)
@@ -77,8 +95,8 @@ class SheafNodeClassifier(NodeClassifier):
             restriction_maps=maps,
         )
 
-    def validation_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss, _ = self.common_step(batch, batch.val_mask)
+    def validation_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
+        y, y_hat, loss, _ = self.common_step(batch, 'val')
 
         output = self.valid_metrics(y_hat, y)
 
@@ -93,8 +111,8 @@ class SheafNodeClassifier(NodeClassifier):
         )
         return loss
 
-    def test_step(self, batch: Data, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss, _ = self.common_step(batch, batch.test_mask)
+    def test_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
+        y, y_hat, loss, _ = self.common_step(batch, 'test')
 
         output = self.test_metrics(y_hat, y)
         self.log_dict(

@@ -23,16 +23,16 @@ class CommonStepOutput(NamedTuple):
 
 class NodeClassifier(L.LightningModule):
     def __init__(
-        self,
-        model: nn.Module,
-        hidden_channels: int = 256,
-        out_channels: int = 10,
-        target: str = "author",
-        task: Literal["binary", "multiclass", "multilabel"] = "multilabel",
-        homogeneous_model: bool = False,
-        sheaf_model: bool = False,
-        learning_rate: float = 1e-3,
-        weight_decay: float = 1e-2,
+            self,
+            model: nn.Module,
+            hidden_channels: int = 256,
+            out_channels: int = 10,
+            target: str = "author",
+            task: Literal["binary", "multiclass", "multilabel"] = "multilabel",
+            homogeneous_model: bool = False,
+            sheaf_model: bool = False,
+            learning_rate: float = 1e-3,
+            weight_decay: float = 1e-2,
     ):
         super().__init__()
         self.encoder = model
@@ -71,7 +71,7 @@ class NodeClassifier(L.LightningModule):
             self.act_fn: Callable = functools.partial(F.softmax, dim=-1)
 
     def common_step_homogeneous(
-        self, batch: Data, mask: torch.Tensor
+            self, batch: Data, mask: torch.Tensor
     ) -> CommonStepOutput:
         if self.task == "multilabel":
             target_mask = torch.any(~batch.y.isnan(), dim=1)
@@ -95,7 +95,7 @@ class NodeClassifier(L.LightningModule):
         return CommonStepOutput(loss=loss, y_hat=y_hat, y=y)
 
     def common_step_heterogeneous(
-        self, batch: HeteroData, mask: torch.Tensor
+            self, batch: HeteroData, mask: torch.Tensor
     ) -> CommonStepOutput:
         y: torch.Tensor = batch[self.target].y[mask]
         x_dict = self.encoder(batch)
@@ -108,14 +108,14 @@ class NodeClassifier(L.LightningModule):
         return CommonStepOutput(y, y_hat, loss)
 
     def common_step(
-        self, batch: Union[Data, HeteroData], mask: torch.Tensor
+            self, batch: Union[Data, HeteroData], mask: torch.Tensor
     ) -> CommonStepOutput:
         if self.homogeneous:
             return self.common_step_homogeneous(batch, mask)
         return self.common_step_heterogeneous(batch, mask)
 
     def training_step(
-        self, batch: Union[Data, HeteroData], batch_idx: int
+            self, batch: Union[Data, HeteroData], batch_idx: int
     ) -> STEP_OUTPUT:
         if self.homogeneous:
             mask = batch.train_mask
@@ -132,7 +132,7 @@ class NodeClassifier(L.LightningModule):
         return loss
 
     def validation_step(
-        self, batch: Union[Data, HeteroData], batch_idx: int
+            self, batch: Union[Data, HeteroData], batch_idx: int
     ) -> STEP_OUTPUT:
         if self.homogeneous:
             mask = batch.val_mask
@@ -178,14 +178,7 @@ class NodeClassifier(L.LightningModule):
     def configure_optimizers(self) -> OptimizerLRScheduler:
         optimiser = torch.optim.AdamW(self.parameters(), lr=self.lr,
                                       weight_decay=self.weight_decay)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimiser, T_max=1_000, eta_min=1e-6
-        )
 
         return {
             "optimizer": optimiser,
-            "lr_scheduler": {
-                "scheduler": scheduler,
-                "monitor": "valid/loss",
-            },
         }

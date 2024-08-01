@@ -15,6 +15,7 @@ from torch_geometric.data import (
     extract_zip,
 )
 from torch_geometric.utils import to_edge_index
+from torch_geometric.transforms.to_undirected import ToUndirected
 
 from .hgb_loaders import HGBDataLoaderLP
 
@@ -187,7 +188,7 @@ class HGBDatasetNC(InMemoryDataset):
                     if self.name in ['imdb']:  # multi-label
                         data[n_type].y = torch.zeros((num_nodes, num_classes))
                     else:
-                        data[n_type].y = torch.full((num_nodes, ), -1).long()
+                        data[n_type].y = torch.full((num_nodes,), -1).long()
                     data[n_type].train_mask = torch.zeros(num_nodes).bool()
                     data[n_type].test_mask = torch.zeros(num_nodes).bool()
 
@@ -209,10 +210,40 @@ class HGBDatasetNC(InMemoryDataset):
         else:  # Link prediction:
             raise NotImplementedError
 
+        transform = ToUndirected(merge=False)
+        data = transform(data)
+
+        num_nodes = torch.tensor([data[node_type].num_nodes for node_type in data.node_types])
+        num_edges = torch.tensor([data[edge_type].edge_index.shape[1] for edge_type in data.edge_types])
+        node_types = torch.arange(len(data.node_types)).repeat_interleave(num_nodes)
+        edge_types = torch.arange(len(data.edge_types)).repeat_interleave(num_edges)
+
+        data.node_type = node_types
+        data.edge_type = edge_types
+
         if self.pre_transform is not None:
             data = self.pre_transform(data)
 
         self.save([data], self.processed_paths[0])
+
+    def get_metadata(self):
+        with open(self.raw_paths[0]) as f:  # `info.dat`
+            info = json.load(f)
+        if self.name == 'lastfm':
+            n_types = info['node.dat']
+            e_types = info['link.dat']
+        else:
+            n_types = info['node.dat']['node type']
+            e_types = info['link.dat']['link type']
+        n_types = {int(k): v for k, v in n_types.items()}
+        e_types = {int(k): tuple(v.values()) for k, v in e_types.items()}
+        for key, (src, dst, rel) in e_types.items():
+            src, dst = n_types[int(src)], n_types[int(dst)]
+            rel = rel.split('-')[1]
+            rel = rel if rel != dst and rel[1:] != dst else 'to'
+            e_types[key] = (src, rel, dst)
+
+        return e_types, n_types
 
     def __repr__(self) -> str:
         return f'{self.names[self.name]}()'
@@ -282,7 +313,7 @@ class HGBDatasetLP(InMemoryDataset):
             if self.dl.nodes['attr'][index] is None:
                 data[node_type].x = self.dl.nodes['attr'][index]
             else:
-                data[node_type].x = torch.tensor(self.dl.nodes['attr'][index])
+                data[node_type].x = torch.tensor(self.dl.nodes['attr'][index]).to(torch.float)
             data[node_type].num_nodes = self.dl.nodes['count'][index]
 
         # 4. add edge indices
@@ -307,6 +338,20 @@ class HGBDatasetLP(InMemoryDataset):
         test_edge_label = torch.tensor(test_labels[target])
         data[e_types[target]].test_edge_label_index = test_edge_label_index
         data[e_types[target]].test_edge_label = test_edge_label
+
+        # Adding the customised type information
+        transform = ToUndirected(merge=False)
+        data = transform(data)
+
+        num_nodes = torch.tensor(
+            [data[node_type].num_nodes for node_type in data.node_types])
+        num_edges = torch.tensor(
+            [data[edge_type].edge_index.shape[1] for edge_type in data.edge_types])
+        node_types = torch.arange(len(data.node_types)).repeat_interleave(num_nodes)
+        edge_types = torch.arange(len(data.edge_types)).repeat_interleave(num_edges)
+
+        data.node_type = node_types
+        data.edge_type = edge_types
 
         self.save([data], self.processed_paths[0])
 

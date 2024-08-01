@@ -25,7 +25,7 @@ def main(cfg: DictConfig) -> None:
         edge_index=edge_index,
         args={
             "graph_size": datamodule.graph_size,
-            "input_dim": datamodule.in_channels,
+            "input_dim": cfg.get("input_dim", 64),
             "output_dim": datamodule.num_classes,
             "num_edge_types": datamodule.num_edge_types,
             "num_node_types": datamodule.num_node_types,
@@ -37,7 +37,9 @@ def main(cfg: DictConfig) -> None:
         out_channels=datamodule.num_classes,
         target=datamodule.target,
         task=datamodule.task,
+        in_feat=cfg.get("input_dim", 64),
         homogeneous_model=True,
+        in_channels=datamodule.in_channels,
         weight_decay=cfg.get('weight_decay', 1e-2),
         learning_rate=cfg.get('learning_rate', 1e-3),
     )
