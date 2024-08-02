@@ -33,7 +33,7 @@ parameters:
     max: 8
   model.args.hidden_channels:
     distribution: categorical
-    values: [ 8, 16, 32, 64, 128, 265 ]
+    values: [ 32, 64, 128, 265 ]
   model.args.input_dropout:
     distribution: uniform
     min: 0
