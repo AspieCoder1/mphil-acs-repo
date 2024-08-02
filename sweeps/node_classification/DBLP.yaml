@@ -53,7 +53,7 @@ parameters:
     values: [ 1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3, 1e-2, 5e-2 ]
   weight_decay:
     values: [ 1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3 ]
-  in_feat:
+  input_dim:
     values: [ 32, 64, 128, 256, 512, 1024 ]
 early_terminate:
   type: hyperband
