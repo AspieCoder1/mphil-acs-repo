@@ -8,6 +8,7 @@ from lightning.pytorch.utilities.types import STEP_OUTPUT
 from torch import Tensor
 from torch_geometric.data import Data, HeteroData
 from torch_geometric.nn import HeteroDictLinear
+import torch.nn.functional as F
 
 from models.sheaf_gnn.transductive.disc_models import DiscreteSheafDiffusion
 from .node_classifier import NodeClassifier
@@ -54,7 +55,7 @@ class SheafNodeClassifier(NodeClassifier):
 
     def preprocess(self, data: HeteroData) -> (Tensor, Tensor, Tensor):
         x_dict = self.fc(data.x_dict)
-        x = torch.cat(tuple(x_dict.values()), dim=0)
+        x = F.elu(torch.cat(tuple(x_dict.values()), dim=0))
 
         return x, data.node_type, data.edge_type
 

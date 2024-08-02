@@ -1,6 +1,6 @@
 name:  IMDB - NC
 program: run_sheaf_nc.py
-method: random
+method: bayes
 metric:
   goal: maximize
   name: valid/accuracy
@@ -21,6 +21,8 @@ parameters:
       - node_type
       - edge_type
       - node_edge_types
+  dataset.feat_type:
+    values: [ feat0, feat1, feat2 ]
   model.args.d:
     distribution: int_uniform
     min: 2
