@@ -1,6 +1,5 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
-import logging
 from dataclasses import field, dataclass
 from typing import List
 
@@ -14,12 +13,10 @@ from omegaconf import DictConfig
 
 from core.sheaf_configs import SheafModelCfg, SheafLinkPredDatasetCfg
 from core.trainer import TrainerArgs
-from models.recommender.recommender import GNNRecommender
 from link_prediction import SheafLinkPredictor
 from models.sheaf_gnn.config import IndSheafModelArguments, SheafLearners
 from utils.instantiators import instantiate_callbacks, instantiate_loggers
 
-hydra_logger = logging.getLogger(__name__)
 
 @dataclass
 class Config:
@@ -39,14 +36,10 @@ cs.store("base_config", Config)
 @hydra.main(version_base="1.2", config_path="configs", config_name="sheaf_config_lp")
 def main(cfg: DictConfig) -> None:
     torch.set_float32_matmul_precision('high')
-    hydra_logger.info("Instantiating dataset")
     dm = hydra.utils.instantiate(cfg.dataset)
-
-    hydra_logger.info("Preparing dataset")
     dm.prepare_data()
     edge_index = dm.edge_index.to(cfg.model.args.device)
 
-    hydra_logger.info("Instantiating model")
     model = hydra.utils.instantiate(
         cfg.model,
         edge_index=edge_index,
@@ -59,7 +52,6 @@ def main(cfg: DictConfig) -> None:
         },
     )
 
-    hydra_logger.info("Creating sheaf link predictor")
     sheaf_lp = SheafLinkPredictor(
         model=model,
         batch_size=dm.batch_size,

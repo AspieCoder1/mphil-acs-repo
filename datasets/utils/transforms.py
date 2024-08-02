@@ -1,7 +1,7 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 import random
-from typing import Union, Optional
+from typing import Union, Optional, Tuple
 
 import torch
 from torch_geometric.data import Data, HeteroData
@@ -162,9 +162,13 @@ class TrainValEdgeSplit(BaseTransform):
 
 
 class GenerateNodeFeatures(BaseTransform):
-    def __init__(self, target: str, feat_type='feat1'):
+    def __init__(self, target: Union[str, Tuple[str, str, str]], feat_type='feat1'):
         self.feat_type = feat_type
-        self.target = target
+
+        if isinstance(target, str):
+            self.target: [str] = [target]
+        else:
+            self.target: [str] = [target[0], target[-1]]
 
     def forward(self, data: HeteroData) -> HeteroData:
 
@@ -176,7 +180,7 @@ class GenerateNodeFeatures(BaseTransform):
 
     def gen_feat1(self, data: HeteroData) -> HeteroData:
         for node_type in data.node_types:
-            if node_type != self.target:
+            if node_type not in self.target:
                 data[node_type].x = torch.zeros_like(data[node_type].x)
         return data
 

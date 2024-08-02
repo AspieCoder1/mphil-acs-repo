@@ -68,7 +68,7 @@ class SheafLinkPredictor(L.LightningModule):
 
     def preprocess(self, data: HeteroData) -> (Tensor, Tensor, Tensor, Tensor):
         x_dict = self.fc(data.x_dict)
-        x = torch.cat(tuple(x_dict.values()), dim=0)
+        x = F.elu(torch.cat(tuple(x_dict.values()), dim=0))
 
         return x, data.node_type, data.edge_type
 
