@@ -589,6 +589,8 @@ class EdgeTypeSheafLearner(SheafLearner):
         edge_types: OptTensor = None,
         node_types: OptTensor = None,
     ):
+        print(edge_types.shape)
+        print(edge_index.shape)
         edge_type = F.one_hot(edge_types, num_classes=self.num_edge_types).to(
             torch.float
         )

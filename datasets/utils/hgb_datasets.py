@@ -347,16 +347,6 @@ class HGBDatasetLP(InMemoryDataset):
         transform = ToUndirected(merge=False)
         data = transform(data)
 
-        num_nodes = torch.tensor(
-            [data[node_type].num_nodes for node_type in data.node_types])
-        num_edges = torch.tensor(
-            [data[edge_type].edge_index.shape[1] for edge_type in data.edge_types])
-        node_types = torch.arange(len(data.node_types)).repeat_interleave(num_nodes)
-        edge_types = torch.arange(len(data.edge_types)).repeat_interleave(num_edges)
-
-        data.node_type = node_types
-        data.edge_type = edge_types
-
         self.save([data], self.processed_paths[0])
 
     def get_metadata(self):

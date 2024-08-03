@@ -3,6 +3,7 @@
 from typing import List
 
 import hydra
+import torch
 from lightning import Trainer, Callback
 from lightning.pytorch.callbacks import Timer
 from lightning.pytorch.loggers import WandbLogger, Logger
@@ -14,6 +15,7 @@ from utils.instantiators import instantiate_loggers, instantiate_callbacks
 
 @hydra.main(version_base="1.2", config_path="configs", config_name="sheaf_config")
 def main(cfg: DictConfig) -> None:
+    torch.set_float32_matmul_precision("high")
     # 1) get the datamodule
     # The data  must be homogeneous due to how code is configured
     datamodule = hydra.utils.instantiate(cfg.dataset)
