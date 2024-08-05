@@ -145,8 +145,8 @@ class SheafLinkPredictor(L.LightningModule):
     def configure_optimizers(self) -> OptimizerLRScheduler:
         optimiser = torch.optim.AdamW(self.parameters(), lr=self.lr,
                                       weight_decay=self.weight_decay)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimiser, T_max=1_000, eta_min=1e-6
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+            optimiser, eta_min=1e-6, T_0=50, T_mult=10
         )
 
         return {
