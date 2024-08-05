@@ -58,7 +58,7 @@ class HGBBaseDataModule(L.LightningDataModule):
                 TrainValNodeSplit(hyperparam_tuning=self.hyperparam_tuning),
                 RemoveSelfLoops(),
                 T.AddSelfLoops(),
-                T.NormalizeFeatures(),
+                # T.NormalizeFeatures(),
                 T.RemoveDuplicatedEdges(),
             ]
         )
