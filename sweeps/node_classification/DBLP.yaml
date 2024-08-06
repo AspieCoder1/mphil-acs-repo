@@ -48,7 +48,7 @@ parameters:
     max: 0.9
   callbacks.early_stopping.patience:
     distribution: categorical
-    values: [ 10, 25, 50, 75, 100 ]
+    values: [ 50, 100, 150, 200 ]
   learning_rate:
     values: [ 1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3, 1e-2, 5e-2 ]
   weight_decay:
