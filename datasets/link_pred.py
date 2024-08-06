@@ -12,7 +12,7 @@ from torch_geometric.data.hetero_data import to_homogeneous_edge_index
 from torch_geometric.data.lightning import LightningLinkData
 
 from .utils.hgb_datasets import HGBDatasetLP
-from .utils.transforms import RemoveSelfLoops, TrainValEdgeSplit, GenerateNodeFeatures
+from .utils.transforms import TrainValEdgeSplit, GenerateNodeFeatures
 
 DATA_DIR = "data"
 
@@ -43,8 +43,7 @@ class LinkPredBase(L.LightningDataModule):
             [
                 T.Constant(),
                 GenerateNodeFeatures(target=self.target, feat_type=feat_type),
-                T.NormalizeFeatures(),
-                RemoveSelfLoops(),
+                T.AddSelfLoops(),
                 TrainValEdgeSplit(target=self.target,
                                   hyperparam_tuning=hyperparam_tuning)
             ]
@@ -148,10 +147,8 @@ class PubMedLPDataModule(LinkPredBase):
         )
         self.transform = T.Compose(
             [
-                # T.Constant(),
                 GenerateNodeFeatures(target=self.target, feat_type=feat_type),
-                T.NormalizeFeatures(),
-                RemoveSelfLoops(),
+                T.AddSelfLoops(),
                 TrainValEdgeSplit(target=self.target,
                                   hyperparam_tuning=hyperparam_tuning),
             ]
