@@ -4,11 +4,10 @@
 from typing import Literal, NamedTuple, TypedDict, Optional
 
 import torch
-from lightning.pytorch.utilities.types import STEP_OUTPUT
-from torch import Tensor
-from torch_geometric.data import Data, HeteroData
-from torch_geometric.nn import HeteroDictLinear
 import torch.nn.functional as F
+from lightning.pytorch.utilities.types import STEP_OUTPUT
+from torch_geometric.data import HeteroData
+from torch_geometric.nn import HeteroDictLinear
 
 from models.sheaf_gnn.transductive.disc_models import DiscreteSheafDiffusion
 from .node_classifier import NodeClassifier
@@ -53,24 +52,17 @@ class SheafNodeClassifier(NodeClassifier):
         self.fc = HeteroDictLinear(in_channels=in_channels,
                                    out_channels=in_feat)
 
-    def preprocess(self, data: HeteroData) -> (Tensor, Tensor, Tensor):
-        x_dict = self.fc(data.x_dict)
+    def common_step(self, batch: HeteroData, step: str = 'train') -> SheafNCSStepOutput:
+        x_dict = self.fc(batch.x_dict)
         x = F.elu(torch.cat(tuple(x_dict.values()), dim=0))
 
-        return x, data.node_type, data.edge_type
-
-    def common_step(self, batch: HeteroData, step: str = 'train') -> SheafNCSStepOutput:
-        x, node_types, edge_types = self.preprocess(batch)
         mask = batch[self.target][f'{step}_mask']
 
         if self.task == "multilabel":
             mask = torch.any(~batch[self.target].y.isnan(), dim=1)
 
         y = batch[self.target].y[mask]
-
-        data = Data(x=x, node_type=node_types, edge_type=edge_types)
-
-        logits, maps = self.encoder(data)
+        logits, maps = self.encoder(x, batch.node_type, batch.edge_type)
 
         offset = batch.node_offsets[self.target]
 

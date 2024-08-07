@@ -33,7 +33,8 @@ class DiscreteSheafDiffusion(SheafDiffusion):
     def process_restriction_maps(self, maps): ...
 
     @abstractmethod
-    def forward(self, data: Data): ...
+    def forward(self, x: torch.Tensor, node_types: torch.Tensor,
+                edge_types: torch.Tensor): ...
 
 
 class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
@@ -104,8 +105,8 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
             self.lin12 = nn.Linear(self.hidden_dim, self.hidden_dim)
         self.lin2 = nn.Linear(self.hidden_dim, self.output_dim)
 
-    def forward(self, data: Data):
-        x = F.dropout(data.x, p=self.input_dropout, training=self.training)
+    def forward(self, x: torch.Tensor, node_types, edge_types):
+        x = F.dropout(x, p=self.input_dropout, training=self.training)
         x = self.lin1(x)
         if self.use_act:
             x = F.elu(x)
@@ -125,8 +126,8 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
                 maps = self.sheaf_learners[layer](
                     x_maps.reshape(self.graph_size, -1),
                     self.edge_index,
-                    data.edge_type,
-                    data.node_type,
+                    edge_types,
+                    node_types,
                 )
                 L, trans_maps = self.laplacian_builder(maps)
                 self.sheaf_learners[layer].set_L(trans_maps)
@@ -256,8 +257,8 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
         for weight_learner in self.weight_learners:
             weight_learner.update_edge_index(edge_index)
 
-    def forward(self, data: Data):
-        x = F.dropout(data.x, p=self.input_dropout, training=self.training)
+    def forward(self, x: torch.Tensor, node_types, edge_types):
+        x = F.dropout(x, p=self.input_dropout, training=self.training)
         x = self.lin1(x)
         if self.use_act:
             x = F.elu(x)
@@ -274,7 +275,7 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
                 )
                 x_maps = x_maps.reshape(self.graph_size, -1)
                 maps = self.sheaf_learners[layer](
-                    x_maps, self.edge_index, data.edge_type, data.node_type
+                    x_maps, self.edge_index, edge_types, node_types
                 )
                 edge_weights = (
                     self.weight_learners[layer](x_maps, self.edge_index)
@@ -392,8 +393,8 @@ class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
 
         return x
 
-    def forward(self, data: Data):
-        x = F.dropout(data.x, p=self.input_dropout, training=self.training)
+    def forward(self, x: torch.Tensor, node_types, edge_types):
+        x = F.dropout(x, p=self.input_dropout, training=self.training)
         x = self.lin1(x)
         if self.use_act:
             x = F.elu(x)
@@ -412,8 +413,8 @@ class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
                 maps = self.sheaf_learners[layer](
                     x_maps.reshape(self.graph_size, -1),
                     self.edge_index,
-                    data.edge_type,
-                    data.node_type,
+                    edge_types,
+                    node_types,
                 )
                 L, trans_maps = self.laplacian_builder(maps)
                 self.sheaf_learners[layer].set_L(trans_maps)

@@ -4,11 +4,9 @@ import logging
 from typing import Optional, Literal
 
 import lightning as L
-import torch
 import torch_geometric.transforms as T
 from lightning.pytorch.utilities.types import TRAIN_DATALOADERS, EVAL_DATALOADERS
 from torch_geometric.data import HeteroData
-from torch_geometric.data.hetero_data import to_homogeneous_edge_index
 from torch_geometric.data.lightning import LightningLinkData
 
 from .utils.hgb_datasets import HGBDatasetLP
@@ -71,23 +69,12 @@ class LinkPredBase(L.LightningDataModule):
         }
         self.metadata = data.metadata()
         self.num_nodes = data.num_nodes
-        self.edge_index, node_slices, edge_slices = to_homogeneous_edge_index(data)
+        self.edge_index = data.homo_edge_index
         self.num_node_types = len(data.node_types)
         self.num_edge_types = len(data.edge_types)
         self.edge_type_names = data.edge_types
         self.node_type_names = data.node_types
         self.graph_size = data.num_nodes
-
-        sizes = [offset[1] - offset[0] for offset in node_slices.values()]
-        sizes = torch.tensor(sizes, dtype=torch.long)
-        node_type = torch.arange(len(sizes))
-        data.node_type = node_type.repeat_interleave(sizes)
-
-        sizes = [offset[1] - offset[0] for offset in edge_slices.values()]
-        sizes = torch.tensor(sizes, dtype=torch.long)
-        edge_type = torch.arange(len(sizes))
-        data.edge_type = edge_type.repeat_interleave(sizes)
-
         self.data = data
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:

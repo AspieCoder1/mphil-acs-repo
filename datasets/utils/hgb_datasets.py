@@ -14,8 +14,9 @@ from torch_geometric.data import (
     download_google_url,
     extract_zip,
 )
-from torch_geometric.utils import to_edge_index
+from torch_geometric.data.hetero_data import to_homogeneous_edge_index
 from torch_geometric.transforms.to_undirected import ToUndirected
+from torch_geometric.utils import to_edge_index
 
 from .hgb_loaders import HGBDataLoaderLP
 
@@ -213,13 +214,17 @@ class HGBDatasetNC(InMemoryDataset):
         transform = ToUndirected(merge=False)
         data = transform(data)
 
-        num_nodes = torch.tensor([data[node_type].num_nodes for node_type in data.node_types])
-        num_edges = torch.tensor([data[edge_type].edge_index.shape[1] for edge_type in data.edge_types])
-        node_types = torch.arange(len(data.node_types)).repeat_interleave(num_nodes)
-        edge_types = torch.arange(len(data.edge_types)).repeat_interleave(num_edges)
+        # Adding homogeneous information
+        data.homo_edge_index, node_slices, edge_slices = to_homogeneous_edge_index(data)
+        sizes = [offset[1] - offset[0] for offset in node_slices.values()]
+        sizes = torch.tensor(sizes, dtype=torch.long)
+        node_type = torch.arange(len(sizes))
+        data.node_type = node_type.repeat_interleave(sizes)
 
-        data.node_type = node_types
-        data.edge_type = edge_types
+        sizes = [offset[1] - offset[0] for offset in edge_slices.values()]
+        sizes = torch.tensor(sizes, dtype=torch.long)
+        edge_type = torch.arange(len(sizes))
+        data.edge_type = edge_type.repeat_interleave(sizes)
 
         if self.pre_transform is not None:
             data = self.pre_transform(data)
@@ -346,6 +351,18 @@ class HGBDatasetLP(InMemoryDataset):
         # Adding the customised type information
         transform = ToUndirected(merge=False)
         data = transform(data)
+
+        # Adding homogeneous information
+        data.homo_edge_index, node_slices, edge_slices = to_homogeneous_edge_index(data)
+        sizes = [offset[1] - offset[0] for offset in node_slices.values()]
+        sizes = torch.tensor(sizes, dtype=torch.long)
+        node_type = torch.arange(len(sizes))
+        data.node_type = node_type.repeat_interleave(sizes)
+
+        sizes = [offset[1] - offset[0] for offset in edge_slices.values()]
+        sizes = torch.tensor(sizes, dtype=torch.long)
+        edge_type = torch.arange(len(sizes))
+        data.edge_type = edge_type.repeat_interleave(sizes)
 
         self.save([data], self.processed_paths[0])
 

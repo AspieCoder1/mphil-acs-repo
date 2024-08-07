@@ -11,6 +11,7 @@ dataset:
   homogeneous: true
 
 sheaf_learner: local_concat
+input_dim: 64
 
 recsys_metrics: true
 hidden_dim: 256

@@ -66,21 +66,20 @@ class SheafLinkPredictor(L.LightningModule):
 
         self.save_hyperparameters(ignore="model")
 
-    def preprocess(self, data: HeteroData) -> (Tensor, Tensor, Tensor, Tensor):
+    def preprocess(self, data: HeteroData) -> Tensor:
         x_dict = self.fc(data.x_dict)
         x = F.elu(torch.cat(tuple(x_dict.values()), dim=0))
 
-        return x, data.node_type, data.edge_type
+        return x
 
     def common_step(self, batch: HeteroData,
                     stage: Literal['train', 'val', 'test']) -> CommonStepOutput:
         edge_label = batch[self.target][f'{stage}_edge_label']
         edge_label_index = batch[self.target][f'{stage}_edge_label_index']
-        x, node_types, edge_types = self.preprocess(batch)
+        x = self.preprocess(batch)
 
         # (2) Compute the hidden representation of nodes
-        data = Data(x=x, node_type=node_types, edge_type=edge_types)
-        h, _ = self.encoder(data)
+        h, _ = self.encoder(x, batch.node_type, batch.edge_type)
 
         # (4) Calculate dot product h[i].h[j] for i, j in edge_label_index
         h_src = h[batch.node_offsets[self.target[0]] + edge_label_index[0, :]]
