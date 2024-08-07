@@ -16,6 +16,7 @@
 #SBATCH --gpu-bind=none
 #SBATCH --mail-type=ALL
 
+export WANDB_CACHE_DIR=".wandb"
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
 source ~/venv/bin/activate
-srun python -m wandb agent --count 1 "acs-thesis-lb2027/hetero-sheaf-paper/a23i11fu"
+srun python -m wandb agent --count 1 "acs-thesis-lb2027/hetero-sheaf-paper/zghiv1l8"
