@@ -7,6 +7,8 @@ defaults:
   - logger: wandb
   - callbacks: sheaf_nc
   - experiment: null
+  - scheduler: step_lr
+  - optimiser: adamw
 
 #tags:
 #  - GNN
@@ -24,10 +26,10 @@ input_dim: 128
 
 callbacks:
   early_stopping:
-    monitor: 'valid/loss'
+    monitor: valid/micro-f1
   model_checkpoint:
     dirpath: checkpoints/sheafnc_checkpoints/
-    monitor: valid/accuracy
+    monitor: valid/micro-f1
     mode: max
     save_top_k: 1
 

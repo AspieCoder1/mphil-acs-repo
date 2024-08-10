@@ -1,0 +1,5 @@
+_target_: torch.optim.lr_scheduler.CosineAnnealingWarmRestarts
+_partial_: true
+eta_min: 1e-6
+T_0: 50
+T_mult: 10

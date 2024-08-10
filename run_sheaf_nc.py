@@ -1,5 +1,6 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
+import uuid
 from typing import List
 
 import hydra
@@ -34,6 +35,12 @@ def main(cfg: DictConfig) -> None:
         },
     )
 
+    scheduler = hydra.utils.instantiate(cfg.scheduler, _partial_=True)
+    optimiser = hydra.utils.instantiate(cfg.optimiser, _partial_=True)
+
+    if not scheduler:
+        scheduler = None
+
     sheaf_nc = SheafNodeClassifier(
         model,
         out_channels=datamodule.num_classes,
@@ -44,13 +51,22 @@ def main(cfg: DictConfig) -> None:
         in_channels=datamodule.in_channels,
         weight_decay=cfg.get('weight_decay', 1e-2),
         learning_rate=cfg.get('learning_rate', 1e-3),
+        scheduler=scheduler,
+        optimiser=optimiser
     )
+
+    ref = str(uuid.uuid4())
 
     logger: List[Logger] = instantiate_loggers(cfg.get("logger"))
     if logger:
         assert isinstance(logger[0], WandbLogger)
         logger[0].experiment.config["model"] = f"{model}"
         logger[0].experiment.config["dataset"] = f"{datamodule}"
+        logger[0].experiment.config['ref'] = ref
+
+    cfg['callbacks']['model_checkpoint']['dirpath'] += f'/{ref}'
+
+    print(cfg['callbacks'])
 
     callbacks: list[Callback] = instantiate_callbacks(cfg.get("callbacks"))
 
@@ -62,7 +78,7 @@ def main(cfg: DictConfig) -> None:
     trainer.fit(sheaf_nc, datamodule)
 
     # 6) test the model
-    trainer.test(sheaf_nc, datamodule)
+    trainer.test(sheaf_nc, datamodule, ckpt_path='best')
 
     timer = next(filter(lambda x: isinstance(x, Timer), callbacks))
 

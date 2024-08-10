@@ -189,7 +189,3 @@ class NodeClassifier(L.LightningModule):
                 "monitor": "valid/loss",
             },
         }
-
-        return {
-            "optimizer": optimiser,
-        }

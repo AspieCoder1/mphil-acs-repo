@@ -1,16 +1,20 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
+import functools
+from typing import Literal, NamedTuple, TypedDict, Optional, Callable
 
-from typing import Literal, NamedTuple, TypedDict, Optional
-
+import lightning as L
 import torch
 import torch.nn.functional as F
-from lightning.pytorch.utilities.types import STEP_OUTPUT
+from lightning.pytorch.cli import LRSchedulerCallable, OptimizerCallable
+from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
+from torch import nn
 from torch_geometric.data import HeteroData
 from torch_geometric.nn import HeteroDictLinear
+from torchmetrics import MetricCollection
+from torchmetrics.classification import F1Score, Accuracy, AUROC
 
 from models.sheaf_gnn.transductive.disc_models import DiscreteSheafDiffusion
-from .node_classifier import NodeClassifier
 
 
 class SheafNCSStepOutput(NamedTuple):
@@ -25,7 +29,7 @@ class TrainStepOutput(TypedDict):
     restriction_maps: torch.Tensor
 
 
-class SheafNodeClassifier(NodeClassifier):
+class SheafNodeClassifier(L.LightningModule):
     def __init__(
         self,
         model: DiscreteSheafDiffusion,
@@ -37,17 +41,46 @@ class SheafNodeClassifier(NodeClassifier):
         homogeneous_model: bool = False,
         learning_rate: float = 1e-3,
         weight_decay: float = 1e-2,
+        scheduler: Optional[LRSchedulerCallable] = None,
+        optimiser: Optional[OptimizerCallable] = None,
     ):
-        super().__init__(
-            model=model,
-            hidden_channels=model.hidden_dim,
-            out_channels=out_channels,
-            target=target,
-            task=task,
-            homogeneous_model=homogeneous_model,
-            learning_rate=learning_rate,
-            weight_decay=weight_decay
+        super().__init__()
+        self.encoder = model
+        self.decoder = nn.Linear(model.hidden_dim, out_channels)
+        self.homogeneous = homogeneous_model
+        self.lr = learning_rate
+        self.weight_decay = weight_decay
+        self.scheduler: Optional[LRSchedulerCallable] = scheduler
+        self.optimiser = optimiser
+
+        metrics_params = {
+            "task": task,
+            "num_labels": out_channels,
+            "num_classes": out_channels,
+        }
+
+        self.train_metrics = MetricCollection(
+            {
+                "micro-f1": F1Score(average="micro", **metrics_params),
+                "macro-f1": F1Score(average="macro", **metrics_params),
+                "accuracy": Accuracy(**metrics_params),
+                "auroc": AUROC(**metrics_params),
+            },
+            prefix="train/",
         )
+        self.valid_metrics = self.train_metrics.clone(prefix="valid/")
+        self.test_metrics = self.train_metrics.clone(prefix="test/")
+
+        self.target = target
+        self.task = task
+
+        if task == "multilabel":
+            self.loss_fn: Callable = F.multilabel_soft_margin_loss
+            self.act_fn: Callable = F.sigmoid
+        else:
+            self.loss_fn: Callable = F.cross_entropy
+            self.act_fn: Callable = functools.partial(F.softmax, dim=-1)
+
         self.save_hyperparameters(ignore=["model"])
         self.fc = HeteroDictLinear(in_channels=in_channels,
                                    out_channels=in_feat)
@@ -121,3 +154,17 @@ class SheafNodeClassifier(NodeClassifier):
         )
 
         return loss
+
+    def configure_optimizers(self) -> OptimizerLRScheduler:
+        optimiser = self.optimiser(self.parameters())
+
+        if self.scheduler is not None:
+            scheduler = self.scheduler(optimiser)
+            return {
+                "optimizer": optimiser,
+                "lr_scheduler": {
+                    "scheduler": scheduler,
+                    "monitor": "valid/micro-f1",
+                },
+            }
+        return optimiser

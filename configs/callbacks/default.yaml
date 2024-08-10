@@ -2,4 +2,5 @@ defaults:
   - model_checkpoint
   - early_stopping
   - timer
+  - lr_monitor
   - _self_
