@@ -3,10 +3,10 @@ defaults:
 
 early_stopping:
   patience: 100
-  monitor: valid/loss
+  monitor: valid/AUROC
 
 model_checkpoint:
   dirpath: checkpoints/sheaflp_checkpoints
-  mode: 'max'
+  mode: max
   save_top_k: 1
-  monitor: 'valid/accuracy'
+  monitor: valid/AUROC
