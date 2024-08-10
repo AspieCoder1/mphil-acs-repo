@@ -3,6 +3,7 @@ defaults:
 
 early_stopping:
   patience: 100
+  mode: max
   monitor: valid/AUROC
 
 model_checkpoint:
