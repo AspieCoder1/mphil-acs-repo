@@ -7,7 +7,7 @@ defaults:
   - logger: wandb
   - callbacks: sheaf_nc
   - experiment: null
-  - scheduler: step_lr
+  - scheduler: none
   - optimiser: adamw
 
 #tags:
