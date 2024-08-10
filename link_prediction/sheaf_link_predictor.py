@@ -10,7 +10,7 @@ from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn, Tensor
 from torch.nn import functional as F
 from torch.nn.modules.loss import _Loss
-from torch_geometric.data import Data, HeteroData
+from torch_geometric.data import HeteroData
 from torch_geometric.nn import HeteroDictLinear
 from torchmetrics.classification import (
     BinaryAUROC,
@@ -99,13 +99,10 @@ class SheafLinkPredictor(L.LightningModule):
 
         self.log_dict(
             metrics,
-            prog_bar=True,
-            on_step=True,
-            on_epoch=True,
-            batch_size=1,
-            sync_dist=True,
+            prog_bar=True, on_step=False, on_epoch=True, batch_size=1
         )
-        self.log("train/loss", loss, batch_size=1)
+        self.log("train/loss", loss, prog_bar=True, on_step=False, on_epoch=True,
+                 batch_size=1)
 
         return loss
 
@@ -117,12 +114,13 @@ class SheafLinkPredictor(L.LightningModule):
         self.log_dict(
             metrics,
             prog_bar=True,
-            on_step=True,
+            on_step=False,
             on_epoch=True,
             batch_size=1,
             sync_dist=True,
         )
-        self.log("valid/loss", loss, batch_size=1)
+        self.log("valid/loss", loss, prog_bar=True, on_step=False, on_epoch=True,
+                 batch_size=1)
         return loss
 
     def test_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
@@ -138,7 +136,8 @@ class SheafLinkPredictor(L.LightningModule):
             batch_size=1,
             sync_dist=True,
         )
-        self.log("test/loss", loss, batch_size=1)
+        self.log("test/loss", loss, prog_bar=False, on_step=False,
+                 on_epoch=True, batch_size=1)
 
         return loss
 
