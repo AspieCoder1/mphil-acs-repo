@@ -16,8 +16,8 @@ def generate_data_modules_nc_tuning_mode(datamodule: Type[HGBBaseDataModule]) ->
     DataOrHetero,
     DataOrHetero,
     str]:
-    dm1 = datamodule(data_dir="../data", hyperparam_tuning=True)
-    dm2 = datamodule(data_dir="../data", hyperparam_tuning=True)
+    dm1 = datamodule(data_dir="data", hyperparam_tuning=True)
+    dm2 = datamodule(data_dir="data", hyperparam_tuning=True)
     dm1.prepare_data()
     dm2.prepare_data()
 
@@ -28,8 +28,8 @@ def generate_data_modules_nc(datamodule: Type[HGBBaseDataModule]) -> [
     DataOrHetero,
     DataOrHetero,
     str]:
-    dm1 = datamodule(data_dir="../data")
-    dm2 = datamodule(data_dir="../data")
+    dm1 = datamodule(data_dir="data")
+    dm2 = datamodule(data_dir="data")
     dm1.prepare_data()
     dm2.prepare_data()
 
@@ -40,8 +40,8 @@ def generate_data_modules_lp_tuning_mode(
         datamodule: Type[Union[PubMedLPDataModule, LastFMDataModule]]) -> [DataOrHetero,
                                                                            DataOrHetero,
                                                                            str]:
-    dm1 = datamodule(data_dir="../data", hyperparam_tuning=True, homogeneous=False)
-    dm2 = datamodule(data_dir="../data", hyperparam_tuning=True, homogeneous=False)
+    dm1 = datamodule(data_dir="data", hyperparam_tuning=True, homogeneous=False)
+    dm2 = datamodule(data_dir="data", hyperparam_tuning=True, homogeneous=False)
     dm1.prepare_data()
     dm2.prepare_data()
 

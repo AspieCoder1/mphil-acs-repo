@@ -53,13 +53,14 @@ def main(cfg: DictConfig) -> None:
     )
 
     scheduler = hydra.utils.instantiate(cfg.scheduler, _partial_=True)
-    scheduler_name = cfg.scheduler['_target_'].split('.')[-1]
-
     optimiser = hydra.utils.instantiate(cfg.optimiser, _partial_=True)
     optimiser_name = cfg.optimiser['_target_'].split('.')[-1]
 
     if not scheduler:
         scheduler = None
+        scheduler_name = 'ConstantLR'
+    else:
+        scheduler_name = cfg.scheduler['_target_'].split('.')[-1]
 
     sheaf_lp = SheafLinkPredictor(
         model=model,
