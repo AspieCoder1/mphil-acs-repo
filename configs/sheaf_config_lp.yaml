@@ -6,7 +6,7 @@ defaults:
   - callbacks: sheaf_lp
   - logger: wandb
   - experiment: null
-  - scheduler: step_lr
+  - scheduler: none
   - optimiser: adamw
 
 dataset:
