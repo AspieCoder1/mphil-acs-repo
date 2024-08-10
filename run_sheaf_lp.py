@@ -53,7 +53,10 @@ def main(cfg: DictConfig) -> None:
     )
 
     scheduler = hydra.utils.instantiate(cfg.scheduler, _partial_=True)
+    scheduler_name = cfg.scheduler['_target_'].split('.')[-1]
+
     optimiser = hydra.utils.instantiate(cfg.optimiser, _partial_=True)
+    optimiser_name = cfg.optimiser['_target_'].split('.')[-1]
 
     if not scheduler:
         scheduler = None
@@ -76,6 +79,8 @@ def main(cfg: DictConfig) -> None:
         assert isinstance(logger[0], WandbLogger)
         logger[0].experiment.config["model"] = f"{model}"
         logger[0].experiment.config["dataset"] = f"{dm}"
+        logger[0].experiment.config['scheduler'] = scheduler_name
+        logger[0].experiment.config['optimiser'] = optimiser_name
 
     callbacks: List[Callback] = instantiate_callbacks(cfg.get("callbacks"))
 

@@ -36,7 +36,10 @@ def main(cfg: DictConfig) -> None:
     )
 
     scheduler = hydra.utils.instantiate(cfg.scheduler, _partial_=True)
+    scheduler_name = cfg.scheduler['_target_'].split('.')[-1]
+
     optimiser = hydra.utils.instantiate(cfg.optimiser, _partial_=True)
+    optimiser_name = cfg.optimiser['_target_'].split('.')[-1]
 
     if not scheduler:
         scheduler = None
@@ -60,6 +63,8 @@ def main(cfg: DictConfig) -> None:
         logger[0].experiment.config["model"] = f"{model}"
         logger[0].experiment.config["dataset"] = f"{datamodule}"
         logger[0].experiment.config['ref'] = ref
+        logger[0].experiment.config['scheduler'] = scheduler_name
+        logger[0].experiment.config['optimiser'] = optimiser_name
 
     cfg['callbacks']['model_checkpoint']['dirpath'] += f'/{ref}'
 
