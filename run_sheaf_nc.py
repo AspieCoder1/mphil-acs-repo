@@ -64,8 +64,8 @@ def main(cfg: DictConfig) -> None:
         logger[0].experiment.config["model"] = f"{model}"
         logger[0].experiment.config["dataset"] = f"{datamodule}"
         logger[0].experiment.config['ref'] = ref
-        logger[0].experiment.config['scheduler'] = scheduler_name
-        logger[0].experiment.config['optimiser'] = optimiser_name
+        logger[0].experiment.config['scheduler_name'] = scheduler_name
+        logger[0].experiment.config['optimiser_name'] = optimiser_name
 
     cfg['callbacks']['model_checkpoint']['dirpath'] += f'/{ref}'
 
