@@ -38,18 +38,12 @@ class SheafNodeClassifier(L.LightningModule):
         task: Literal["binary", "multiclass", "multilabel"] = "multilabel",
         in_channels: Optional[dict[str, int]] = None,
         in_feat: int = 64,
-        homogeneous_model: bool = False,
-        learning_rate: float = 1e-3,
-        weight_decay: float = 1e-2,
         scheduler: Optional[LRSchedulerCallable] = None,
         optimiser: Optional[OptimizerCallable] = None,
     ):
         super().__init__()
         self.encoder = model
         self.decoder = nn.Linear(model.hidden_dim, out_channels)
-        self.homogeneous = homogeneous_model
-        self.lr = learning_rate
-        self.weight_decay = weight_decay
         self.scheduler: Optional[LRSchedulerCallable] = scheduler
         self.optimiser = optimiser
 

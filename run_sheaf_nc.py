@@ -47,10 +47,7 @@ def main(cfg: DictConfig) -> None:
         target=datamodule.target,
         task=datamodule.task,
         in_feat=cfg.get("input_dim", 64),
-        homogeneous_model=True,
         in_channels=datamodule.in_channels,
-        weight_decay=cfg.get('weight_decay', 1e-2),
-        learning_rate=cfg.get('learning_rate', 1e-3),
         scheduler=scheduler,
         optimiser=optimiser
     )

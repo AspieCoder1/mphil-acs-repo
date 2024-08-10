@@ -5,6 +5,7 @@ from typing import Callable, NamedTuple, Literal, Optional
 
 import lightning as L
 import torch
+from lightning.pytorch.cli import OptimizerCallable, LRSchedulerCallable
 from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 from torch import nn, Tensor
 from torch.nn import functional as F
@@ -37,8 +38,8 @@ class SheafLinkPredictor(L.LightningModule):
         batch_size: int = 1,
         hidden_dim: int = 64,
         num_classes: int = 1,
-            learning_rate: float = 1e-3,
-            weight_decay: float = 1e-2,
+        scheduler: Optional[LRSchedulerCallable] = None,
+        optimiser: Optional[OptimizerCallable] = None,
     ):
         super(SheafLinkPredictor, self).__init__()
         self.encoder = model
@@ -61,8 +62,8 @@ class SheafLinkPredictor(L.LightningModule):
         self.valid_metrics = self.train_metrics.clone(prefix="valid/")
         self.test_metrics = self.train_metrics.clone(prefix="test/")
         self.loss_fn: Callable = F.binary_cross_entropy_with_logits
-        self.lr = learning_rate
-        self.weight_decay = weight_decay
+        self.scheduler = scheduler
+        self.optimiser = optimiser
 
         self.save_hyperparameters(ignore="model")
 
@@ -142,19 +143,18 @@ class SheafLinkPredictor(L.LightningModule):
         return loss
 
     def configure_optimizers(self) -> OptimizerLRScheduler:
-        optimiser = torch.optim.AdamW(self.parameters(), lr=self.lr,
-                                      weight_decay=self.weight_decay)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
-            optimiser, eta_min=1e-6, T_0=50, T_mult=10
-        )
+        optimiser = self.optimiser(self.parameters())
 
-        return {
-            "optimizer": optimiser,
-            "lr_scheduler": {
-                "scheduler": scheduler,
-                "monitor": "valid/loss",
-            },
-        }
+        if self.scheduler is not None:
+            scheduler = self.scheduler(optimiser)
+            return {
+                "optimizer": optimiser,
+                "lr_scheduler": {
+                    "scheduler": scheduler,
+                    "monitor": "valid/AUROC",
+                },
+            }
+        return optimiser
 
 
 class BPRLoss(_Loss):

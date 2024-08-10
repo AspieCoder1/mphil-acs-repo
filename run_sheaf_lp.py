@@ -52,6 +52,12 @@ def main(cfg: DictConfig) -> None:
         },
     )
 
+    scheduler = hydra.utils.instantiate(cfg.scheduler, _partial_=True)
+    optimiser = hydra.utils.instantiate(cfg.optimiser, _partial_=True)
+
+    if not scheduler:
+        scheduler = None
+
     sheaf_lp = SheafLinkPredictor(
         model=model,
         batch_size=dm.batch_size,
@@ -60,8 +66,8 @@ def main(cfg: DictConfig) -> None:
         in_channels=dm.in_channels,
         target=dm.target,
         num_classes=1,
-        weight_decay=cfg.get('weight_decay', 1e-2),
-        learning_rate=cfg.get('learning_rate', 1e-3),
+        scheduler=scheduler,
+        optimiser=optimiser
     )
 
 
@@ -81,7 +87,7 @@ def main(cfg: DictConfig) -> None:
     trainer.fit(sheaf_lp, dm)
 
     # 6) test the model
-    trainer.test(sheaf_lp, dm)
+    trainer.test(sheaf_lp, dm, ckpt_path='best')
 
     timer = next(filter(lambda x: isinstance(x, Timer), callbacks))
 
