@@ -89,7 +89,7 @@ class SheafNodeClassifier(L.LightningModule):
             mask = torch.any(~batch[self.target].y.isnan(), dim=1)
 
         y = batch[self.target].y[mask]
-        logits, maps = self.encoder(x, batch.node_type, batch.edge_type)
+        logits = self.encoder(x, batch.node_type, batch.edge_type)
 
         offset = batch.node_offsets[self.target]
 
@@ -100,20 +100,17 @@ class SheafNodeClassifier(L.LightningModule):
         y_hat = self.act_fn(y_hat)
         y = y.to(torch.int)
 
-        return SheafNCSStepOutput(y=y, y_hat=y_hat, loss=loss, maps=maps)
+        return SheafNCSStepOutput(y=y, y_hat=y_hat, loss=loss)
 
     def training_step(self, batch: HeteroData, batch_idx: int) -> TrainStepOutput:
-        y, y_hat, loss, maps = self.common_step(batch, 'train')
+        y, y_hat, loss = self.common_step(batch, 'train')
 
         output = self.train_metrics(y_hat, y)
         self.log_dict(output, prog_bar=True, on_step=False, on_epoch=True, batch_size=1)
         self.log(
             "train/loss", loss, prog_bar=True, on_step=True, on_epoch=True, batch_size=1
         )
-        return TrainStepOutput(
-            loss=loss,
-            restriction_maps=maps,
-        )
+        return loss
 
     def validation_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
         y, y_hat, loss, _ = self.common_step(batch, 'val')

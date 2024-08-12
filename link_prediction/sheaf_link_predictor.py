@@ -20,6 +20,8 @@ from torchmetrics.classification import (
 from torchmetrics.collections import MetricCollection
 from torchmetrics.retrieval import RetrievalMRR
 
+from link_prediction.decoders import LinkPredDecoder
+
 
 class CommonStepOutput(NamedTuple):
     y: torch.Tensor
@@ -40,11 +42,12 @@ class SheafLinkPredictor(L.LightningModule):
         num_classes: int = 1,
         scheduler: Optional[LRSchedulerCallable] = None,
         optimiser: Optional[OptimizerCallable] = None,
+        decoder: Optional[LinkPredDecoder] = None
     ):
         super(SheafLinkPredictor, self).__init__()
         self.encoder = model
         self.batch_size = batch_size
-        self.decoder = nn.Linear(2*hidden_dim, num_classes)
+        self.decoder = decoder
         self.target = target
         self.fc = HeteroDictLinear(in_channels=in_channels,
                                    out_channels=in_feat)
@@ -80,12 +83,12 @@ class SheafLinkPredictor(L.LightningModule):
         x = self.preprocess(batch)
 
         # (2) Compute the hidden representation of nodes
-        h, _ = self.encoder(x, batch.node_type, batch.edge_type)
+        h = self.encoder(x, batch.node_type, batch.edge_type)
 
         # (4) Calculate dot product h[i].h[j] for i, j in edge_label_index
         h_src = h[batch.node_offsets[self.target[0]] + edge_label_index[0, :]]
         h_dest = h[batch.node_offsets[self.target[-1]] + edge_label_index[1, :]]
-        y_hat = self.decoder(torch.concat((h_src, h_dest), dim=1)).flatten()
+        y_hat = self.decoder(h_src, h_dest).flatten()
         loss = F.binary_cross_entropy_with_logits(y_hat, edge_label.to(torch.float))
         y_hat = F.sigmoid(y_hat)
 

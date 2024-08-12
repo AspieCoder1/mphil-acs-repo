@@ -8,6 +8,7 @@ defaults:
   - experiment: null
   - scheduler: none
   - optimiser: adamw
+  - decoder: Concat
 
 dataset:
   homogeneous: true

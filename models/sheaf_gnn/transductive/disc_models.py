@@ -6,7 +6,6 @@ import torch
 import torch.nn.functional as F
 import torch_sparse
 from torch import nn
-from torch_geometric.data import Data
 
 from models.sheaf_gnn import laplacian_builders as lb
 from models.sheaf_gnn.orthogonal import Orthogonal
@@ -153,7 +152,7 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
 
         x = x.reshape(self.graph_size, -1)
         # x = self.lin2(x)
-        return x, maps
+        return x
 
     def process_restriction_maps(self, maps):
         return maps
@@ -304,7 +303,7 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
 
         x = x.reshape(self.graph_size, -1)
         # x = self.lin2(x)
-        return x, maps
+        return x
 
     def process_restriction_maps(self, maps: torch.Tensor) -> torch.Tensor:
         transform = Orthogonal(self.d, self.orth_trans)
@@ -441,7 +440,7 @@ class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
 
         x = x.reshape(self.graph_size, -1)
         # x = self.lin2(x)
-        return x, maps
+        return x
 
     def process_restriction_maps(self, maps):
         return torch.flatten(maps, start_dim=1, end_dim=-1)
