@@ -2,7 +2,6 @@
 #  License: MIT
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 
 class LinkPredDecoder(nn.Module):
@@ -19,19 +18,23 @@ class DotProductDecoder(LinkPredDecoder):
         super(DotProductDecoder, self).__init__(dim=dim)
 
     def forward(self, left_emb, right_emb) -> torch.Tensor:
-        left_emb = torch.unsqueeze(left_emb, 1)
-        right_emb = torch.unsqueeze(right_emb, 2)
-        return torch.bmm(left_emb, right_emb).squeeze()
+        # left_emb = torch.unsqueeze(left_emb, 1)
+        # right_emb = torch.unsqueeze(right_emb, 2)
+        return (left_emb * right_emb).sum(dim=-1)
+        # return torch.bmm(left_emb, right_emb).squeeze()
 
 
 class DistMultDecoder(LinkPredDecoder):
     def __init__(self, dim: int):
         super(DistMultDecoder, self).__init__(dim=dim)
-        self.bilinear = nn.Bilinear(in1_features=dim, in2_features=dim, out_features=1, bias=False)
-        nn.init.xavier_normal_(self.bilinear.weight, gain=1.414)
+        self.W = nn.Parameter(torch.FloatTensor(size=(1, dim)))
 
     def forward(self, left_emb, right_emb) -> torch.Tensor:
-        return self.bilinear(left_emb, right_emb)
+        # H_u^T W H_v
+        return (left_emb * self.W * right_emb).sum(dim=-1)
+
+    def reset_parameters(self):
+        nn.init.xavier_normal_(self.W, gain=1.414)
 
 
 class ConcatDecoder(LinkPredDecoder):

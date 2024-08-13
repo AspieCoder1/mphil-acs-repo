@@ -68,6 +68,7 @@ class SheafModelArguments:
     initial_dropout: float = 0.0
     num_edge_types: Optional[int] = None
     num_node_types: Optional[int] = None
+    use_hidden_embeddings: bool = False
 
 
 @dataclass

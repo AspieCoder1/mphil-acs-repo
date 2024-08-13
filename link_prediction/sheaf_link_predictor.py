@@ -84,6 +84,7 @@ class SheafLinkPredictor(L.LightningModule):
 
         # (2) Compute the hidden representation of nodes
         h = self.encoder(x, batch.node_type, batch.edge_type)
+        h = F.normalize(h, dim=1, p=2)
 
         # (4) Calculate dot product h[i].h[j] for i, j in edge_label_index
         h_src = h[batch.node_offsets[self.target[0]] + edge_label_index[0, :]]

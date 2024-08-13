@@ -115,6 +115,8 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
         x = x.view(self.graph_size * self.final_d, -1)
 
         x0 = x
+
+        embs = []
         for layer in range(self.layers):
             if layer == 0 or self.nonlinear:
                 x_maps = F.dropout(
@@ -149,6 +151,12 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
             coeff = 1 + torch.tanh(self.epsilons[layer]).tile(self.graph_size, 1)
             x0 = coeff * x0 - x
             x = x0
+
+            if self.use_hidden_embeddings:
+                embs.append(F.normalize(x, p=2))
+
+        if self.use_hidden_embeddings:
+            x = torch.hstack(embs)
 
         x = x.reshape(self.graph_size, -1)
         # x = self.lin2(x)

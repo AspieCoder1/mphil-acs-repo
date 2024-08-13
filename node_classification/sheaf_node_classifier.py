@@ -21,7 +21,6 @@ class SheafNCSStepOutput(NamedTuple):
     y: torch.Tensor
     y_hat: torch.Tensor
     loss: torch.Tensor
-    maps: torch.Tensor
 
 
 class TrainStepOutput(TypedDict):
@@ -90,6 +89,7 @@ class SheafNodeClassifier(L.LightningModule):
 
         y = batch[self.target].y[mask]
         logits = self.encoder(x, batch.node_type, batch.edge_type)
+        logits = F.normalize(logits, dim=1, p=2)
 
         offset = batch.node_offsets[self.target]
 
@@ -113,7 +113,7 @@ class SheafNodeClassifier(L.LightningModule):
         return loss
 
     def validation_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss, _ = self.common_step(batch, 'val')
+        y, y_hat, loss = self.common_step(batch, 'val')
 
         output = self.valid_metrics(y_hat, y)
 
@@ -129,7 +129,7 @@ class SheafNodeClassifier(L.LightningModule):
         return loss
 
     def test_step(self, batch: HeteroData, batch_idx: int) -> STEP_OUTPUT:
-        y, y_hat, loss, _ = self.common_step(batch, 'test')
+        y, y_hat, loss = self.common_step(batch, 'test')
 
         output = self.test_metrics(y_hat, y)
         self.log_dict(

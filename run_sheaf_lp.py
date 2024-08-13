@@ -62,12 +62,12 @@ def main(cfg: DictConfig) -> None:
     else:
         scheduler_name = cfg.scheduler['_target_'].split('.')[-1]
 
-    decoder = hydra.utils.instantiate(cfg.decoder, dim=model.hidden_dim)
+    decoder = hydra.utils.instantiate(cfg.decoder, dim=model.output_dim)
 
     sheaf_lp = SheafLinkPredictor(
         model=model,
         batch_size=dm.batch_size,
-        hidden_dim=model.hidden_dim,
+        hidden_dim=model.output_dim,
         in_feat=cfg.get("input_dim", 64),
         in_channels=dm.in_channels,
         target=dm.target,

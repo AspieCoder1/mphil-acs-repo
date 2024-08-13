@@ -40,7 +40,7 @@ class SheafDiffusion(nn.Module):
         self.use_act = args.use_act
         self.input_dim = args.input_dim
         self.hidden_channels = args.hidden_channels
-        self.output_dim = args.output_dim
+        self.output_dim = self.hidden_dim
         self.layers = args.layers
         self.sheaf_act = args.sheaf_act
         self.second_linear = args.second_linear
@@ -49,6 +49,12 @@ class SheafDiffusion(nn.Module):
         self.t = args.ode_args.max_t
         self.time_range = torch.tensor([0.0, self.t], device=self.device)
         self.laplacian_builder = None
+        self.use_hidden_embeddings = args.use_hidden_embeddings
+
+        if self.use_hidden_embeddings:
+            self.output_dim = self.hidden_dim * self.layers
+
+
 
     def update_edge_index(self, edge_index):
         assert edge_index.max() <= self.graph_size
