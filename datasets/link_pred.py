@@ -41,7 +41,7 @@ class LinkPredBase(L.LightningDataModule):
             [
                 T.Constant(),
                 GenerateNodeFeatures(target=self.target, feat_type=feat_type),
-                T.AddSelfLoops(),
+                # T.AddSelfLoops(),
                 TrainValEdgeSplit(target=self.target,
                                   hyperparam_tuning=hyperparam_tuning)
             ]
@@ -135,7 +135,7 @@ class PubMedLPDataModule(LinkPredBase):
         self.transform = T.Compose(
             [
                 GenerateNodeFeatures(target=self.target, feat_type=feat_type),
-                T.AddSelfLoops(),
+                # T.AddSelfLoops(),
                 TrainValEdgeSplit(target=self.target,
                                   hyperparam_tuning=hyperparam_tuning),
             ]

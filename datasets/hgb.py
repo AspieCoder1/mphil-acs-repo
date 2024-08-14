@@ -12,7 +12,7 @@ from torch_geometric.data.hetero_data import to_homogeneous_edge_index
 from torch_geometric.data.lightning import LightningNodeData
 
 from datasets.utils.hgb_datasets import HGBDatasetNC
-from datasets.utils.transforms import TrainValNodeSplit, GenerateNodeFeatures
+from datasets.utils.transforms import TrainValNodeSplit, GenerateNodeFeatures, RemoveSelfLoops
 
 DATA_DIR = "data"
 
@@ -55,7 +55,8 @@ class HGBBaseDataModule(L.LightningDataModule):
                 T.Constant(node_types=None),
                 GenerateNodeFeatures(target=self.target, feat_type=self.feat_type),
                 TrainValNodeSplit(hyperparam_tuning=self.hyperparam_tuning),
-                T.AddSelfLoops(),
+                # T.AddSelfLoops(),
+                RemoveSelfLoops(),
                 T.RemoveDuplicatedEdges(),
             ]
         )

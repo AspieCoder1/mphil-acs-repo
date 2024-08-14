@@ -144,20 +144,19 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
                 x = self.lin_right_weights[layer](x)
                 x0 = self.lin_right_weights[layer](x)
 
-            sheaf_L = torch.sparse_coo_tensor(L[0], L[1]).to_dense()
+            # sheaf_L = torch.sparse_coo_tensor(L[0], L[1]).to_dense()
+            # print(sheaf_L.shape)
+            # print(sheaf_L)
+            # print(sheaf_L.count_nonzero(dim=1))
+            # print(sheaf_L.topk(3, dim=1))
+            # print(degree(self.edge_index[0], num_nodes=self.graph_size))
 
-            print(sheaf_L.shape)
-            print(sheaf_L)
-            print(sheaf_L.count_nonzero(dim=1))
-            print(sheaf_L.topk(3, dim=1))
-            print(degree(self.edge_index[0], num_nodes=self.graph_size))
             x = torch_sparse.spmm(L[0], L[1], x.size(0), x.size(0), x)
 
             # if self.use_act:
             #     x = F.elu(x)
 
             coeff = 1 #+ torch.tanh(self.epsilons[layer]).tile(self.graph_size, 1)
-            print(x0.mean(), x.mean())
             x0 = F.elu(coeff * x0 - x)
             x = x0
 
