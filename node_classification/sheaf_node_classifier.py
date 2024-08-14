@@ -13,6 +13,7 @@ from torch_geometric.data import HeteroData
 from torch_geometric.nn import HeteroDictLinear
 from torchmetrics import MetricCollection
 from torchmetrics.classification import F1Score, Accuracy, AUROC
+from models.gnn_baselines import GCN
 
 from models.sheaf_gnn.transductive.disc_models import DiscreteSheafDiffusion
 
@@ -45,6 +46,7 @@ class SheafNodeClassifier(L.LightningModule):
         self.decoder = nn.Linear(model.hidden_dim, out_channels)
         self.scheduler: Optional[LRSchedulerCallable] = scheduler
         self.optimiser = optimiser
+        self.gcn = GCN(in_channels=in_feat, hidden_channels=model.hidden_dim)
 
         metrics_params = {
             "task": task,
@@ -88,8 +90,10 @@ class SheafNodeClassifier(L.LightningModule):
             mask = torch.any(~batch[self.target].y.isnan(), dim=1)
 
         y = batch[self.target].y[mask]
+        # logits = self.gcn(x, batch.homo_edge_index)
+        # logits = F.normalize(logits, dim=1, p=2)
         logits = self.encoder(x, batch.node_type, batch.edge_type)
-        logits = F.normalize(logits, dim=1, p=2)
+
 
         offset = batch.node_offsets[self.target]
 

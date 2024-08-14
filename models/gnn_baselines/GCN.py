@@ -14,25 +14,25 @@ class GCN(nn.Module):
             "x, edge_index",
             [
                 (
-                    GCNConv(in_channels, hidden_channels, add_self_loops=False),
+                    GCNConv(in_channels, hidden_channels, add_self_loops=True),
                     "x, edge_index -> x",
                 ),
                 nn.ELU(),
                 (
-                    GCNConv(hidden_channels, hidden_channels, add_self_loops=False),
+                    GCNConv(hidden_channels, hidden_channels, add_self_loops=True),
                     "x, edge_index -> x",
                 ),
                 nn.ELU(),
                 (
-                    GCNConv(hidden_channels, hidden_channels, add_self_loops=False),
+                    GCNConv(hidden_channels, hidden_channels, add_self_loops=True),
                     "x, edge_index -> x",
                 ),
                 nn.ELU(),
             ],
         )
 
-    def forward(self, data: Data):
-        return self.conv(data.x, data.edge_index)
+    def forward(self, x, edge_index):
+        return self.conv(x, edge_index)
 
     def __repr__(self):
         return "GCN"

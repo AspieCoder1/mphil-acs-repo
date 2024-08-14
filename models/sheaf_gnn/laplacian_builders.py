@@ -182,10 +182,11 @@ class DiagLaplacianBuilder(LaplacianBuilder):
             diag = d_sqrt_inv * diag * d_sqrt_inv
         elif self.deg_normalised:
             deg_sqrt_inv = (
-                (self.deg + 1).pow(-0.5) if self.augmented else self.deg.pow(-0.5)
+                self.deg.pow(-0.5) if self.augmented else self.deg.pow(-0.5)
             )
             deg_sqrt_inv = deg_sqrt_inv.unsqueeze(-1)
             deg_sqrt_inv.masked_fill_(deg_sqrt_inv == float("inf"), 0)
+
             left_norm, right_norm = deg_sqrt_inv[row], deg_sqrt_inv[col]
             tril = left_norm * tril * right_norm
             diag = deg_sqrt_inv * diag * deg_sqrt_inv

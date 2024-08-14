@@ -6,6 +6,7 @@ import torch
 import torch.nn.functional as F
 import torch_sparse
 from torch import nn
+from torch_geometric.utils import degree
 
 from models.sheaf_gnn import laplacian_builders as lb
 from models.sheaf_gnn.orthogonal import Orthogonal
@@ -51,7 +52,7 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
         if self.right_weights:
             for i in range(self.layers):
                 self.lin_right_weights.append(
-                    nn.Linear(self.hidden_channels, self.hidden_channels, bias=False)
+                    nn.Linear(self.hidden_channels, self.hidden_channels, bias=True)
                 )
                 nn.init.orthogonal_(self.lin_right_weights[-1].weight.data)
         if self.left_weights:
@@ -98,18 +99,18 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
         for i in range(self.layers):
             self.epsilons.append(nn.Parameter(torch.zeros((self.final_d, 1))))
 
-        print(self.input_dim)
         self.lin1 = nn.Linear(self.input_dim, self.hidden_dim)
         if self.second_linear:
             self.lin12 = nn.Linear(self.hidden_dim, self.hidden_dim)
         self.lin2 = nn.Linear(self.hidden_dim, self.output_dim)
+        self.dropout_layer = nn.Dropout(self.dropout)
 
     def forward(self, x: torch.Tensor, node_types, edge_types):
-        x = F.dropout(x, p=self.input_dropout, training=self.training)
+        # x = F.dropout(x, p=self.input_dropout, training=self.training)
         x = self.lin1(x)
         if self.use_act:
             x = F.elu(x)
-        x = F.dropout(x, p=self.dropout, training=self.training)
+        # x = F.dropout(x, p=self.dropout, training=self.training)
         if self.second_linear:
             x = self.lin12(x)
         x = x.view(self.graph_size * self.final_d, -1)
@@ -118,10 +119,9 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
 
         embs = []
         for layer in range(self.layers):
+            x = self.dropout_layer(x)
             if layer == 0 or self.nonlinear:
-                x_maps = F.dropout(
-                    x, p=self.dropout if layer > 0 else 0.0, training=self.training
-                )
+                x_maps = x
 
                 # maps are the linear restriction maps
                 maps = self.sheaf_learners[layer](
@@ -133,7 +133,7 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
                 L, trans_maps = self.laplacian_builder(maps)
                 self.sheaf_learners[layer].set_L(trans_maps)
 
-            x = F.dropout(x, p=self.dropout, training=self.training)
+            # x = F.dropout(x, p=self.dropout, training=self.training)
 
             if self.left_weights:
                 x = x.t().reshape(-1, self.final_d)
@@ -142,14 +142,23 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
 
             if self.right_weights:
                 x = self.lin_right_weights[layer](x)
+                x0 = self.lin_right_weights[layer](x)
 
+            sheaf_L = torch.sparse_coo_tensor(L[0], L[1]).to_dense()
+
+            print(sheaf_L.shape)
+            print(sheaf_L)
+            print(sheaf_L.count_nonzero(dim=1))
+            print(sheaf_L.topk(3, dim=1))
+            print(degree(self.edge_index[0], num_nodes=self.graph_size))
             x = torch_sparse.spmm(L[0], L[1], x.size(0), x.size(0), x)
 
-            if self.use_act:
-                x = F.elu(x)
+            # if self.use_act:
+            #     x = F.elu(x)
 
-            coeff = 1 + torch.tanh(self.epsilons[layer]).tile(self.graph_size, 1)
-            x0 = coeff * x0 - x
+            coeff = 1 #+ torch.tanh(self.epsilons[layer]).tile(self.graph_size, 1)
+            print(x0.mean(), x.mean())
+            x0 = F.elu(coeff * x0 - x)
             x = x0
 
             if self.use_hidden_embeddings:
@@ -159,6 +168,9 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
             x = torch.hstack(embs)
 
         x = x.reshape(self.graph_size, -1)
+
+        if not self.use_hidden_embeddings:
+            return F.normalize(x, p=2, dim=1)
         # x = self.lin2(x)
         return x
 
@@ -275,6 +287,7 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
         x = x.view(self.graph_size * self.final_d, -1)
 
         x0, L = x, None
+        embs = []
         for layer in range(self.layers):
             if layer == 0 or self.nonlinear:
                 x_maps = F.dropout(
@@ -309,7 +322,16 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
             ) * x0 - x
             x = x0
 
+            if self.use_hidden_embeddings:
+                embs.append(F.normalize(x, p=2))
+
+        if self.use_hidden_embeddings:
+            x = torch.hstack(embs)
+
         x = x.reshape(self.graph_size, -1)
+
+        if not self.use_hidden_embeddings:
+            return F.normalize(x, p=2, dim=1)
         # x = self.lin2(x)
         return x
 
@@ -412,6 +434,7 @@ class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
         x = x.view(self.graph_size * self.final_d, -1)
 
         x0, L = x, None
+        embs = []
         for layer in range(self.layers):
             if layer == 0 or self.nonlinear:
                 x_maps = F.dropout(
@@ -435,18 +458,28 @@ class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
             # Use the adjacency matrix rather than the diagonal
             x = torch_sparse.spmm(L[0], L[1], x.size(0), x.size(0), x)
 
-            if self.use_act:
-                x = F.elu(x)
+            # if self.use_act:
+            #     x = F.elu(x)
 
             x0 = (
                 1 + torch.tanh(self.epsilons[layer]).tile(self.graph_size, 1)
             ) * x0 - x
+            x0 = F.elu(x0)
             x = x0
+
+            if self.use_hidden_embeddings:
+                embs.append(F.normalize(x, p=2))
 
         # To detect the numerical instabilities of SVD.
         assert torch.all(torch.isfinite(x))
 
+        if self.use_hidden_embeddings:
+            x = torch.hstack(embs)
+
         x = x.reshape(self.graph_size, -1)
+
+        if not self.use_hidden_embeddings:
+            return F.normalize(x, p=2, dim=1)
         # x = self.lin2(x)
         return x
 

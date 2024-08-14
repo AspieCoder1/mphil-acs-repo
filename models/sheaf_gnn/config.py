@@ -45,15 +45,15 @@ class SheafModelArguments:
     ode_args: ODEArguments = field(default_factory=ODEArguments)
     d: int = 2
     layers: int = 2
-    normalised: bool = True
+    normalised: bool = False
     deg_normalised: bool = False
     linear: bool = True
     hidden_channels: int = 20
     input_dropout: float = 0.0
     left_weights: bool = True
     right_weights: bool = True
-    add_lp: bool = True
-    add_hp: bool = True
+    add_lp: bool = False
+    add_hp: bool = False
     use_act: bool = True
     second_linear: bool = False
     orth: OrthogonalMethod = OrthogonalMethod.householder

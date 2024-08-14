@@ -664,3 +664,19 @@ class TypeSheafLearner(SheafLearner):
 
     def __str__(self):
         return "types"
+
+
+class TrivialSheafLearner(SheafLearner):
+    def __init__(self, out_shape, *_args, **_kwargs):
+        super(TrivialSheafLearner, self).__init__()
+        assert len(out_shape) in [1, 2]
+        self.out_shape = out_shape
+
+    def forward(
+            self,
+            x: InputNodes,
+            edge_index: Adj,
+            edge_types: OptTensor = None,
+            node_types: OptTensor = None,
+    ):
+        return torch.ones(size=(edge_index.shape[1], 1)).reshape(-1, self.out_shape[0])

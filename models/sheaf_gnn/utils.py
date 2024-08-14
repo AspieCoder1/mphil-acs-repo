@@ -11,6 +11,7 @@ from models.sheaf_gnn.sheaf_models import (
     EdgeTypeSheafLearner,
     EdgeTypeConcatSheafLearner,
     TypeSheafLearner,
+    TrivialSheafLearner
 )
 
 
@@ -29,6 +30,8 @@ def init_sheaf_learner(sheaf_type):
         sheaf_learner = EdgeTypeSheafLearner
     elif sheaf_type == SheafLearners.edge_type_concat:
         sheaf_learner = EdgeTypeConcatSheafLearner
-    else:
+    elif sheaf_type == SheafLearners.node_edge_types:
         sheaf_learner = TypeSheafLearner
+    else:
+        sheaf_learner = TrivialSheafLearner
     return sheaf_learner
