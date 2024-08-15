@@ -1,8 +1,8 @@
 #  Copyright (c) 2024. Luke Braithwaite
 #  License: MIT
 
+import torch.nn.functional as F
 from torch import nn
-from torch_geometric.data import Data
 from torch_geometric.nn import GCNConv, Sequential
 
 
@@ -32,7 +32,7 @@ class GCN(nn.Module):
         )
 
     def forward(self, x, edge_index):
-        return self.conv(x, edge_index)
+        return F.normalize(self.conv(x, edge_index), p=2, dim=1)
 
     def __repr__(self):
         return "GCN"
