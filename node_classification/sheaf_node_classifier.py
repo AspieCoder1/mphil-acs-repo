@@ -39,6 +39,7 @@ class SheafNodeClassifier(L.LightningModule):
         in_feat: int = 64,
         scheduler: Optional[LRSchedulerCallable] = None,
         optimiser: Optional[OptimizerCallable] = None,
+        initial_dropout: float = 0.8
     ):
         super().__init__()
         self.encoder = model
@@ -76,9 +77,10 @@ class SheafNodeClassifier(L.LightningModule):
         self.save_hyperparameters(ignore=["model"])
         self.fc = HeteroDictLinear(in_channels=in_channels,
                                    out_channels=in_feat)
+        self.initial_dropout = initial_dropout
 
     def common_step(self, batch: HeteroData, step: str = 'train') -> SheafNCSStepOutput:
-        x_dict = {key: F.dropout(x, p=0.8, training=self.training) for key, x in
+        x_dict = {key: F.dropout(x, p=self.initial_dropout, training=self.training) for key, x in
                   batch.x_dict.items()}
         x_dict = self.fc(x_dict)
         x = F.elu(torch.cat(tuple(x_dict.values()), dim=0))

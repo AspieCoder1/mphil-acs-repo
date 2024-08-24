@@ -53,7 +53,8 @@ def main(cfg: DictConfig) -> None:
         in_feat=cfg.get("input_dim", 64),
         in_channels=datamodule.in_channels,
         scheduler=scheduler,
-        optimiser=optimiser
+        optimiser=optimiser,
+        initial_dropout=cfg.get("initial_dropout", 0.8),
     )
 
     ref = str(uuid.uuid4())

@@ -1,0 +1,42 @@
+name: ACM DiagSheaf w/ Local Concat
+program: run_sheaf_nc.py
+method: bayes
+metric:
+  goal: maximize
+  name: valid/micro-f1
+parameters:
+  model.args.d:
+    distribution: int_uniform
+    min: 2
+    max: 5
+  model.args.layers:
+    distribution: int_uniform
+    min: 2
+    max: 8
+  model.args.hidden_channels:
+    distribution: categorical
+    values: [ 64, 128, 265 ]
+  model.args.input_dropout:
+    distribution: uniform
+    min: 0
+    max: 0.9
+  model.args.dropout:
+    distribution: uniform
+    min: 0
+    max: 0.9
+  initial_dropout:
+    values: [ 0.1, 0.2, 0.5, 0.8, 0.9 ]
+  learning_rate:
+    values: [ 1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3, 1e-2, 5e-2 ]
+  weight_decay:
+    values: [ 1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3 ]
+  input_dim:
+    values: [ 32, 64, 128, 256 ]
+command:
+  - python
+  - ${program}
+  - dataset=acm
+  - trainer.max_epochs=200
+  - sheaf_learner=local_concat
+  - dataset.hyperparam_tuning=true
+  - ${args_no_hyphens}
