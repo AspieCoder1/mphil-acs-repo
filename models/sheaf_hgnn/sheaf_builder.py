@@ -9,7 +9,7 @@ from torch_scatter import scatter_add, scatter_mean, scatter
 
 from . import utils
 from .orthogonal import Orthogonal
-from ..hgnn_baselines.mlp import MLP
+from models.sheaf_gnn.mlp import MLP
 
 
 # helper functions to predict sigma(MLP(x_v || h_e)) varying how thw attributes for hyperedge are computed

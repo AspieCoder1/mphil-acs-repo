@@ -6,7 +6,6 @@ import torch
 import torch.nn.functional as F
 import torch_sparse
 from torch import nn
-from torch_geometric.utils import degree
 
 from models.sheaf_gnn import laplacian_builders as lb
 from models.sheaf_gnn.orthogonal import Orthogonal
@@ -54,7 +53,7 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
                 self.lin_right_weights.append(
                     nn.Linear(self.hidden_channels, self.hidden_channels, bias=True)
                 )
-                nn.init.orthogonal_(self.lin_right_weights[-1].weight.data)
+                nn.init.xavier_normal_(self.lin_right_weights[-1].weight.data)
         if self.left_weights:
             for i in range(self.layers):
                 self.lin_left_weights.append(
@@ -103,14 +102,14 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
         if self.second_linear:
             self.lin12 = nn.Linear(self.hidden_dim, self.hidden_dim)
         self.lin2 = nn.Linear(self.hidden_dim, self.output_dim)
-        self.dropout_layer = nn.Dropout(self.dropout)
+        self.dropout_feat = nn.Dropout(self.dropout)
+        self.dropout_input = nn.Dropout(self.input_dropout)
 
     def forward(self, x: torch.Tensor, node_types, edge_types):
-        # x = F.dropout(x, p=self.input_dropout, training=self.training)
+        x = self.dropout_input(x)
         x = self.lin1(x)
         if self.use_act:
             x = F.elu(x)
-        # x = F.dropout(x, p=self.dropout, training=self.training)
         if self.second_linear:
             x = self.lin12(x)
         x = x.view(self.graph_size * self.final_d, -1)
@@ -119,7 +118,7 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
 
         embs = []
         for layer in range(self.layers):
-            x = self.dropout_layer(x)
+            x = self.dropout_feat(x)
             if layer == 0 or self.nonlinear:
                 x_maps = x
 
@@ -133,31 +132,24 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
                 L, trans_maps = self.laplacian_builder(maps)
                 self.sheaf_learners[layer].set_L(trans_maps)
 
-            # x = F.dropout(x, p=self.dropout, training=self.training)
-
             if self.left_weights:
                 x = x.t().reshape(-1, self.final_d)
                 x = self.lin_left_weights[layer](x)
                 x = x.reshape(-1, self.graph_size * self.final_d).t()
 
+                x0 = x0.t().reshape(-1, self.final_d)
+                x0 = self.lin_left_weights[layer](x0)
+                x0 = x0.reshape(-1, self.graph_size * self.final_d).t()
+
             if self.right_weights:
                 x = self.lin_right_weights[layer](x)
-                x0 = self.lin_right_weights[layer](x)
-
-            # sheaf_L = torch.sparse_coo_tensor(L[0], L[1]).to_dense()
-            # print(sheaf_L.shape)
-            # print(sheaf_L)
-            # print(sheaf_L.count_nonzero(dim=1))
-            # print(sheaf_L.topk(3, dim=1))
-            # print(degree(self.edge_index[0], num_nodes=self.graph_size))
+                x0 = self.lin_right_weights[layer](x0)
 
             x = torch_sparse.spmm(L[0], L[1], x.size(0), x.size(0), x)
 
             # if self.use_act:
             #     x = F.elu(x)
-
-            coeff = 1 #+ torch.tanh(self.epsilons[layer]).tile(self.graph_size, 1)
-            x0 = F.elu(coeff * x0 - x)
+            x0 = F.elu(x)
             x = x0
 
             if self.use_hidden_embeddings:
@@ -198,7 +190,7 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
                 self.lin_right_weights.append(
                     nn.Linear(self.hidden_channels, self.hidden_channels, bias=False)
                 )
-                nn.init.orthogonal_(self.lin_right_weights[-1].weight.data)
+                nn.init.xavier_normal_(self.lin_right_weights[-1].weight.data)
         if self.left_weights:
             for i in range(self.layers):
                 self.lin_left_weights.append(
@@ -252,6 +244,8 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
         if self.second_linear:
             self.lin12 = nn.Linear(self.hidden_dim, self.hidden_dim)
         self.lin2 = nn.Linear(self.hidden_dim, self.output_dim)
+        self.dropout_layer = nn.Dropout(self.dropout)
+        self.dropout_input = nn.Dropout(self.input_dropout)
 
     def get_param_size(self):
         if self.orth_trans in ["matrix_exp", "cayley"]:
@@ -276,11 +270,10 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
             weight_learner.update_edge_index(edge_index)
 
     def forward(self, x: torch.Tensor, node_types, edge_types):
-        x = F.dropout(x, p=self.input_dropout, training=self.training)
+        x = self.dropout_input(x)
         x = self.lin1(x)
         if self.use_act:
             x = F.elu(x)
-        x = F.dropout(x, p=self.dropout, training=self.training)
         if self.second_linear:
             x = self.lin12(x)
         x = x.view(self.graph_size * self.final_d, -1)
@@ -288,10 +281,8 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
         x0, L = x, None
         embs = []
         for layer in range(self.layers):
+            x = self.dropout_layer(x)
             if layer == 0 or self.nonlinear:
-                x_maps = F.dropout(
-                    x, p=self.dropout if layer > 0 else 0.0, training=self.training
-                )
                 x_maps = x_maps.reshape(self.graph_size, -1)
                 maps = self.sheaf_learners[layer](
                     x_maps, self.edge_index, edge_types, node_types
@@ -304,21 +295,16 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
                 L, trans_maps = self.laplacian_builder(maps, edge_weights)
                 self.sheaf_learners[layer].set_L(trans_maps)
 
-            x = F.dropout(x, p=self.dropout, training=self.training)
-
             x = self.left_right_linear(
                 x, self.lin_left_weights[layer], self.lin_right_weights[layer]
             )
+            x0 = self.left_right_linear(x0, self.lin_left_weights[layer],
+                                        self.lin_right_weights[layer])
 
             # Use the adjacency matrix rather than the diagonal
             x = torch_sparse.spmm(L[0], L[1], x.size(0), x.size(0), x)
 
-            if self.use_act:
-                x = F.elu(x)
-
-            x0 = (
-                1 + torch.tanh(self.epsilons[layer]).tile(self.graph_size, 1)
-            ) * x0 - x
+            x0 = F.elu(x)
             x = x0
 
             if self.use_hidden_embeddings:
@@ -359,7 +345,7 @@ class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
                 self.lin_right_weights.append(
                     nn.Linear(self.hidden_channels, self.hidden_channels, bias=False)
                 )
-                nn.init.orthogonal_(self.lin_right_weights[-1].weight.data)
+                nn.init.xavier_normal_(self.lin_right_weights[-1].weight.data)
         if self.left_weights:
             for i in range(self.layers):
                 self.lin_left_weights.append(
@@ -409,6 +395,8 @@ class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
         if self.second_linear:
             self.lin12 = nn.Linear(self.hidden_dim, self.hidden_dim)
         self.lin2 = nn.Linear(self.hidden_dim, self.output_dim)
+        self.dropout_layer = nn.Dropout(self.dropout)
+        self.dropout_input = nn.Dropout(self.input_dropout)
 
     def left_right_linear(self, x, left, right):
         if self.left_weights:
@@ -422,11 +410,10 @@ class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
         return x
 
     def forward(self, x: torch.Tensor, node_types, edge_types):
-        x = F.dropout(x, p=self.input_dropout, training=self.training)
+        x = self.dropout_input(x)
         x = self.lin1(x)
         if self.use_act:
             x = F.elu(x)
-        x = F.dropout(x, p=self.dropout, training=self.training)
 
         if self.second_linear:
             x = self.lin12(x)
@@ -435,12 +422,10 @@ class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
         x0, L = x, None
         embs = []
         for layer in range(self.layers):
+            x = self.dropout_layer(x)
             if layer == 0 or self.nonlinear:
-                x_maps = F.dropout(
-                    x, p=self.dropout if layer > 0 else 0.0, training=self.training
-                )
                 maps = self.sheaf_learners[layer](
-                    x_maps.reshape(self.graph_size, -1),
+                    x.reshape(self.graph_size, -1),
                     self.edge_index,
                     edge_types,
                     node_types,
@@ -448,22 +433,18 @@ class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
                 L, trans_maps = self.laplacian_builder(maps)
                 self.sheaf_learners[layer].set_L(trans_maps)
 
-            x = F.dropout(x, p=self.dropout, training=self.training)
-
             x = self.left_right_linear(
                 x, self.lin_left_weights[layer], self.lin_right_weights[layer]
             )
+            x0 = self.left_right_linear(
+                x0, self.lin_left_weights[layer], self.lin_right_weights[layer]
+            )
+
 
             # Use the adjacency matrix rather than the diagonal
             x = torch_sparse.spmm(L[0], L[1], x.size(0), x.size(0), x)
 
-            # if self.use_act:
-            #     x = F.elu(x)
-
-            x0 = (
-                1 + torch.tanh(self.epsilons[layer]).tile(self.graph_size, 1)
-            ) * x0 - x
-            x0 = F.elu(x0)
+            x0 = F.elu(x0 - x)
             x = x0
 
             if self.use_hidden_embeddings:

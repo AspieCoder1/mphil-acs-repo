@@ -13,7 +13,6 @@ from torch_geometric.data import HeteroData
 from torch_geometric.nn import HeteroDictLinear
 from torchmetrics import MetricCollection
 from torchmetrics.classification import F1Score, Accuracy, AUROC
-from models.gnn_baselines import GCN
 
 from models.sheaf_gnn.transductive.disc_models import DiscreteSheafDiffusion
 
@@ -46,8 +45,6 @@ class SheafNodeClassifier(L.LightningModule):
         self.decoder = nn.Linear(model.hidden_dim, out_channels)
         self.scheduler: Optional[LRSchedulerCallable] = scheduler
         self.optimiser = optimiser
-        self.gcn = GCN(in_channels=in_feat, hidden_channels=model.hidden_dim)
-
         metrics_params = {
             "task": task,
             "num_labels": out_channels,
@@ -81,7 +78,9 @@ class SheafNodeClassifier(L.LightningModule):
                                    out_channels=in_feat)
 
     def common_step(self, batch: HeteroData, step: str = 'train') -> SheafNCSStepOutput:
-        x_dict = self.fc(batch.x_dict)
+        x_dict = {key: F.dropout(x, p=0.8, training=self.training) for key, x in
+                  batch.x_dict.items()}
+        x_dict = self.fc(x_dict)
         x = F.elu(torch.cat(tuple(x_dict.values()), dim=0))
 
         mask = batch[self.target][f'{step}_mask']
@@ -90,8 +89,6 @@ class SheafNodeClassifier(L.LightningModule):
             mask = torch.any(~batch[self.target].y.isnan(), dim=1)
 
         y = batch[self.target].y[mask]
-        # logits = self.gcn(x, batch.homo_edge_index)
-        # logits = F.normalize(logits, dim=1, p=2)
         logits = self.encoder(x, batch.node_type, batch.edge_type)
 
 

@@ -45,7 +45,7 @@ class SheafModelArguments:
     ode_args: ODEArguments = field(default_factory=ODEArguments)
     d: int = 2
     layers: int = 2
-    normalised: bool = True
+    normalised: bool = False
     deg_normalised: bool = False
     linear: bool = True
     hidden_channels: int = 20

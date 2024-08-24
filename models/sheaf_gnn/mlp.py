@@ -1,5 +1,5 @@
 #  Copyright (c) 2024. Luke Braithwaite
-#  License: MIT
+#  Adapted from: https://github.com/twitter-research/neural-sheaf-diffusion
 
 from torch import nn, nn as nn
 from torch.nn import functional as F
@@ -173,7 +173,8 @@ class MLP(nn.Module):
 
     def reset_parameters(self):
         for lin in self.lins:
-            lin.reset_parameters()
+            nn.init.xavier_normal_(lin.weight.data)
+            # lin.reset_parameters()
         for normalization in self.normalizations:
             if not (normalization.__class__.__name__ is "Identity"):
                 normalization.reset_parameters()

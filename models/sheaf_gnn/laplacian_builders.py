@@ -202,7 +202,7 @@ class DiagLaplacianBuilder(LaplacianBuilder):
         # Compute the un-normalised Laplacian entries.
         left_maps = torch.index_select(maps, index=left_idx, dim=0)
         right_maps = torch.index_select(maps, index=right_idx, dim=0)
-        tril_maps = -left_maps * right_maps
+        tril_maps = left_maps * right_maps
         saved_tril_maps = tril_maps.detach().clone()
         diag_maps = scatter_add(maps**2, row, dim=0, dim_size=self.size)
 
@@ -333,7 +333,7 @@ class NormConnectionLaplacianBuilder(LaplacianBuilder):
         # Compute the transport maps.
         left_maps = torch.index_select(maps, index=left_idx, dim=0)
         right_maps = torch.index_select(maps, index=right_idx, dim=0)
-        tril_maps = -torch.bmm(torch.transpose(left_maps, -1, -2), right_maps)
+        tril_maps = torch.bmm(torch.transpose(left_maps, -1, -2), right_maps)
         saved_tril_maps = tril_maps.detach().clone()
 
         # Normalise the entries if the normalised Laplacian is used.
@@ -450,7 +450,7 @@ class GeneralLaplacianBuilder(LaplacianBuilder):
         assert torch.all(torch.isfinite(maps))
         left_maps = torch.index_select(maps, index=left_idx, dim=0)
         right_maps = torch.index_select(maps, index=right_idx, dim=0)
-        tril_maps = -torch.bmm(torch.transpose(left_maps, dim0=-1, dim1=-2), right_maps)
+        tril_maps = torch.bmm(torch.transpose(left_maps, dim0=-1, dim1=-2), right_maps)
         saved_tril_maps = tril_maps.detach().clone()
         diag_maps = torch.bmm(torch.transpose(maps, dim0=-1, dim1=-2), maps)
         diag_maps = scatter_add(diag_maps, row, dim=0, dim_size=self.size)

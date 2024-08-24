@@ -11,7 +11,7 @@ from torch_geometric.utils import softmax
 from torch_scatter import scatter
 from torch_sparse import SparseTensor
 
-from models.hgnn_baselines.mlp import MLP
+from models.sheaf_gnn.mlp import MLP
 
 
 class PMA(MessagePassing):

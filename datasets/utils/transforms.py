@@ -181,7 +181,7 @@ class GenerateNodeFeatures(BaseTransform):
     def gen_feat1(self, data: HeteroData) -> HeteroData:
         for node_type in data.node_types:
             if node_type not in self.target:
-                data[node_type].x = torch.zeros_like(data[node_type].x)
+                data[node_type].x = torch.zeros(size=(data[node_type].x.shape[0], 10))
         return data
 
 

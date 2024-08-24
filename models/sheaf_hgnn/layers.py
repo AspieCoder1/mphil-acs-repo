@@ -19,7 +19,7 @@ from torch_geometric.nn.inits import zeros
 from torch_scatter import scatter_add
 
 from . import utils
-from ..hgnn_baselines.mlp import MLP
+from models.sheaf_gnn.mlp import MLP
 
 
 def normalisation_matrices(

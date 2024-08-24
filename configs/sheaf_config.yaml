@@ -2,28 +2,26 @@
 defaults:
   - _self_
   - model: diag_sheaf
-  - dataset: dblp
+  - dataset: acm
   - trainer: trainer
   - logger: wandb
   - callbacks: sheaf_nc
   - experiment: null
   - scheduler: none
   - optimiser: adamw
-
 #tags:
 #  - GNN
 #  - sheaf
 #  - node_classification
-sheaf_learner: 'local_concat'
+# sheaf_learner: 'local_concat'
+sheaf_learner: 'trivial'
 tags: [ GNN, sheaf, node_classification, exp1_1, test ]
-
 dataset:
   homogeneous: true
-
+  hyperparam_tuning: true
 learning_rate: 1e-3
-weight_decay: 1e-2
-input_dim: 128
-
+weight_decay: 1e-4
+input_dim: 64
 callbacks:
   early_stopping:
     monitor: valid/micro-f1
@@ -32,6 +30,5 @@ callbacks:
     monitor: valid/micro-f1
     mode: max
     save_top_k: 1
-
 trainer:
   log_every_n_steps: 1

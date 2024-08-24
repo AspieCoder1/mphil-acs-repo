@@ -1,12 +1,16 @@
-_target_: models.sheaf_gnn.DiscreteDiagSheafDiffusion
+_target_: models.sheaf_gnn.transductive.disc_models.DiscreteDiagSheafDiffusion
 args:
   _target_: models.sheaf_gnn.config.SheafModelArguments
-  dropout: 0.6202018384278907
-  hidden_channels: 64
-  initial_dropout: 0.19820021933740484
-  input_dropout: 0.7640130970045499
-  layers: 5
-  d: 5
+  dropout: 0.5
+  hidden_channels: 128
+  initial_dropout: 0.0
+  input_dropout: 0.5
+  # initial_dropout: 0.19820021933740484
+  # input_dropout: 0.7640130970045499
+  deg_normalised: True
+  normalised: False
+  layers: 8
+  d: 3
   device: cuda
 #edge_index:
 sheaf_learner: '${sheaf_learner}'
