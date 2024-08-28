@@ -9,7 +9,7 @@
 #SBATCH --error=slurm_output/sweeps/ACM_DiagSheaf_Test/err/%A_%a.err
 #SBATCH -A plio-sl2-gpu
 #SBATCH --time=00:15:00
-#SBATCH -a 0-49
+#SBATCH -a 0-299
 #SBATCH -p ampere
 #SBATCH --nodes 1
 #SBATCH --gres=gpu:1
@@ -21,4 +21,4 @@ export WANDB_DIR=".wandb"
 export WANDB_DATA_DIR=".wandb"
 export WANDB_API_KEY="cc080145b244f97b7db093ba0e3de5088e7ee7aa"
 source ~/venv/bin/activate
-srun python -m wandb agent --count 1 "acs-thesis-lb2027/hetero-sheaf-paper/0ngtm5qb"
+srun python -m wandb agent --count 1 "acs-thesis-lb2027/hetero-sheaf-paper/5lauf84g"
