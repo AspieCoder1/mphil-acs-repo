@@ -32,4 +32,5 @@ callbacks:
     save_top_k: 1
 trainer:
   log_every_n_steps: 1
+  max_epochs: 500
 initial_dropout: 0.8

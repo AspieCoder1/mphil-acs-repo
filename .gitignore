@@ -188,3 +188,4 @@ slurm_output/
 DTI-data/
 !configs/experiment/gnn_lp
 configs/experiment/*.sh
+test.py

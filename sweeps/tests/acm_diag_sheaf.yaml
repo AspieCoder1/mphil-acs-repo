@@ -36,7 +36,6 @@ command:
   - python
   - ${program}
   - dataset=acm
-  - trainer.max_epochs=200
   - sheaf_learner=local_concat
   - dataset.hyperparam_tuning=true
   - ${args_no_hyphens}
