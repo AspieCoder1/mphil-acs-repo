@@ -69,6 +69,8 @@ class SheafModelArguments:
     num_edge_types: Optional[int] = None
     num_node_types: Optional[int] = None
     use_hidden_embeddings: bool = False
+    sheaf_num_layers: int = 1
+    sheaf_hidden_channels: int = 64
 
 
 @dataclass

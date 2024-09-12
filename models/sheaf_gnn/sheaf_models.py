@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from torch import nn
 from torch_geometric.typing import Adj, InputNodes, OptTensor
 
+from .mlp import MLP
 from .lib import laplace as lap
 
 
@@ -38,13 +39,24 @@ class LocalConcatSheafLearner(SheafLearner):
     """Learns a sheaf by concatenating the local node features and passing them through a linear layer + activation."""
 
     def __init__(
-        self, in_channels: int, out_shape: Tuple[int, ...], sheaf_act="tanh", **kwargs
+        self,
+        in_channels: int,
+        out_shape: Tuple[int, ...],
+        sheaf_act="tanh",
+        num_layers: int = 1,
+        hidden_channels: int = 64,
+        **kwargs,
     ):
         super(LocalConcatSheafLearner, self).__init__()
         assert len(out_shape) in [1, 2]
         self.out_shape = out_shape
-        self.linear1 = torch.nn.Linear(
-            in_channels * 2, int(np.prod(out_shape)), bias=False
+
+        self.linear1 = MLP(
+            in_channels=2 * in_channels,
+            hidden_channels=hidden_channels,
+            num_layers=num_layers,
+            normalisation="None",
+            out_channels=int(np.prod(out_shape)),
         )
 
         if sheaf_act == "id":
@@ -85,7 +97,11 @@ class LocalConcatSheafLearnerVariant(SheafLearner):
     """Learns a sheaf by concatenating the local node features and passing them through a linear layer + activation."""
 
     def __init__(
-        self, d: int, hidden_channels: int, out_shape: Tuple[int, ...], sheaf_act="tanh"
+        self,
+        d: int,
+        hidden_channels: int,
+        out_shape: Tuple[int, ...],
+        sheaf_act="tanh",
     ):
         super(LocalConcatSheafLearnerVariant, self).__init__()
         assert len(out_shape) in [1, 2]
@@ -109,7 +125,7 @@ class LocalConcatSheafLearnerVariant(SheafLearner):
             self.act = torch.tanh
         elif sheaf_act == "elu":
             self.act = F.elu
-        elif sheaf_act == 'sigmoid':
+        elif sheaf_act == "sigmoid":
             self.act = F.sigmoid
         else:
             raise ValueError(f"Unsupported act {sheaf_act}")
@@ -208,7 +224,7 @@ class EdgeWeightLearner(SheafLearner):
 class QuadraticFormSheafLearner(SheafLearner):
     """Learns a sheaf by concatenating the local node features and passing them through a linear layer + activation."""
 
-    def __init__(self, in_channels: int, out_shape: Tuple[int]):
+    def __init__(self, in_channels: int, out_shape: Tuple[int, ...]):
         super(QuadraticFormSheafLearner, self).__init__()
         assert len(out_shape) in [1, 2]
         self.out_shape = out_shape
@@ -242,14 +258,18 @@ class TypeConcatSheafLearner(SheafLearner):
         sheaf_act: Literal["id", "tanh", "elu"] = "tanh",
         num_node_types: int = 4,
         num_edge_types: int = 12,
+        num_layers: int = 1,
+        hidden_channels: int = 64,
     ):
         super(TypeConcatSheafLearner, self).__init__()
         assert len(out_shape) in [1, 2]
         self.out_shape = out_shape
-        self.linear1 = torch.nn.Linear(
-            in_channels * 2 + num_node_types * 2 + num_edge_types,
-            int(np.prod(out_shape)),
-            bias=False,
+        self.linear1 = MLP(
+            in_channels=2 * in_channels + 2 * num_node_types + num_edge_types,
+            hidden_channels=hidden_channels,
+            num_layers=num_layers,
+            normalisation="None",
+            out_channels=int(np.prod(out_shape)),
         )
         self.num_node_types = num_node_types
         self.num_edge_types = num_edge_types
@@ -304,21 +324,24 @@ class TypeEnsembleSheafLearner(SheafLearner):
         sheaf_act: Literal["id", "tanh", "elu"] = "tanh",
         num_node_types: int = 4,
         num_edge_types: int = 12,
+        num_layers: int = 1,
+        hidden_channels: int = 64,
     ):
         super(TypeEnsembleSheafLearner, self).__init__()
         assert len(out_shape) in [1, 2]
         self.out_shape = out_shape
-        self.linear1 = torch.nn.Linear(
-            in_channels * 2 + num_node_types * 2 + num_edge_types,
-            int(np.prod(out_shape)),
-            bias=False,
-        )
         self.num_node_types = num_node_types
         self.num_edge_types = num_edge_types
 
         self.linear1 = nn.ModuleList(
             [
-                nn.Linear(in_channels * 2, int(np.prod(out_shape)), bias=False)
+                MLP(
+                    in_channels=2 * in_channels,
+                    hidden_channels=hidden_channels,
+                    num_layers=num_layers,
+                    normalisation="None",
+                    out_channels=int(np.prod(out_shape)),
+                )
                 for _ in range(num_edge_types)
             ]
         )
@@ -383,15 +406,20 @@ class EdgeTypeConcatSheafLearner(SheafLearner):
         sheaf_act: Literal["id", "tanh", "elu"] = "tanh",
         num_node_types: int = 4,
         num_edge_types: int = 12,
+        num_layers: int = 1,
+        hidden_channels: int = 64,
     ):
         super(EdgeTypeConcatSheafLearner, self).__init__()
         assert len(out_shape) in [1, 2]
         self.out_shape = out_shape
-        self.linear1 = torch.nn.Linear(
-            in_channels * 2 + num_edge_types,
-            int(np.prod(out_shape)),
-            bias=False,
+        self.linear1 = MLP(
+            in_channels=2 * in_channels + num_edge_types,
+            hidden_channels=hidden_channels,
+            num_layers=num_layers,
+            normalisation="None",
+            out_channels=int(np.prod(out_shape)),
         )
+
         self.num_node_types = num_node_types
         self.num_edge_types = num_edge_types
 
@@ -442,15 +470,20 @@ class NodeTypeConcatSheafLearner(SheafLearner):
         sheaf_act: Literal["id", "tanh", "elu"] = "tanh",
         num_node_types: int = 4,
         num_edge_types: int = 12,
+        num_layers: int = 1,
+        hidden_channels: int = 64,
     ):
         super(NodeTypeConcatSheafLearner, self).__init__()
         assert len(out_shape) in [1, 2]
         self.out_shape = out_shape
-        self.linear1 = torch.nn.Linear(
-            in_channels * 2 + num_node_types * 2,
-            int(np.prod(out_shape)),
-            bias=False,
+        self.linear1 = MLP(
+            in_channels=2 * in_channels + 2 * num_node_types,
+            hidden_channels=hidden_channels,
+            num_layers=num_layers,
+            normalisation="None",
+            out_channels=int(np.prod(out_shape)),
         )
+
         self.num_node_types = num_node_types
         self.num_edge_types = num_edge_types
 
@@ -503,15 +536,20 @@ class NodeTypeSheafLearner(SheafLearner):
         sheaf_act: Literal["id", "tanh", "elu"] = "tanh",
         num_node_types: int = 4,
         num_edge_types: int = 12,
+        num_layers: int = 1,
+        hidden_channels: int = 64,
     ):
         super(NodeTypeSheafLearner, self).__init__()
         assert len(out_shape) in [1, 2]
         self.out_shape = out_shape
-        self.linear1 = torch.nn.Linear(
-            num_node_types * 2,
-            int(np.prod(out_shape)),
-            bias=False,
+        self.linear1 = MLP(
+            in_channels=2 * num_node_types,
+            hidden_channels=hidden_channels,
+            num_layers=num_layers,
+            normalisation="None",
+            out_channels=int(np.prod(out_shape)),
         )
+
         self.num_node_types = num_node_types
         self.num_edge_types = num_edge_types
 
@@ -561,15 +599,20 @@ class EdgeTypeSheafLearner(SheafLearner):
         sheaf_act: Literal["id", "tanh", "elu"] = "tanh",
         num_node_types: int = 4,
         num_edge_types: int = 12,
+        num_layers: int = 1,
+        hidden_channels: int = 64,
     ):
         super(EdgeTypeSheafLearner, self).__init__()
         assert len(out_shape) in [1, 2]
         self.out_shape = out_shape
-        self.linear1 = torch.nn.Linear(
-            num_edge_types,
-            int(np.prod(out_shape)),
-            bias=False,
+        self.linear1 = MLP(
+            in_channels=num_edge_types,
+            hidden_channels=hidden_channels,
+            num_layers=num_layers,
+            normalisation="None",
+            out_channels=int(np.prod(out_shape)),
         )
+
         self.num_node_types = num_node_types
         self.num_edge_types = num_edge_types
 
@@ -607,21 +650,26 @@ class EdgeTypeSheafLearner(SheafLearner):
 
 class TypeSheafLearner(SheafLearner):
     def __init__(
-            self,
-            in_channels: int,
-            out_shape: Tuple[int, ...],
-            sheaf_act: Literal["id", "tanh", "elu"] = "tanh",
-            num_node_types: int = 4,
-            num_edge_types: int = 12,
+        self,
+        in_channels: int,
+        out_shape: Tuple[int, ...],
+        sheaf_act: Literal["id", "tanh", "elu"] = "tanh",
+        num_node_types: int = 4,
+        num_edge_types: int = 12,
+        num_layers: int = 1,
+        hidden_channels: int = 64,
     ):
         super(TypeSheafLearner, self).__init__()
         assert len(out_shape) in [1, 2]
         self.out_shape = out_shape
-        self.linear1 = torch.nn.Linear(
-            2 * num_node_types + num_edge_types,
-            int(np.prod(out_shape)),
-            bias=False,
+        self.linear1 = MLP(
+            in_channels=2 * num_edge_types + num_edge_types,
+            hidden_channels=hidden_channels,
+            num_layers=num_layers,
+            normalisation="None",
+            out_channels=int(np.prod(out_shape)),
         )
+
         self.num_node_types = num_node_types
         self.num_edge_types = num_edge_types
 
@@ -635,11 +683,11 @@ class TypeSheafLearner(SheafLearner):
             raise ValueError(f"Unsupported act {sheaf_act}")
 
     def forward(
-            self,
-            x: InputNodes,
-            edge_index: Adj,
-            edge_types: OptTensor = None,
-            node_types: OptTensor = None,
+        self,
+        x: InputNodes,
+        edge_index: Adj,
+        edge_types: OptTensor = None,
+        node_types: OptTensor = None,
     ):
         edge_type = F.one_hot(edge_types, num_classes=self.num_edge_types).to(
             torch.float
@@ -673,10 +721,10 @@ class TrivialSheafLearner(SheafLearner):
         self.out_shape = out_shape
 
     def forward(
-            self,
-            x: InputNodes,
-            edge_index: Adj,
-            edge_types: OptTensor = None,
-            node_types: OptTensor = None,
+        self,
+        x: InputNodes,
+        edge_index: Adj,
+        edge_types: OptTensor = None,
+        node_types: OptTensor = None,
     ):
         return torch.ones(size=(edge_index.shape[1], 1)).reshape(-1, self.out_shape[0])

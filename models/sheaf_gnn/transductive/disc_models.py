@@ -6,6 +6,7 @@ import torch
 import torch.nn.functional as F
 import torch_sparse
 from torch import nn
+from torch_geometric.typing import InputEdges
 
 from models.sheaf_gnn import laplacian_builders as lb
 from models.sheaf_gnn.orthogonal import Orthogonal
@@ -14,6 +15,7 @@ from models.sheaf_gnn.sheaf_models import (
     EdgeWeightLearner,
     LocalConcatSheafLearnerVariant,
 )
+from models.sheaf_gnn.config import SheafModelArguments
 from ..utils import init_sheaf_learner
 
 
@@ -21,7 +23,7 @@ class DiscreteSheafDiffusion(SheafDiffusion):
     def __init__(
         self,
         edge_index,
-        args,
+        args: SheafModelArguments,
         sheaf_learner: str = "local_concat",
     ):
         super(DiscreteSheafDiffusion, self).__init__(edge_index, args)
@@ -32,13 +34,16 @@ class DiscreteSheafDiffusion(SheafDiffusion):
     def process_restriction_maps(self, maps): ...
 
     @abstractmethod
-    def forward(self, x: torch.Tensor, node_types: torch.Tensor,
-                edge_types: torch.Tensor): ...
+    def forward(
+        self, x: torch.Tensor, node_types: torch.Tensor, edge_types: torch.Tensor
+    ): ...
 
 
 class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
 
-    def __init__(self, edge_index, args, sheaf_learner):
+    def __init__(
+        self, edge_index: InputEdges, args: SheafModelArguments, sheaf_learner
+    ):
         super(DiscreteDiagSheafDiffusion, self).__init__(
             edge_index, args, sheaf_learner
         )
@@ -82,6 +87,8 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
                         sheaf_act=self.sheaf_act,
                         num_edge_types=args.num_edge_types,
                         num_node_types=args.num_node_types,
+                        num_layers=args.sheaf_num_layers,
+                        hidden_channels=args.sheaf_hidden_channels,
                     )
                 )
         self.laplacian_builder = lb.DiagLaplacianBuilder(
@@ -129,6 +136,7 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
                     edge_types,
                     node_types,
                 )
+                print(maps.shape)
                 L, trans_maps = self.laplacian_builder(maps)
                 self.sheaf_learners[layer].set_L(trans_maps)
 
@@ -174,7 +182,9 @@ class DiscreteDiagSheafDiffusion(DiscreteSheafDiffusion):
 
 class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
 
-    def __init__(self, edge_index, args, sheaf_learner):
+    def __init__(
+        self, edge_index: torch.Tensor, args: SheafModelArguments, sheaf_learner
+    ):
         super(DiscreteBundleSheafDiffusion, self).__init__(
             edge_index, args, sheaf_learner
         )
@@ -220,6 +230,8 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
                         sheaf_act=self.sheaf_act,
                         num_edge_types=args.num_edge_types,
                         num_node_types=args.num_node_types,
+                        num_layers=args.sheaf_num_layers,
+                        hidden_channels=args.sheaf_hidden_channels,
                     )
                 )
 
@@ -298,8 +310,9 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
             x = self.left_right_linear(
                 x, self.lin_left_weights[layer], self.lin_right_weights[layer]
             )
-            x0 = self.left_right_linear(x0, self.lin_left_weights[layer],
-                                        self.lin_right_weights[layer])
+            x0 = self.left_right_linear(
+                x0, self.lin_left_weights[layer], self.lin_right_weights[layer]
+            )
 
             # Use the adjacency matrix rather than the diagonal
             x = torch_sparse.spmm(L[0], L[1], x.size(0), x.size(0), x)
@@ -331,7 +344,9 @@ class DiscreteBundleSheafDiffusion(DiscreteSheafDiffusion):
 
 class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
 
-    def __init__(self, edge_index, args, sheaf_learner):
+    def __init__(
+        self, edge_index: torch.Tensor, args: SheafModelArguments, sheaf_learner
+    ):
         super(DiscreteGeneralSheafDiffusion, self).__init__(
             edge_index, args, sheaf_learner
         )
@@ -375,6 +390,8 @@ class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
                         sheaf_act=self.sheaf_act,
                         num_edge_types=args.num_edge_types,
                         num_node_types=args.num_node_types,
+                        num_layers=args.sheaf_num_layers,
+                        hidden_channels=args.sheaf_hidden_channels,
                     )
                 )
         self.laplacian_builder = lb.GeneralLaplacianBuilder(
@@ -439,7 +456,6 @@ class DiscreteGeneralSheafDiffusion(DiscreteSheafDiffusion):
             x0 = self.left_right_linear(
                 x0, self.lin_left_weights[layer], self.lin_right_weights[layer]
             )
-
 
             # Use the adjacency matrix rather than the diagonal
             x = torch_sparse.spmm(L[0], L[1], x.size(0), x.size(0), x)
