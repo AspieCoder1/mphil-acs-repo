@@ -9,7 +9,7 @@
 #SBATCH --error=slurm_output/sweeps/ACM_DiagSheaf_Test/err/%A_%a.err
 #SBATCH -A plio-sl2-gpu
 #SBATCH --time=00:15:00
-#SBATCH -a 0-299
+#SBATCH -a 0-1
 #SBATCH -p ampere
 #SBATCH --nodes 1
 #SBATCH --gres=gpu:1
