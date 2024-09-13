@@ -12,5 +12,7 @@ args:
   layers: 8
   d: 3
   device: cuda
+  sheaf_num_layers: 1
+  sheaf_hidden_channels: 64
 #edge_index:
 sheaf_learner: '${sheaf_learner}'
